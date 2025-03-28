@@ -64,48 +64,88 @@ const loginUser = async (req, res) => {
       // Store refresh token in DB
       await db.execute("UPDATE users SET refresh_token = ? WHERE id = ?", [refreshToken, user.id]);
 
-      res.status(200).json({ accessToken, refreshToken });
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true, // Cookie is not accessible via JavaScript
+        secure: process.env.NODE_ENV === 'production', // Cookie is sent only over HTTPS in production
+        sameSite: 'Strict', // Adjust based on your requirements
+        maxAge: 60 * 60 * 1000, // Cookie expires in 60 minutes
+      });
+  
+      // Set the refresh token as an HTTP-only cookie
+      res.cookie('refreshToken', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+        maxAge: 10 * 24 * 60 * 60 * 1000, // Cookie expires in 10 days
+      });
+  
+      res.status(200).json({ message: 'Login successful' });
+
   } catch (error) {
       res.status(500).json({ error: error.message });
   }
 };
 
-const refresh= async (req, res) => {
-  const { refreshToken } = req.body;
+const refresh = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
 
   try {
-      // Check if refresh token exists in DB
-      const [users] = await db.execute("SELECT * FROM users WHERE refresh_token = ?", [refreshToken]);
-      if (users.length === 0) return res.status(403).json({ message: "Invalid refresh token" });
+    // Check if refresh token exists in DB
+    const [users] = await db.execute("SELECT * FROM users WHERE refresh_token = ?", [refreshToken]);
+    if (users.length === 0) return res.status(403).json({ message: "Invalid refresh token" });
 
-      const user = users[0];
+    const user = users[0];
 
-      // Verify refresh token
-      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
-          if (err) return res.status(403).json({ message: "Invalid or expired refresh token" });
+    // Verify refresh token
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
+      if (err) return res.status(403).json({ message: "Invalid or expired refresh token" });
 
-          // Generate new tokens
-          const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.id);
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.id);
 
-          // Update refresh token in DB
-          await db.execute("UPDATE users SET refresh_token = ? WHERE id = ?", [newRefreshToken, user.id]);
+      // Update refresh token in DB
+      await db.execute("UPDATE users SET refresh_token = ? WHERE id = ?", [newRefreshToken, user.id]);
 
-          res.status(200).json({ accessToken, refreshToken: newRefreshToken });
+      // Set HTTP-only cookies for both tokens
+      const isProduction = process.env.NODE_ENV === 'production';
+      res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'Strict',
+        maxAge: 60 * 60 * 1000, // 1 hour
       });
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'Strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      });
+
+      res.status(200).json({ message: "Tokens refreshed successfully" });
+    });
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
-}
+};
 
 const logoutUser=async (req, res) => {
 
-  const { refreshToken } = req.body;
+  const  refreshToken  = req.cookies.refreshToken;
+ 
   if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
 
   try {
       // Remove refresh token from DB
       await db.execute("UPDATE users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
+
+
+      res.clearCookie('token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+      });
+    
       res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
       res.status(500).json({ error: error.message });
