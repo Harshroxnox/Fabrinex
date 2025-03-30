@@ -24,7 +24,7 @@ const registerUser = async (req, res) => {
 
   try {
       // Check if email already exists
-      const [existingUser] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
+      const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
       if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });
 
       // Hash password
@@ -32,7 +32,7 @@ const registerUser = async (req, res) => {
 
       // Insert user into DB
       await db.execute(
-          "INSERT INTO users (name, phone_number, whatsapp_number, email, password) VALUES (?, ?, ?, ?, ?)",
+          "INSERT INTO Users (name, phone_number, whatsapp_number, email, password) VALUES (?, ?, ?, ?, ?)",
           [name, phone_number, whatsapp_number, email, hashedPassword]
       );
 
@@ -49,7 +49,7 @@ const loginUser = async (req, res) => {
 
   try {
       // Check if user exists
-      const [users] = await db.execute("SELECT * FROM users WHERE email = ?", [email]);
+      const [users] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
       if (users.length === 0) return res.status(400).json({ message: "User not found" });
 
       const user = users[0];
@@ -62,7 +62,7 @@ const loginUser = async (req, res) => {
       const { accessToken, refreshToken } = generateTokens(user.id);
 
       // Store refresh token in DB
-      await db.execute("UPDATE users SET refresh_token = ? WHERE id = ?", [refreshToken, user.id]);
+      await db.execute("UPDATE Users SET refresh_token = ? WHERE id = ?", [refreshToken, user.id]);
 
       res.cookie('accessToken', accessToken, {
         httpOnly: true, // Cookie is not accessible via JavaScript
@@ -92,7 +92,7 @@ const refresh = async (req, res) => {
 
   try {
     // Check if refresh token exists in DB
-    const [users] = await db.execute("SELECT * FROM users WHERE refresh_token = ?", [refreshToken]);
+    const [users] = await db.execute("SELECT * FROM Users WHERE refresh_token = ?", [refreshToken]);
     if (users.length === 0) return res.status(403).json({ message: "Invalid refresh token" });
 
     const user = users[0];
@@ -105,7 +105,7 @@ const refresh = async (req, res) => {
       const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.id);
 
       // Update refresh token in DB
-      await db.execute("UPDATE users SET refresh_token = ? WHERE id = ?", [newRefreshToken, user.id]);
+      await db.execute("UPDATE Users SET refresh_token = ? WHERE id = ?", [newRefreshToken, user.id]);
 
       // Set HTTP-only cookies for both tokens
       const isProduction = process.env.NODE_ENV === 'production';
@@ -137,7 +137,7 @@ const logoutUser=async (req, res) => {
 
   try {
       // Remove refresh token from DB
-      await db.execute("UPDATE users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
+      await db.execute("UPDATE Users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
 
 
       res.clearCookie('token', {
@@ -155,7 +155,7 @@ const logoutUser=async (req, res) => {
 const getProfile = async (req, res) => {
   try {
 
-    const [users] = await db.execute("SELECT name, email, phone_number FROM users WHERE id = ?", [req.userId]);
+    const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE id = ?", [req.userId]);
     if (users.length === 0) return res.status(404).json({ message: "User not found" });
 
     res.status(200).json(users[0]);

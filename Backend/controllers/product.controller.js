@@ -6,8 +6,8 @@ const createProduct = async (req, res) => {
     const { name, description, stock } = req.body;
     try {
         const [result] = await db.execute(
-            "INSERT INTO Products (name, description, stock) VALUES (?, ?, ?)", 
-            [name, description, stock]
+            "INSERT INTO Products (name, description) VALUES (?, ?)", 
+            [name, description]
         );
         res.status(201).json({ message: "Product created", productID: result.insertId });
     } catch (err) {
@@ -16,11 +16,12 @@ const createProduct = async (req, res) => {
 };
 
 const updateProduct = async (req, res) => {
-    const { name, description, stock } = req.body;
+    const { name, description } = req.body;
+
     try {
         const [result] = await db.execute(
-            "UPDATE Products SET name=?, description=?, stock=? WHERE productID=?", 
-            [name, description, stock, req.params.id]
+            "UPDATE Products SET name=?, description=? WHERE productID=?", 
+            [name, description,req.params.productID]
         );
         if (result.affectedRows === 0) return res.status(404).json({ message: "Product not found" });
         res.json({ message: "Product updated" });
@@ -31,35 +32,60 @@ const updateProduct = async (req, res) => {
 
 const rateProduct = async (req, res) => {
     const { rating } = req.body;
+    const userID = req.user.id; 
     const productID = req.params.id;
 
-    // Validate rating (should be between 1 and 5)
+    // Validate rating (must be 1-5)
     if (!rating || rating < 1 || rating > 5) {
         return res.status(400).json({ message: "Rating must be between 1 and 5" });
     }
 
     try {
-        // Update cumulative rating and count of people who rated
-        const [result] = await db.execute(
-            "UPDATE Products SET cumulative_rating = cumulative_rating + ?, people_rated = people_rated + 1 WHERE productID = ?", 
+        //  Check if user has purchased the product
+        const [order] = await db.execute(
+            "SELECT * FROM Orders WHERE userID = ? AND productID = ?",
+            [userID, productID]
+        );
+
+        if (order.length === 0) {
+            return res.status(403).json({ message: "You can only rate products you have purchased" });
+        }
+
+        // Check if the user has already rated this product for this order
+        const [existingRating] = await db.execute(
+            "SELECT * FROM Ratings WHERE userID = ? AND productID = ?",
+            [userID, productID]
+        );
+
+        if (existingRating.length > 0) {
+            return res.status(400).json({ message: "You have already rated this product. Purchase again to rate again." });
+        }
+
+        // Insert the new rating
+        await db.execute(
+            "INSERT INTO Ratings (userID, productID, rating) VALUES (?, ?, ?)",
+            [userID, productID, rating]
+        );
+
+        // Update cumulative rating and people rated in Products table
+        await db.execute(
+            "UPDATE Products SET cumulative_rating = cumulative_rating + ?, people_rated = people_rated + 1 WHERE productID = ?",
             [rating, productID]
         );
 
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ message: "Product not found" });
-        }
+        res.status(201).json({ message: "Rating submitted successfully" });
 
-        res.json({ message: "Rating submitted successfully" });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 };
 
+
 const getProductById = async (req, res) => {
     try {
         const [product] = await db.execute(
             "SELECT *, (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating FROM Products WHERE productID = ?", 
-            [req.params.id]
+            [req.params.productID]
         );
 
         if (product.length === 0) return res.status(404).json({ message: "Product not found" });
@@ -72,7 +98,7 @@ const getProductById = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
     try {
-        const [products] = await db.execute("SELECT * FROM Products");
+        const [products] = await db.execute("SELECT *, (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating  FROM Products");
         res.json(products);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -81,7 +107,7 @@ const getAllProducts = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
     try {
-        const [result] = await db.execute("DELETE FROM Products WHERE productID=?", [req.params.id]);
+        const [result] = await db.execute("DELETE FROM Products WHERE productID=?", [req.params.productID]);
         if (result.affectedRows === 0) return res.status(404).json({ message: "Product not found" });
         res.json({ message: "Product deleted" });
     } catch (err) {
@@ -129,6 +155,16 @@ const getVariantsByProduct = async (req, res) => {
     }
 };
 
+
+const getVariantById = async (req, res) => {
+    try {
+        const [variant] = await db.execute("SELECT * FROM ProductVariants WHERE variantID = ?", [req.params.variantID]);
+        res.json(variant);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 const deleteVariant = async (req, res) => {
     try {
         const [result] = await db.execute("DELETE FROM ProductVariants WHERE variantID=?", [req.params.variantID]);
@@ -151,6 +187,7 @@ export
  createVariant,
  updateVariant,
  getVariantsByProduct,
+ getVariantById,
  deleteVariant
 
 }
