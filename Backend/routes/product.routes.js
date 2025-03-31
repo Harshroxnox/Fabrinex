@@ -1,5 +1,5 @@
 import {Router} from 'express'
-import {createProduct,rateProduct,getProductById,getAllProducts,updateProduct,deleteProduct,createVariant,updateVariant,getVariantsByProduct,deleteVariant, getVariantById} from '../controllers/product.controller.js'
+import {createProduct,reviewProduct,editReview,getProductById,getAllProducts,updateProduct,deleteProduct,createVariant,updateVariant,getVariantsByProduct,deleteVariant, getVariantById} from '../controllers/product.controller.js'
 import authMiddleware from '../middleware/authMiddleware.js';
 
 const router =Router()
@@ -7,7 +7,8 @@ const router =Router()
 // product routes
 router.route("/createproduct").post(createProduct);
 router.route("/updateproduct/:productID").put(updateProduct);
-router.route("/rateproduct/:productID").post(authMiddleware,rateProduct);
+router.route("/reviewproduct/:productID").post(authMiddleware,reviewProduct);
+router.route("/editreview/:productID").post(authMiddleware,editReview);
 router.route("/getproduct/:productID").get(getProductById);
 router.route("/getallproducts").get(getAllProducts);
 router.route('/deleteproduct/:productID').delete(deleteProduct) ; 

@@ -3,7 +3,7 @@ import { db } from '../index.js';
 // product controller 
 
 const createProduct = async (req, res) => {
-    const { name, description, stock } = req.body;
+    const { name, description } = req.body;
     try {
         const [result] = await db.execute(
             "INSERT INTO Products (name, description) VALUES (?, ?)", 
@@ -29,11 +29,10 @@ const updateProduct = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
-
-const rateProduct = async (req, res) => {
-    const { rating } = req.body;
-    const userID = req.user.id; 
-    const productID = req.params.id;
+const reviewProduct = async (req, res) => {
+    const { rating, review } = req.body;
+    const userID = req.userId;
+    const productID = req.params.productID;
 
     // Validate rating (must be 1-5)
     if (!rating || rating < 1 || rating > 5) {
@@ -48,23 +47,23 @@ const rateProduct = async (req, res) => {
         );
 
         if (order.length === 0) {
-            return res.status(403).json({ message: "You can only rate products you have purchased" });
+            return res.status(403).json({ message: "You can only review products you have purchased" });
         }
 
-        // Check if the user has already rated this product for this order
-        const [existingRating] = await db.execute(
-            "SELECT * FROM Ratings WHERE userID = ? AND productID = ?",
+        // Check if the user has already reviewed this product for this order
+        const [existingReview] = await db.execute(
+            "SELECT * FROM Reviews WHERE userID = ? AND productID = ?",
             [userID, productID]
         );
 
-        if (existingRating.length > 0) {
-            return res.status(400).json({ message: "You have already rated this product. Purchase again to rate again." });
+        if (existingReview.length > 0) {
+            return res.status(400).json({ message: "You have already reviewed this product. Purchase again to review again." });
         }
 
-        // Insert the new rating
+        // Insert the new review
         await db.execute(
-            "INSERT INTO Ratings (userID, productID, rating) VALUES (?, ?, ?)",
-            [userID, productID, rating]
+            "INSERT INTO Reviews (userID, productID, rating, review) VALUES (?, ?, ?, ?)",
+            [userID, productID, rating, review || null] // Allow null for review text
         );
 
         // Update cumulative rating and people rated in Products table
@@ -73,7 +72,54 @@ const rateProduct = async (req, res) => {
             [rating, productID]
         );
 
-        res.status(201).json({ message: "Rating submitted successfully" });
+        res.status(201).json({ message: "Review submitted successfully" });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+const editReview = async (req, res) => {
+    const { rating, review } = req.body;
+    const userID = req.userId;
+    const productID = req.params.productID;
+
+    // Validate rating (must be 1-5)
+    if (rating && (rating < 1 || rating > 5)) {
+        return res.status(400).json({ message: "Rating must be between 1 and 5" });
+    }
+
+    try {
+        // Check if the user has already reviewed this product
+        const [existingReview] = await db.execute(
+            "SELECT * FROM Reviews WHERE userID = ? AND productID = ?",
+            [userID, productID]
+        );
+
+        if (existingReview.length === 0) {
+            return res.status(404).json({ message: "No review found for this product." });
+        }
+
+        // Get old rating to adjust cumulative rating in Products table
+        const oldRating = existingReview[0].rating;
+
+        // Update review and rating
+        await db.execute(
+            "UPDATE Reviews SET rating = ?, review = ? WHERE userID = ? AND productID = ?",
+            [rating || oldRating, review || existingReview[0].review, userID, productID]
+        );
+
+        //  Update cumulative rating in Products table
+        if (rating) {
+            const ratingDifference = rating - oldRating;
+            await db.execute(
+                "UPDATE Products SET cumulative_rating = cumulative_rating + ? WHERE productID = ?",
+                [ratingDifference, productID]
+            );
+        }
+
+        res.status(200).json({ message: "Review updated successfully" });
 
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -180,7 +226,8 @@ export
 {
  createProduct,
  updateProduct,
- rateProduct,
+ reviewProduct,
+ editReview,
  getProductById,
  getAllProducts,
  deleteProduct,
