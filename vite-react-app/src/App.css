@@ -4,10 +4,15 @@
   padding: 2rem;
   text-align: center;
   font-family: 'Satoshi', 'sans-serif';
+  background-color: rgb(128, 225, 225);
 }
 
 a {
-  text-decoration: none; 
-  color: inherit; 
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  width: 1.2rem;
 }
 
