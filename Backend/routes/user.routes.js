@@ -11,4 +11,4 @@ router.route("/refresh").post(refresh)
 router.route("/logout").post(logoutUser);
 router.route("/getprofile").get(authMiddleware,getProfile)
 
-export default router 
+export default router

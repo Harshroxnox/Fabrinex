@@ -11,7 +11,7 @@ router.route("/reviewproduct/:productID").post(authMiddleware,reviewProduct);
 router.route("/editreview/:productID").post(authMiddleware,editReview);
 router.route("/getproduct/:productID").get(getProductById);
 router.route("/getallproducts").get(getAllProducts);
-router.route('/deleteproduct/:productID').delete(deleteProduct) ; 
+router.route('/deleteproduct/:productID').delete(deleteProduct);
 
 // variant routes
 router.route('/createvariant/:productID').post(createVariant);
