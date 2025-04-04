@@ -5,7 +5,7 @@ const connectDB = async () => {
         const db = await mysql.createConnection({
             host: "localhost",
             user: "root",
-            password: "mysql@AK16",
+            password: process.env.MYSQL_PASSWORD,
             database: "ecommerce",
         });
 
