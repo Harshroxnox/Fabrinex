@@ -1,6 +1,3 @@
-ALTER USER 'root'@'localhost' IDENTIFIED BY 'mysql';
-FLUSH PRIVILEGES;
-
 CREATE DATABASE ecommerce;
 USE ecommerce;
 
