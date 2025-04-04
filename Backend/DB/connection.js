@@ -1,4 +1,5 @@
 import mysql from 'mysql2/promise'; // Use the promise-based version
+import 'dotenv/config';
 
 const connectDB = async () => {
     try {

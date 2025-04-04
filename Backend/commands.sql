@@ -8,7 +8,7 @@ CREATE TABLE Users (
     whatsapp_number VARCHAR(15) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    prof_img VARCHAR(255),
+    profile_img VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     refresh_token TEXT
 );
