@@ -27,10 +27,6 @@ export const sendOtp = async (req, res) => {
     }
 };
 
-export const sendMessageToConsole5 = (msg) => {
-    console.log(msg);
-};
-
 export const verifyOtp = async (req, res) => {
     const { email, phone_number, otp } = req.body;
   
