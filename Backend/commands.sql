@@ -22,6 +22,7 @@ CREATE TABLE Products (
 );
 
 CREATE TABLE ProductVariants (
+    -- main_image, barcode is missing
     variantID INT AUTO_INCREMENT PRIMARY KEY,
     productID INT NOT NULL,
     color VARCHAR(50) NOT NULL,
@@ -43,8 +44,74 @@ CREATE TABLE Reviews (
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
 );
 
+CREATE TABLE Addresses (
+    addressID INT AUTO_INCREMENT PRIMARY KEY,
+    userID INT NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    pincode VARCHAR(10) NOT NULL,
+    state VARCHAR(100) NOT NULL,
+    address_line TEXT NOT NULL,
+    FOREIGN KEY (userID) REFERENCES Users(id) ON DELETE CASCADE
+);
 
+CREATE TABLE Orders (
+    orderID INT AUTO_INCREMENT PRIMARY KEY,
+    variantID INT NOT NULL,
+    userID INT NOT NULL,
+    addressID INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    payment_method VARCHAR(50) NOT NULL,
+    payment_status VARCHAR(20) NOT NULL, 
+    quantity INT NOT NULL CHECK (quantity > 0),
+    order_location VARCHAR(255) NOT NULL,
+    order_status VARCHAR(20) NOT NULL,
+    barcode CHAR(13) UNIQUE, -- EAN-13 format
+    FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID),
+    FOREIGN KEY (userID) REFERENCES Users(id),
+    FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
+);
 
+CREATE TABLE Promotions (
+    promotionID INT AUTO_INCREMENT PRIMARY KEY,
+    promotion_code VARCHAR(50) UNIQUE NOT NULL
+);
 
+CREATE TABLE Transactions (
+    transactionID INT AUTO_INCREMENT PRIMARY KEY,
+    orderID INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    amount DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (orderID) REFERENCES Orders(orderID)
+);
 
+CREATE TABLE Payments (
+    paymentID INT AUTO_INCREMENT PRIMARY KEY,
+    userID INT NOT NULL,
+    last4_card_no CHAR(4) NOT NULL,
+    card_holder_name VARCHAR(255) NOT NULL,
+    expiration CHAR(7) NOT NULL,  -- YYYY-MM format ex 2027-09
+    payment_network VARCHAR(20) NOT NULL,
+    payment_token VARCHAR(255) NOT NULL,  -- Store a secure token from payment gateway
+    FOREIGN KEY (userID) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE Carts (
+    cartID INT AUTO_INCREMENT PRIMARY KEY,
+    userID INT NOT NULL,
+    variantID INT NOT NULL,
+    FOREIGN KEY (userID) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
+);
+
+CREATE TABLE ProductImages (
+    productImageID INT AUTO_INCREMENT PRIMARY KEY,
+    variantID INT NOT NULL,
+    image_url VARCHAR(255) NOT NULL,
+    FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
+);
+
+CREATE TABLE MessageTemplates (
+    messageTemplateID INT AUTO_INCREMENT PRIMARY KEY,
+    message TEXT NOT NULL
+);
 
