@@ -3,6 +3,7 @@ import bcrypt from "bcrypt"
 import { db } from '../index.js'; 
 import 'dotenv/config';
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { isOTPVerified } from "../utils/otp.helper.js";
 
 const generateTokens = (userId) => {
   const accessToken = jwt.sign(
@@ -19,40 +20,35 @@ const generateTokens = (userId) => {
 };
 
 
-
-
-const registerUser = async (req, res) => {
+ const registerUser = async (req, res) => {
   const { name, phone_number, whatsapp_number, email, password } = req.body;
-  const profilePicPath = req.file ? req.file.path : null; // Get uploaded file path
+  const profilePicPath = req.file ? req.file.path : null;
 
   try {
-      // Check if email already exists
-      const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-      if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });
+    const verified = await isOTPVerified({ email, phone_number });
+    if (!verified) return res.status(403).json({ message: "Please verify OTP before registering" });
 
-      // Hash password
-      const hashedPassword = await bcrypt.hash(password, 10);
+    const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
+    if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });
 
-      // Upload profile image to Cloudinary (if provided)
-      let profileImgUrl = null;
-      if (profilePicPath) {
-          const uploadedImage = await uploadOnCloudinary(profilePicPath);
-          profileImgUrl = uploadedImage?.url || null; // Store URL if upload is successful
-      }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-      // Insert user into DB with profile image URL
-      await db.execute(
-          "INSERT INTO Users (name, phone_number, whatsapp_number, email, password, profile_img) VALUES (?, ?, ?, ?, ?, ?)",
-          [name, phone_number, whatsapp_number, email, hashedPassword, profileImgUrl]
-      );
+    let profileImgUrl = null;
+    if (profilePicPath) {
+      const uploadedImage = await uploadOnCloudinary(profilePicPath);
+      profileImgUrl = uploadedImage?.url || null;
+    }
 
-      res.status(201).json({ message: "User registered successfully", profileImg: profileImgUrl });
+    await db.execute(
+      "INSERT INTO Users (name, phone_number, whatsapp_number, email, password, profile_img) VALUES (?, ?, ?, ?, ?, ?)",
+      [name, phone_number, whatsapp_number, email, hashedPassword, profileImgUrl]
+    );
 
+    res.status(201).json({ message: "User registered successfully", profileImg: profileImgUrl });
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
-
 
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
