@@ -1,5 +1,5 @@
 import a1 from '../../assets/a1.png';
-import a2 from '../../assets/a2.png';
+import c2 from '../../assets/c2.jpeg';
 import a3 from '../../assets/a3.png';
 import a4 from '../../assets/a4.png';
 
@@ -11,10 +11,10 @@ export const features = [
       "rating": "4.5/5",
       "originalPrice": "$260",
       "currentPrice": "$120",
-      "discount": "-50%"
+      // "discount": "0"
     },
     {
-      "image":a2,
+      "image":c2,
       "title": "Skinny Fit Jeans",
       "rating": "4.5/5",
       "originalPrice": "$260",
@@ -27,7 +27,7 @@ export const features = [
       "rating": "4.5/5",
       "originalPrice": "$260",
       "currentPrice": "$180",
-      "discount": "-30%"
+      // "discount": "-30%"
     },
     {
       "image":a4,

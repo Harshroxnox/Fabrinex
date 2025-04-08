@@ -1,18 +1,20 @@
 import React from 'react';
-
+import { useNavigate } from 'react-router-dom';
 const ProductCard = ({ title, image, rating, originalPrice, currentPrice, discount }) => {
+  const navigate=useNavigate();
   return (
-    <div className=" rounded-lg overflow-hidden w-full">
-      <div className="aspect-square rounded-b-lg">
+    <div className="w-[298px] rounded-lg">
+      <div className="rounded-b-lg">
         <img
           src={image}
           alt={title}
-          className="w-full h-full object-cover object-center rounded-b-lg "
+          className="w-[298px] h-[298px] object-center rounded-[20px] cursor-pointer "
+          onClick={()=> navigate('/cloths')}
         />
       </div>
-      <div className="p-3">
-        <h3 className="font-[700] text-[20px] mb-2 font-satoshi">{title}</h3>
-        <div className="flex items-center mb-2">
+      <div className="p-2">
+        <h3 className="font-[700] text-[20px] font-satoshi">{title}</h3>
+        <div className="flex items-center">
           <div className="flex text-yellow-400">
             {[...Array(5)].map((_, i) => (
               <span key={i} className="text-sm">★</span>
@@ -25,7 +27,7 @@ const ProductCard = ({ title, image, rating, originalPrice, currentPrice, discou
           {originalPrice && discount && (
             <>
               <p className="text-gray-400 line-through ml-2 text-sm">{originalPrice}</p>
-              <p className="text-red-500 ml-2 text-sm">-{discount}</p>
+              {discount && <p className="text-red-500 bg-red-200 rounded-[16px] p-1 ml-2 text-sm">{discount}</p>}
             </>
           )}
         </div>

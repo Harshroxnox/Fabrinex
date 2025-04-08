@@ -1,5 +1,6 @@
 import React from 'react'
 import Showcase from './showcase/showcase'
+// import { features } from './features/filtersection'
 import { features } from './features/newarrivals'
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const TestimonialCarousel = () => {
   const testimonials = [
@@ -25,9 +25,24 @@ const TestimonialCarousel = () => {
       rating: 5,
       verified: true,
       review: "The customer service at Shop.co is exceptional. They went above and beyond to help me find the perfect outfit for a special occasion, and I couldn't be happier with my purchase."
+    },  {
+      name: "Pnakja.",
+      rating: 5,
+      verified: true,
+      review: "The customer service at Shop.co is exceptional. They went above and beyond to help me find the perfect outfit for a special occasion, and I couldn't be happier with my purchase."
+    },  {
+      name: "rahul",
+      rating: 5,
+      verified: true,
+      review: "The customer service at Shop.co is exceptional. They went above and beyond to help me find the perfect outfit for a special occasion, and I couldn't be happier with my purchase."
+    },  {
+      name: "akshat",
+      rating: 5,
+      verified: true,
+      review: "The customer service at Shop.co is exceptional. They went above and beyond to help me find the perfect outfit for a special occasion, and I couldn't be happier with my purchase."
     },
     {
-      name: "David T.",
+      name: "harsh",
       rating: 5,
       verified: true,
       review: "I appreciate the attention to detail in every garment from Shop.co. The stitching, fabric quality, and overall finish are superior to many other brands I've tried in the past."
@@ -36,6 +51,21 @@ const TestimonialCarousel = () => {
 
   const sliderRef = useRef(null);
   const [currentIndex, setCurrentIndex] = useState(1);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if screen is mobile
+  useEffect(() => {
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIfMobile();
+    window.addEventListener('resize', checkIfMobile);
+    
+    return () => {
+      window.removeEventListener('resize', checkIfMobile);
+    };
+  }, []);
 
   const scrollRight = () => {
     if (currentIndex < testimonials.length - 3) {
@@ -52,43 +82,49 @@ const TestimonialCarousel = () => {
   };
 
   return (
-    <div className=" mx-auto px-4 py-8">
+    <div className="mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h2 className="text-3xl font-bold">OUR HAPPY CUSTOMERS</h2>
-        <div className="flex space-x-2">
-          <button 
-            onClick={scrollLeft}
-            className="p-2 rounded-full border border-gray-300 hover:bg-gray-100"
-            disabled={currentIndex === 0}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <button 
-            onClick={scrollRight}
-            className="p-2 rounded-full border border-gray-300 hover:bg-gray-100"
-            disabled={currentIndex >= testimonials.length - 3}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+        {!isMobile && (
+          <div className="flex space-x-2">
+            <button 
+              onClick={scrollLeft}
+              className="p-2 rounded-full border border-gray-300 hover:bg-gray-100"
+              disabled={currentIndex === 0}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button 
+              onClick={scrollRight}
+              className="p-2 rounded-full border border-gray-300 hover:bg-gray-100"
+              disabled={currentIndex >= testimonials.length - 3}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </div>
+        )}
       </div>
       
       <div 
         ref={sliderRef}
-        className="flex overflow-x-hidden relative"
+        className={`flex ${isMobile ? 'overflow-x-auto' : 'overflow-x-hidden'} relative`}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {testimonials.map((testimonial, index) => (
           <div 
             key={index}
-            className={`flex-shrink-0 w-[400px] mx-[5px] p-6 bg-white rounded-xl border border-gray-100 transition-all duration-300 ${
-              index >= currentIndex && index < currentIndex + 3 
-                ? 'opacity-100 scale-100' 
-                : 'opacity-30 scale-95'
+            className={`flex-shrink-0 w-[300px] md:w-[400px] mx-[5px] p-6 bg-white rounded-xl border border-gray-100 transition-all duration-300 ${
+              !isMobile ? (
+                index === currentIndex - 1 || index === currentIndex + 3 ? 
+                'opacity-30 scale-95' : 
+                (index >= currentIndex && index < currentIndex + 3) ? 
+                'opacity-100 scale-100' : 
+                'opacity-0 scale-90'
+              ) : ''
             }`}
           >
             {/* Stars */}

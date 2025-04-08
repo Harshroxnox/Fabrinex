@@ -16,23 +16,26 @@ import CasualCategoryPage from './components/CasualCategoryPage';
 import Filter from './components/filter';
 import FilterDialog from './components/filter';
 import FilteredCloths from './components/FilteredCloths';
+import ProfileSection from './components/ProfileSection/ProfileSection';
+import { BrowserRouter, Routes,Route } from 'react-router-dom';
+import ShoppingCart from './components/ShoppingCart/ShoppingCart';
+import CheckoutPage from './components/CheckoutPage/CheckoutPage';
 function App() {
   return (
-    <div>
-      <Navbar/>
-      <ShopCoLandingPage/>
-      <NewArrivals/>
-      <TopSelling/>
-      <DressStyleCategories/>
-      <TestimonialCarousel/>
-      {/* <ProductDisplay/> */}
-      {/* <ProductPage/> */}
-      {/* <CasualCategoryPage/> */}
-      {/* <FilteredCloths/> */}
-      {/* <FilterDialog/> */}
-      <NewsletterBanner/>
-      <Footer/>
-    </div>
+    <BrowserRouter>
+    <Navbar/>
+    <Routes>
+      <Route path='/' element={<ShopCoLandingPage/>}/>
+      <Route path='/profile' element={<ProfileSection/>}/>
+      <Route path='/cloths' element={<ProductDisplay/>}/>
+      <Route path='/filter' element={<FilterDialog/>}/>
+      <Route path='/cart' element={<ShoppingCart/>}/>
+      <Route path='/checkout' element={<CheckoutPage/>}/>
+      <Route path='/newArrivals' element={<NewArrivals/>}/>
+    </Routes>
+    <NewsletterBanner/>
+    <Footer/>
+    </BrowserRouter>
   )
 }
 
