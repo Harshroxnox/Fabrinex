@@ -5,7 +5,7 @@ const HomePage = () => {
     return(
         <>
         <Navbar /> 
-        <h1>Here will be the Hero Image Slider</h1>
+        <h1 className="home-title">Here will be the Hero Image Slider</h1>
         </>
     )
 }
