@@ -1,6 +1,15 @@
+.home-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8rem;
+    padding: 8rem;
+}
+
 .home-title {
     font-weight: 800;
-    font-size: 8rem;
-    margin-top: 9rem;
+    font-size: 7rem;
     color:rgb(18, 19, 19);
+    text-align: center;
 }
