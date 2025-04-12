@@ -7,10 +7,15 @@
     flex-direction: column;
 }
 
-.admin-container h1 {
-    margin: 1rem 0;
-    flex-basis: 10vh;
-    font-size: 4rem;
+.admin-main {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    padding: 5rem;
+    text-align: center;
 }
 
 .admin-box {
@@ -27,38 +32,36 @@
     justify-content: flex-start;
     padding: 2rem;
     border: 0.05rem solid #131313;
-    background-color: rgb(246, 245, 245);
+    background-color: #EFEFEF;
     border-radius: 1rem;
+}
+
+.admin-container h1 {
+    margin: 1rem 0;
+    flex-basis: 10vh;
+    font-size: 4rem;
 }
 
 .admin-sidebar button {
     font-size: 2rem;
     font-weight: 400;
     text-decoration: none;
-    background-color: white;
     border: none;
     border-top: 0.125rem solid #131313;
     text-align: left;
     padding: 1rem 0.8rem;
-    background-color: rgb(247, 244, 244);
 }
 
 .admin-sidebar button:hover {
     cursor: pointer;
-    background-color: rgb(220, 218, 218);
+    background-color: rgb(217, 213, 213);
 }
 
-#home-btn {
+.admin-sidebar .active-btn {
+    background-color: rgb(217, 213, 213);
+}
+
+.admin-sidebar .home-btn {
     border-top: none;
 }
 
-.admin-main {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    padding: 5rem;
-    text-align: center;
-}
