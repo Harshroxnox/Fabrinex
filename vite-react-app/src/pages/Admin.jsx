@@ -1,9 +1,23 @@
 import React from 'react'
 import { useState } from 'react'
+import Home from '../components/Home'
 import "./Admin.css"
 
 const Admin = () => {
   const [activeBtn, setActiveBtn] = useState("Home");
+
+  const renderMain = ()=>{
+    if(activeBtn == "Home"){
+      return (<Home />);
+    }else{
+      return (
+      <>
+        <p>{`Currently you have selected ${activeBtn}`}</p> 
+        <p>This section will keep on changing depending upon what is selected from side panel</p> 
+      </>
+      );
+    }
+  };
 
   return (
     <div className="admin-container">
@@ -74,10 +88,11 @@ const Admin = () => {
             Settings
           </button>
         </div>
+
         <div className="admin-main">
-          <p>{`Currently you have selected ${activeBtn}`}</p> 
-          <p>This section will keep on changing depending upon what is selected from side panel</p> 
+          {renderMain()}
         </div>
+        
       </div>
 
     </div>
