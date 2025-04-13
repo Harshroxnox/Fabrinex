@@ -1,6 +1,15 @@
 CREATE DATABASE ecommerce;
 USE ecommerce;
 
+/* To Clear Data from tables
+SET FOREIGN_KEY_CHECKS = 0;
+
+TRUNCATE TABLE Users;
+TRUNCATE TABLE table2;
+
+SET FOREIGN_KEY_CHECKS = 1;
+*/
+
 CREATE TABLE Users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,

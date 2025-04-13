@@ -20,12 +20,12 @@ const generateTokens = (userId) => {
 };
 
 
- const registerUser = async (req, res) => {
+const registerUser = async (req, res) => {
   const { name, phone_number, whatsapp_number, email, password } = req.body;
   const profilePicPath = req.file ? req.file.path : null;
 
   try {
-    const verified = await isOTPVerified({ email, phone_number });
+    const verified = await isOTPVerified(email, phone_number);
     if (!verified) return res.status(403).json({ message: "Please verify OTP before registering" });
 
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
@@ -54,38 +54,38 @@ const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-      // Check if user exists
-      const [users] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-      if (users.length === 0) return res.status(400).json({ message: "User not found" });
+    // Check if user exists
+    const [users] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
+    if (users.length === 0) return res.status(400).json({ message: "User not found" });
 
-      const user = users[0];
+    const user = users[0];
 
-      // Validate password
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    // Validate password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
-      // Generate tokens
-      const { accessToken, refreshToken } = generateTokens(user.id);
+    // Generate tokens
+    const { accessToken, refreshToken } = generateTokens(user.id);
 
-      // Store refresh token in DB
-      await db.execute("UPDATE Users SET refresh_token = ? WHERE id = ?", [refreshToken, user.id]);
+    // Store refresh token in DB
+    await db.execute("UPDATE Users SET refresh_token = ? WHERE id = ?", [refreshToken, user.id]);
 
-      res.cookie('accessToken', accessToken, {
-        httpOnly: true, // Cookie is not accessible via JavaScript
-        secure: process.env.NODE_ENV === 'production', // Cookie is sent only over HTTPS in production
-        sameSite: 'Strict', // Adjust based on your requirements
-        maxAge: 60 * 60 * 1000, // Cookie expires in 60 minutes
-      });
-  
-      // Set the refresh token as an HTTP-only cookie
-      res.cookie('refreshToken', refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
-        maxAge: 10 * 24 * 60 * 60 * 1000, // Cookie expires in 10 days
-      });
-  
-      res.status(200).json({ message: 'Login successful' });
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true, // Cookie is not accessible via JavaScript
+      secure: process.env.NODE_ENV === 'production', // Cookie is sent only over HTTPS in production
+      sameSite: 'Strict', // Adjust based on your requirements
+      maxAge: 60 * 60 * 1000, // Cookie expires in 60 minutes
+    });
+
+    // Set the refresh token as an HTTP-only cookie
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+      maxAge: 10 * 24 * 60 * 60 * 1000, // Cookie expires in 10 days
+    });
+
+    res.status(200).json({ message: 'Login successful' });
 
   } catch (error) {
       res.status(500).json({ error: error.message });
@@ -136,7 +136,6 @@ const refresh = async (req, res) => {
 };
 
 const logoutUser=async (req, res) => {
-
   const  refreshToken  = req.cookies.refreshToken;
  
   if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
@@ -144,7 +143,6 @@ const logoutUser=async (req, res) => {
   try {
       // Remove refresh token from DB
       await db.execute("UPDATE Users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
-
 
       res.clearCookie('token', {
         httpOnly: true,
@@ -160,7 +158,6 @@ const logoutUser=async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-
     const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE id = ?", [req.userId]);
     if (users.length === 0) return res.status(404).json({ message: "User not found" });
 
@@ -170,13 +167,10 @@ const getProfile = async (req, res) => {
   }
 };
 
-
-
  export {
     registerUser,
     loginUser,
     refresh,
     logoutUser,
     getProfile
-
  }
