@@ -11,7 +11,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 */
 
 CREATE TABLE Users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
+    userID INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     phone_number VARCHAR(15) NOT NULL UNIQUE,
     whatsapp_number VARCHAR(15) NOT NULL,
@@ -25,18 +25,20 @@ CREATE TABLE Users (
 CREATE TABLE Products (
     productID INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    description TEXT,
+    description JSON,
+    category VARCHAR(50) NOT NULL,
     cumulative_rating DECIMAL(10,2) DEFAULT 0.00,
     people_rated INT DEFAULT 0
 );
 
 CREATE TABLE ProductVariants (
-    -- main_image, barcode is missing
     variantID INT AUTO_INCREMENT PRIMARY KEY,
     productID INT NOT NULL,
     color VARCHAR(50) NOT NULL,
     size VARCHAR(50) NOT NULL,
     price DECIMAL(10,2) NOT NULL,
+    main_image VARCHAR(255) NOT NULL,
+    barcode CHAR(13) UNIQUE, -- EAN-13 format
     discount DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     stock INT NOT NULL DEFAULT 0,
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
@@ -49,7 +51,7 @@ CREATE TABLE Reviews (
     rating DECIMAL(3,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     review VARCHAR(750) NULL,
-    FOREIGN KEY (userID) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE,
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
 );
 
@@ -60,7 +62,7 @@ CREATE TABLE Addresses (
     pincode VARCHAR(10) NOT NULL,
     state VARCHAR(100) NOT NULL,
     address_line TEXT NOT NULL,
-    FOREIGN KEY (userID) REFERENCES Users(id) ON DELETE CASCADE
+    FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
 CREATE TABLE Orders (
@@ -76,7 +78,7 @@ CREATE TABLE Orders (
     order_status VARCHAR(20) NOT NULL,
     barcode CHAR(13) UNIQUE, -- EAN-13 format
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID),
-    FOREIGN KEY (userID) REFERENCES Users(id),
+    FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
 );
 
@@ -101,14 +103,14 @@ CREATE TABLE Payments (
     expiration CHAR(7) NOT NULL,  -- YYYY-MM format ex 2027-09
     payment_network VARCHAR(20) NOT NULL,
     payment_token VARCHAR(255) NOT NULL,  -- Store a secure token from payment gateway
-    FOREIGN KEY (userID) REFERENCES Users(id) ON DELETE CASCADE
+    FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
 CREATE TABLE Carts (
     cartID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
     variantID INT NOT NULL,
-    FOREIGN KEY (userID) REFERENCES Users(id) ON DELETE CASCADE,
+    FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
 
