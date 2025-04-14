@@ -5,13 +5,14 @@ import authMiddleware from '../middleware/authMiddleware.js';
 const router =Router()
 
 // product routes
-router.route("/createproduct").post(createProduct);
-router.route("/updateproduct/:productID").put(updateProduct);
-router.route("/getproduct/:productID").get(getProductById);
-router.route("/getallproducts").get(getAllProducts);
-router.route('/deleteproduct/:productID').delete(deleteProduct);
-router.route("/reviewproduct/:productID").post(authMiddleware,reviewProduct);
-router.route("/editreview/:productID").post(authMiddleware,editReview);
+router.route("/create-product").post(createProduct);
+router.route("/update-product/:productID").put(updateProduct);
+router.route("/get-product/:productID").get(getProductById);
+router.route("/get-all-products").get(getAllProducts);
+router.route('/delete-product/:productID').delete(deleteProduct);
+
+router.route("/review-product/:productID").post(authMiddleware,reviewProduct);
+router.route("/edit-review/:productID").post(authMiddleware,editReview);
 
 
 // variant routes

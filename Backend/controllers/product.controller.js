@@ -1,13 +1,30 @@
 import { db } from '../index.js'; 
+import { constants } from '../config/constants.js';
 
 // product controller 
 
 const createProduct = async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, category } = req.body;
+
+    // check if category is valid
+    if (!constants.PRODUCT_CATEGORIES.includes(category)) {
+        return res.status(400).json({
+            success: false,
+            message: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`,
+        });
+    }
+
+    if (!(typeof description === 'object' && description !== null && !Array.isArray(description))){
+        return res.status(400).json({
+            success: false,
+            message: `Description must be a valid JSON Object`,
+        });
+    }
+
     try {
         const [result] = await db.execute(
-            "INSERT INTO Products (name, description) VALUES (?, ?)", 
-            [name, description]
+            "INSERT INTO Products (name, description, category) VALUES (?, ?, ?)", 
+            [name, description, category]
         );
         res.status(201).json({ message: "Product created", productID: result.insertId });
     } catch (err) {

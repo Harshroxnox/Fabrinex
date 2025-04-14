@@ -20,6 +20,12 @@ export const constants = {
     'cash_on_delivery',
   ],
 
+  PAYMENT_NETWORKS: [
+    'Visa',
+    'Mastercard',
+    'Rupay'
+  ],
+
   PAYMENT_STATUSES: ['pending', 'completed', 'failed', 'refunded'],
 
   ORDER_STATUSES: ['pending', 'shipped', 'delivered', 'cancelled'],
