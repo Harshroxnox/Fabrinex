@@ -65,10 +65,11 @@ const loginUser = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     // Generate tokens
-    const { accessToken, refreshToken } = generateTokens(user.id);
-
+    const { accessToken, refreshToken } = generateTokens(user.userID);
+    
     // Store refresh token in DB
-    await db.execute("UPDATE Users SET refresh_token = ? WHERE id = ?", [refreshToken, user.id]);
+    await db.execute("UPDATE Users SET refresh_token = ? WHERE userID = ?", [refreshToken, user.userID]);
+    
 
     res.cookie('accessToken', accessToken, {
       httpOnly: true, // Cookie is not accessible via JavaScript
@@ -88,7 +89,7 @@ const loginUser = async (req, res) => {
     res.status(200).json({ message: 'Login successful' });
 
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -108,10 +109,10 @@ const refresh = async (req, res) => {
       if (err) return res.status(403).json({ message: "Invalid or expired refresh token" });
 
       // Generate new tokens
-      const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.id);
+      const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.userID);
 
       // Update refresh token in DB
-      await db.execute("UPDATE Users SET refresh_token = ? WHERE id = ?", [newRefreshToken, user.id]);
+      await db.execute("UPDATE Users SET refresh_token = ? WHERE userID = ?", [newRefreshToken, user.userID]);
 
       // Set HTTP-only cookies for both tokens
       const isProduction = process.env.NODE_ENV === 'production';
@@ -136,7 +137,7 @@ const refresh = async (req, res) => {
 };
 
 const logoutUser=async (req, res) => {
-  const  refreshToken  = req.cookies.refreshToken;
+  const refreshToken  = req.cookies.refreshToken;
  
   if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
 
@@ -158,7 +159,7 @@ const logoutUser=async (req, res) => {
 
 const getProfile = async (req, res) => {
   try {
-    const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE id = ?", [req.userId]);
+    const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE userID = ?", [req.userID]);
     if (users.length === 0) return res.status(404).json({ message: "User not found" });
 
     res.status(200).json(users[0]);

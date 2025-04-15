@@ -13,7 +13,7 @@ const createProduct = async (req, res) => {
             message: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`,
         });
     }
-
+    // check if description is valid JSON object
     if (!(typeof description === 'object' && description !== null && !Array.isArray(description))){
         return res.status(400).json({
             success: false,
@@ -32,13 +32,29 @@ const createProduct = async (req, res) => {
     }
 };
 
+
 const updateProduct = async (req, res) => {
-    const { name, description } = req.body;
+    const { name, description, category } = req.body;
+
+    // check if category is valid
+    if (!constants.PRODUCT_CATEGORIES.includes(category)) {
+        return res.status(400).json({
+            success: false,
+            message: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`,
+        });
+    }
+    // check if description is valid JSON object
+    if (!(typeof description === 'object' && description !== null && !Array.isArray(description))){
+        return res.status(400).json({
+            success: false,
+            message: `Description must be a valid JSON Object`,
+        });
+    }
 
     try {
         const [result] = await db.execute(
-            "UPDATE Products SET name=?, description=? WHERE productID=?", 
-            [name, description,req.params.productID]
+            "UPDATE Products SET name=?, description=?, category=? WHERE productID=?", 
+            [name, description, category, req.params.productID]
         );
         if (result.affectedRows === 0) return res.status(404).json({ message: "Product not found" });
         res.json({ message: "Product updated" });
@@ -46,6 +62,8 @@ const updateProduct = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+
 const reviewProduct = async (req, res) => {
     const { rating, review } = req.body;
     const userID = req.userId;
@@ -161,7 +179,7 @@ const getProductById = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
     try {
-        const [products] = await db.execute("SELECT *, (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating  FROM Products");
+        const [products] = await db.execute("SELECT *, (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating FROM Products");
         res.json(products);
     } catch (err) {
         res.status(500).json({ error: err.message });
