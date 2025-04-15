@@ -177,11 +177,84 @@ const getProfile = async (req, res) => {
   }
 };
 
- export {
-    registerUser,
-    loginUser,
-    refresh,
-    logoutUser,
-    getAllUsers,
-    getProfile
- }
+
+const addAddress = async (req, res) => {
+  const userID = req.userID;
+  const { city, pincode, state, address_line } = req.body;
+
+  try {
+    await db.execute(
+      "INSERT INTO Addresses (userID, city, pincode, state, address_line) VALUES (?, ?, ?, ?, ?)", 
+      [userID, city, pincode, state, address_line]
+    );
+    res.status(201).json({ message: "Address added successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const getAddress = async (req, res) => {
+  const userID = req.userID;
+
+  try {
+    const [addresses] = await db.execute(
+      "SELECT * FROM Addresses WHERE userID = ?",
+      [userID]
+    );
+
+    res.status(200).json({ addresses });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const updateAddress = async (req, res) => {
+  const userID = req.userID;
+  const { addressID } = req.params;
+  const { city, pincode, state, address_line } = req.body;
+
+  try {
+    await db.execute(
+      `UPDATE Addresses 
+       SET city = ?, pincode = ?, state = ?, address_line = ?
+       WHERE addressID = ? AND userID = ?`,
+      [city, pincode, state, address_line, addressID, userID]
+    );
+
+    res.status(200).json({ message: "Address updated successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const deleteAddress = async (req, res) => {
+  const userID = req.userID;
+  const { addressID } = req.params;
+
+  try {
+    await db.execute(
+      "DELETE FROM Addresses WHERE addressID = ? AND userID = ?",
+      [addressID, userID]
+    );
+
+    res.status(200).json({ message: "Address deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+
+
+export {
+  registerUser,
+  loginUser,
+  refresh,
+  logoutUser,
+  getAllUsers,
+  getProfile,
+  addAddress,
+  getAddress,
+  updateAddress,
+  deleteAddress
+}
