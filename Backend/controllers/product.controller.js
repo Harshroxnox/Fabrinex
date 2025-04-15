@@ -66,7 +66,7 @@ const updateProduct = async (req, res) => {
 
 const reviewProduct = async (req, res) => {
     const { rating, review } = req.body;
-    const userID = req.userId;
+    const userID = req.userID;
     const productID = req.params.productID;
 
     // Validate rating (must be 1-5)
@@ -77,7 +77,7 @@ const reviewProduct = async (req, res) => {
     try {
         //  Check if user has purchased the product
         const [order] = await db.execute(
-            "SELECT * FROM Orders WHERE userID = ? AND productID = ?",
+            `SELECT Orders.* FROM Orders INNER JOIN ProductVariants ON ProductVariants.variantID=Orders.variantID WHERE Orders.userID = ? AND ProductVariants.productID = ?`,
             [userID, productID]
         );
 
@@ -92,7 +92,9 @@ const reviewProduct = async (req, res) => {
         );
 
         if (existingReview.length > 0) {
-            return res.status(400).json({ message: "You have already reviewed this product. Purchase again to review again." });
+            return res.status(400).json({ 
+                message: "You have already reviewed this product. Go to edit review if you want to change review." 
+            });
         }
 
         // Insert the new review
@@ -117,7 +119,7 @@ const reviewProduct = async (req, res) => {
 
 const editReview = async (req, res) => {
     const { rating, review } = req.body;
-    const userID = req.userId;
+    const userID = req.userID;
     const productID = req.params.productID;
 
     // Validate rating (must be 1-5)
