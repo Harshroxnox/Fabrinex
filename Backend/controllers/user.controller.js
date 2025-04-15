@@ -157,6 +157,15 @@ const logoutUser=async (req, res) => {
   }
 }
 
+const getAllUsers = async (req, res) => {
+  try {
+      const [users] = await db.execute("SELECT name, email, phone_number FROM Users");
+      res.json(users);
+  } catch (err) {
+      res.status(500).json({ error: err.message });
+  }
+};
+
 const getProfile = async (req, res) => {
   try {
     const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE userID = ?", [req.userID]);
@@ -173,5 +182,6 @@ const getProfile = async (req, res) => {
     loginUser,
     refresh,
     logoutUser,
+    getAllUsers,
     getProfile
  }
