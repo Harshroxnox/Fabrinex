@@ -2,20 +2,19 @@
     margin: 0;
     height: 100vh;
     width: 100vw;
-    padding: 0 1.5rem;
+    padding-left: 1.5rem;
     display: flex;
     flex-direction: column;
 }
 
 .admin-main {
     flex-grow: 1;
-    display: flex;
+    /* display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    align-items: left; */
+    padding-left: 5rem;
     font-size: 3rem;
-    padding: 5rem;
-    text-align: center;
+    text-align: left;
 }
 
 .admin-box {
@@ -36,10 +35,10 @@
     border-radius: 1rem;
 }
 
-.admin-container h1 {
-    margin: 1rem 0;
-    flex-basis: 10vh;
-    font-size: 4rem;
+.admin-title {
+    flex-basis: 5vh;
+    font-size: 3rem;
+    padding-top: 1.2rem;
 }
 
 .admin-sidebar button {
