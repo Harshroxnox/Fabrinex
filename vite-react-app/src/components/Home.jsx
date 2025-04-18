@@ -5,156 +5,201 @@ import ProductCard from './ProductCard';
 import "./Home.css"
 
 const Home = () => {
+  const piechartColors = ["#ACD3A8","#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7",  "#E69DB8"];
+  const piechartData = [
+    ['tshirt', "654"],
+    ['jeans', "789"],
+    ['shirts', "582"],
+    ['sarees', "682"],
+    ['jackets', "267"],
+    ['suits', "453"]
+  ];
+
   return (
     <div className='home'>
-      <div className="admin-graphs">
-        <h1>Yearly Sales Line Chart</h1>
-        <LineChart 
-          colors={["#505050", "#222"]}
-          curve={false}
-          library={{
-            elements: {
-              point: {
-                radius: 5 // 👈 optional: adjust point size
+
+      {/* ------------------------------------1st row------------------------------------------------- */}
+      <div className="row-graphs">
+        <div className="text-card">
+          <h1>Total Revenue</h1>
+          <h2>₹1,08,321.89</h2>
+          <h3>+18.2% from last year</h3>
+        </div>
+        <div className="text-card">
+          <h1>Sales</h1>
+          <h2>+12,234</h2>
+          <h3>+19% from last month</h3>
+        </div>
+        <div className="text-card">
+          <h1>Transactions</h1>
+          <h2>5,234</h2>
+          <h3>+38% from last month</h3>
+        </div>
+        <div className="text-card">
+          <h1>Customers</h1>
+          <h2>65,345</h2>
+          <h3>+109.3% from last month</h3>
+        </div>
+      </div>
+
+      {/* ------------------------------------2nd row------------------------------------------------- */}
+      <div className="row-graphs">
+        <div className="admin-graphs">
+          <h1>Yearly Sales</h1>
+          <h2>21,349</h2>
+          <h3>+20.1% from last year</h3>
+          <LineChart 
+            colors={["#505050", "#222"]}
+            curve={false}
+            library={{
+              elements: {
+                point: {
+                  radius: 5 // 👈 optional: adjust point size
+                }
               }
-            }
-          }}
-          download={{background: "#fff"}}
-          data={{
-            "Jan":12, 
-            "Feb":4,
-            "Mar":16,
-            "Apr":28,
-            "May":8,
-            "Jun":10,
-            "Jul":24,
-            "Aug":16,
-            "Sep":30,
-            "Oct":36,
-            "Nov":12,
-            "Dec":14
-          }}
-          height="500px"
-          width="1000px"
-        />
-      </div>
-      <div className="admin-graphs">
-        <h1>Monthly Sales Line Chart</h1>
-        <LineChart 
-          colors={["#505050", "#222"]}
-          curve={false}
-          library={{
-            elements: {
-              point: {
-                radius: 5 // 👈 optional: adjust point size
+            }}
+            download={{background: "#fff"}}
+            data={{
+              "Jan":12, 
+              "Feb":4,
+              "Mar":16,
+              "Apr":28,
+              "May":8,
+              "Jun":10,
+              "Jul":24,
+              "Aug":16,
+              "Sep":30,
+              "Oct":36,
+              "Nov":12,
+              "Dec":14
+            }}
+            height="23vh"
+            width="25vw"
+          />
+        </div>
+        <div className="admin-graphs">
+          <h1>Monthly Sales</h1>
+          <h2>4,512</h2>
+          <h3>+8.1% from last month</h3>
+          <LineChart 
+            colors={["#505050", "#222"]}
+            curve={false}
+            library={{
+              elements: {
+                point: {
+                  radius: 5 // 👈 optional: adjust point size
+                }
               }
-            }
-          }}
-          download={{background: "#fff"}}
-          data={{
-            "May 1": 5,
-            "May 3": 3,          
-            "May 5": 7,            
-            "May 7": 6,            
-            "May 9": 4,           
-            "May 11": 7,          
-            "May 13": 14,          
-            "May 15": 13,           
-            "May 17": 15,          
-            "May 19": 12,           
-            "May 21": 11,           
-            "May 23": 9,           
-            "May 25": 13,
-            "May 27": 12,
-            "May 29": 10,
-            "May 31": 14
-          }}
-          height="500px"
-          width="70vw"
-        />
+            }}
+            download={{background: "#fff"}}
+            data={{
+              "May 1": 5,
+              "May 3": 3,          
+              "May 5": 7,            
+              "May 7": 6,            
+              "May 9": 4,           
+              "May 11": 7,          
+              "May 13": 14,          
+              "May 15": 13,           
+              "May 17": 15,          
+              "May 19": 12,           
+              "May 21": 11,           
+              "May 23": 9,           
+              "May 25": 13,
+              "May 27": 12,
+              "May 29": 10,
+              "May 31": 14
+            }}
+            height="23vh"
+            width="45vw"
+          />
+        </div>
       </div>
-      <div className="admin-graphs">
-        <h1>Yearly Sales Bar Chart</h1>
-        <BarChart 
-          colors={["#FFD0C7",  "#E69DB8"]}
-          download={{background: "#fff"}}
-          data={[
-            ["Jan",12], 
-            ["Feb",4],
-            ["Mar",16],
-            ["Apr",28],
-            ["May",8],
-            ["Jun",10],
-            ["Jul",24],
-            ["Aug",16],
-            ["Sep",30],
-            ["Oct",36],
-            ["Nov",12],
-            ["Dec",14]
-          ]}
-          height="500px"
-          width="1000px"
-        />
+      
+      {/* ------------------------------------3rd row------------------------------------------------- */}
+      <div className="row-graphs">
+        <div className="admin-graphs">
+          <h1>Yearly Sales - Type: Bar Chart</h1>
+          <h2>7,328</h2>
+          <h3>+18.1% from last month</h3>
+          <BarChart 
+            colors={["#FFD0C7",  "#E69DB8"]}
+            download={{background: "#fff"}}
+            data={[
+              ["Jan",12], 
+              ["Feb",4],
+              ["Mar",16],
+              ["Apr",28],
+              ["May",8],
+              ["Jun",10],
+              ["Jul",24],
+              ["Aug",16],
+              ["Sep",30],
+              ["Oct",36],
+              ["Nov",12],
+              ["Dec",14]
+            ]}
+            height="25vh"
+            width="30vw"
+          />
+        </div>
+        <div className="admin-graphs">
+          <h1>Monthly Sales - Type: Bar Chart</h1>
+          <h2>2,342</h2>
+          <h3>+18.1% from last month</h3>
+          <BarChart 
+            colors={["#FFC1B4", "#F38C79"]}
+            download={{background: "#fff"}}
+            data={[
+              ["May 1", 5],
+              ["May 3", 3],          
+              ["May 5", 7],            
+              ["May 7", 6],            
+              ["May 9", 4],           
+              ["May 11", 7],          
+              ["May 13", 14],          
+              ["May 15", 13],           
+              ["May 17", 15],          
+              ["May 19", 12],           
+              ["May 21", 11],           
+              ["May 23", 9],           
+              ["May 25", 13],
+              ["May 27", 12],
+              ["May 29", 10],
+              ["May 31", 14]
+            ]}
+            height="25vh"
+            width="40vw"
+          />
+        </div>
       </div>
-      <div className="admin-graphs">
-        <h1>Monthly Sales Bar Chart</h1>
-        <BarChart 
-          colors={["#FFC1B4", "#F38C79"]}
-          download={{background: "#fff"}}
-          data={[
-            ["May 1", 5],
-            ["May 3", 3],          
-            ["May 5", 7],            
-            ["May 7", 6],            
-            ["May 9", 4],           
-            ["May 11", 7],          
-            ["May 13", 14],          
-            ["May 15", 13],           
-            ["May 17", 15],          
-            ["May 19", 12],           
-            ["May 21", 11],           
-            ["May 23", 9],           
-            ["May 25", 13],
-            ["May 27", 12],
-            ["May 29", 10],
-            ["May 31", 14]
-          ]}
-          height="500px"
-          width="70vw"
-        />
-      </div>
+      
       <div className="admin-graphs">
         <h1>Product Sales Category Wise</h1>
+        <h3 className='piechart-title'>Graph Type: Donut Chart</h3>
         <div className="piechart">
           <PieChart 
             donut={true}
-            colors={["#ACD3A8","#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7",  "#E69DB8", "#210F37", "#4F1C51"]}
+            colors={piechartColors}
             download={{background: "#fff"}}
-            data={[
-              ['tshirt',12],
-              ['jeans',7],
-              ['shirts',18],
-              ['hoodies',6],
-              ['jackets',9],
-              ['shoes',4]
-            ]}
-            height="60vh"
+            data={piechartData}
+            height="55vh"
             width="35vw"
           />
-          <PieChart 
-            colors={["#ACD3A8","#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7",  "#E69DB8", "#210F37", "#4F1C51"]}
-            download={{background: "#fff"}}
-            data={[
-              ['tshirt',12],
-              ['jeans',7],
-              ['shirts',18],
-              ['hoodies',6],
-              ['jackets',9],
-              ['shoes',4]
-            ]}
-            height="60vh"
-            width="35vw"
-          />
+          <div className="piechart-text">
+            {
+              piechartData.map(([label, value], index)=>{
+                return (           
+                  <div className="piechart-row">
+                    <div className="piechart-color" style={{backgroundColor: piechartColors[index]}}></div>
+                    <div className="piechart-label">{`${label}:`}</div>
+                    <div className="piechart-value">{value}</div>
+                  </div>
+                );
+              })
+            }
+          </div>
+
         </div>
       </div>
       <div className="hot-products">

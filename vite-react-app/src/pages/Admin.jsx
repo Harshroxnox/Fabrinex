@@ -21,7 +21,7 @@ const Admin = () => {
 
   return (
     <div className="admin-container">
-      <h1 className='admin-title'>Admin Panel</h1>
+      <h1 className='admin-title'>{`Admin Panel: ${activeBtn}`}</h1>
 
       <div className="admin-box">
         <div className="admin-sidebar">

@@ -3,6 +3,11 @@
   padding: 0;
   box-sizing: border-box;
   font-family: 'Satoshi', 'sans-serif';
+  color: #292929;
+}
+
+#root {
+  background-color: #fbf4f4;
 }
 
 a {
