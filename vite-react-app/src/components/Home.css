@@ -51,6 +51,47 @@
     font-weight: 600;
 }
 
+.admin-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 0.1rem solid #a2a2a2;
+    border-radius: 0.8rem;
+    font-size: 1.8rem;
+}
+
+.admin-table th {
+    font-weight: 500;
+    padding: 0.6rem 3rem;
+    text-align: left;
+    border-bottom: 0.1rem solid #a2a2a2;
+}
+
+.admin-table td {
+    padding: 0.6rem 3rem;
+    text-align: left;
+    border-bottom: 0.1rem solid #a2a2a2;
+}
+
+.admin-table .last-row td {
+    border:none;
+}
+
+.name-col {
+    width: 40rem;
+}
+
+.category-col {
+    width: 10rem;
+}
+
+.sales-col {
+    width: 8rem;
+}
+
+.rating-col {
+    width: 8rem;
+}
+
 .text-card h1 {
     font-size: 2rem;
     text-decoration: none;
@@ -83,7 +124,22 @@
     background-color: #f9f7f7;
 }
 
-.admin-graphs h1, .hot-products h1 {
+.card {
+    border: 0.01rem solid #a2a2a2;
+    padding: 2rem;
+    border-radius: 2rem;
+    background-color: #f9f7f7;
+}
+
+.card h2 {
+    font-size: 1.5rem;
+    text-decoration: none;
+    font-weight: 300;
+    color: #2c2c2c;
+    padding-bottom: 1rem;
+}
+
+.admin-graphs h1, .hot-products h1, .card h1 {
     font-size: 2rem;
     text-decoration: none;
     font-weight: 400;
