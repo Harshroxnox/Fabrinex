@@ -1,5 +1,7 @@
 import { db } from '../index.js'; 
 import { constants } from '../config/constants.js';
+import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import { generateUniqueBarcode } from '../utils/generateBarcode.js';
 
 // product controller 
 
@@ -203,11 +205,24 @@ const deleteProduct = async (req, res) => {
 // Variant Controller 
 
 const createVariant = async (req, res) => {
+
     const { color, size, price, discount, stock } = req.body;
+    const mainImgPath = req.file ? req.file.path : null;
+    
     try {
+
+        let mainImgCloudinaryUrl;
+
+        if(mainImgPath){
+           const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
+           mainImgCloudinaryUrl=mainImgCloudinary.url;
+        }
+        
+        const barcode = await generateUniqueBarcode();
+
         const [result] = await db.execute(
-            "INSERT INTO ProductVariants (productID, color, size, price, discount, stock) VALUES (?, ?, ?, ?, ?, ?)", 
-            [req.params.productID, color, size, price, discount, stock]
+            "INSERT INTO ProductVariants (productID, color, size, price, discount, stock,main_image,barcode) VALUES (?, ?, ?, ?, ?, ?,?,?)", 
+            [req.params.productID, color, size, price, discount, stock,mainImgCloudinaryUrl,barcode]
         );
         res.status(201).json({ message: "Variant created", variantID: result.insertId });
     } catch (err) {
@@ -215,15 +230,51 @@ const createVariant = async (req, res) => {
     }
 };
 
-const updateVariant=  async (req, res) => {
-    const { color, size, price, discount, stock } = req.body;
+const updateVariant = async (req, res) => {
+
+    console.log(req.body)
+    const { price, discount, stock } = req.body;
+    const mainImgPath = req.file ? req.file.path : null;
+
+    const fields = { price, discount, stock };
+
+    console.log(fields);
+    console.log(price)
+
     try {
+        // If image is provided, upload to Cloudinary
+        if (mainImgPath) {
+            const uploadedImage = await uploadOnCloudinary(mainImgPath);
+            if (uploadedImage && uploadedImage.url) {
+                fields.main_image = uploadedImage.url;
+            }
+        }
+
+        // Filter only fields that are provided (not undefined)
+        const keys = Object.keys(fields).filter(key => fields[key] !== undefined);
+
+        if (keys.length === 0) {
+            return res.status(400).json({ message: "No fields to update" });
+        }
+
+        // Construct the SET clause dynamically
+        const setClause = keys.map(key => `${key} = ?`).join(', ');
+        const values = keys.map(key => fields[key]);
+
+        // Add variantID for the WHERE clause
+        values.push(req.params.variantID);
+
         const [result] = await db.execute(
-            "UPDATE ProductVariants SET color=?, size=?, price=?, discount=?, stock=? WHERE variantID=?", 
-            [color, size, price, discount, stock, req.params.variantID]
+            `UPDATE ProductVariants SET ${setClause} WHERE variantID = ?`,
+            values
         );
-        if (result.affectedRows === 0) return res.status(404).json({ message: "Variant not found" });
-        res.json({ message: "Variant updated" });
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Variant not found" });
+        }
+
+        res.json({ message: "Variant updated successfully" });
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -258,6 +309,76 @@ const deleteVariant = async (req, res) => {
     }
 };
 
+const updateSecondaryImage = async (req, res) => {
+    const { productImageID } = req.params;
+    const file = req.file;
+
+    try {
+        if (!file) {
+            return res.status(400).json({ message: "No image file provided" });
+        }
+
+        const uploadedImage = await uploadOnCloudinary(file.path);
+        const newImageUrl = uploadedImage.url;
+
+        const [result] = await db.execute(
+            "UPDATE ProductImages SET image_url = ? WHERE productImageID = ?",
+            [newImageUrl, productImageID]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: "Image not found or already deleted" });
+        }
+
+        res.status(200).json({
+            message: "Image updated successfully",
+            productImageID,
+            image_url: newImageUrl
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
+const productVariantImages = async (req, res) => {
+    const files = req.files;
+    const variantID = req.params.variantID;
+
+    try {
+        let imageUrls = [];
+
+        if (files && files.length > 0) {
+            const uploadPromises = files.map(file => uploadOnCloudinary(file.path));
+            const uploadResults = await Promise.all(uploadPromises);
+            imageUrls = uploadResults.map(result => result.url);
+        }
+
+        const insertPromises = imageUrls.map(async (url) => {
+            const [result] = await db.execute(
+                "INSERT INTO ProductImages (variantID, image_url) VALUES (?, ?)",
+                [variantID, url]
+            );
+
+            return {
+                productImageID: result.insertId,
+                image_url: url
+            };
+        });
+
+        const insertedImages = await Promise.all(insertPromises);
+
+        res.status(200).json({
+            message: "Secondary images uploaded successfully",
+            images: insertedImages
+        });
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 
 export
 {
@@ -272,6 +393,8 @@ export
  updateVariant,
  getVariantsByProduct,
  getVariantById,
+ productVariantImages,
+ updateSecondaryImage,
  deleteVariant
 
 }

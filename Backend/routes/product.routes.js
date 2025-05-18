@@ -11,9 +11,12 @@ import {
     updateVariant,
     getVariantsByProduct,
     deleteVariant, 
+    productVariantImages,
+    updateSecondaryImage,
     getVariantById
 } from '../controllers/product.controller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
+import { upload } from '../middleware/multer.middleware.js';
 
 const router =Router()
 
@@ -24,22 +27,17 @@ router.route("/get-product/:productID").get(getProductById);
 router.route("/get-all-products").get(getAllProducts);
 router.route('/delete-product/:productID').delete(deleteProduct);
 
-//-----------------------------------NEED TO WORK FROM HERE-------------------------------------------
-
-// address routes
-// order routes
-
 // product review routes
 router.route("/review-product/:productID").post(authMiddleware, reviewProduct);
 router.route("/edit-review/:productID").post(authMiddleware, editReview);
 
 // product variant routes
-router.route('/createvariant/:productID').post(createVariant);
-router.route('/updatevariant/:variantID').put(updateVariant);
-router.route('/getvariants/:productID').get(getVariantsByProduct);
-router.route('/getvariant/:variantID').get(getVariantById);
-router.route('/deletevariant/:variantID').delete(deleteVariant);
-
-// product image routes
+router.route('/create-variant/:productID').post(upload.single("main_image"),createVariant);
+router.route('/update-variant/:variantID').put(upload.single("main_image"),updateVariant);
+router.route('/get-variants/:productID').get(getVariantsByProduct);
+router.route('/get-variant/:variantID').get(getVariantById);
+router.route('/delete-variant/:variantID').delete(deleteVariant);
+router.route('/upload-secondary-image/:variantID').post(upload.array("images",5),productVariantImages)
+router.route('/update-secondary-image/:productImageID').put(upload.single("secondary_image"),updateSecondaryImage)
 
 export default router
