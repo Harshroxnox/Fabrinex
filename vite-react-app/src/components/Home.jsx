@@ -49,7 +49,7 @@ const Home = () => {
           <h2>21,349</h2>
           <h3>+20.1% from last year</h3>
           <LineChart 
-            colors={["#505050", "#222"]}
+            colors={[ "#373F4C"]}
             curve={false}
             library={{
               elements: {
@@ -82,7 +82,7 @@ const Home = () => {
           <h2>4,512</h2>
           <h3>+8.1% from last month</h3>
           <LineChart 
-            colors={["#505050", "#222"]}
+            colors={["#373F4C"]}
             curve={false}
             library={{
               elements: {
@@ -94,17 +94,17 @@ const Home = () => {
             download={{background: "#fff"}}
             data={{
               "May 1": 5,
-              "May 3": 3,          
-              "May 5": 7,            
-              "May 7": 6,            
-              "May 9": 4,           
-              "May 11": 7,          
-              "May 13": 14,          
-              "May 15": 13,           
-              "May 17": 15,          
-              "May 19": 12,           
-              "May 21": 11,           
-              "May 23": 9,           
+              "May 3": 3,
+              "May 5": 7,
+              "May 7": 6,
+              "May 9": 4,
+              "May 11": 7,
+              "May 13": 14,
+              "May 15": 13,
+              "May 17": 15,
+              "May 19": 12,
+              "May 21": 11,
+              "May 23": 9,
               "May 25": 13,
               "May 27": 12,
               "May 29": 10,
@@ -123,7 +123,7 @@ const Home = () => {
           <h2>7,328</h2>
           <h3>+18.1% from last month</h3>
           <BarChart 
-            colors={["#FFD0C7",  "#E69DB8"]}
+            colors={["#547792",  "#94B4C1"]}
             download={{background: "#fff"}}
             data={[
               ["Jan",12], 
@@ -148,7 +148,7 @@ const Home = () => {
           <h2>2,342</h2>
           <h3>+18.1% from last month</h3>
           <BarChart 
-            colors={["#FFC1B4", "#F38C79"]}
+            colors={["#6ba1a9", "#547792"]}
             download={{background: "#fff"}}
             data={[
               ["May 1", 5],
@@ -270,6 +270,7 @@ const Home = () => {
           </table>
         </div>
       </div>
+      
     </div>
   )
 }

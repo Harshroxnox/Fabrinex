@@ -26,7 +26,7 @@
     flex-direction: column;
     padding: 2rem;
     border: 0.01rem solid #a2a2a2;
-    background-color: #f9f7f7;
+    background-color: #373F4C;
     border-radius: 1rem;
 }
 
@@ -43,18 +43,19 @@
     text-decoration: none;
     border: none;
     border-radius: 0.7rem;
-    background-color: #f9f7f7;
+    background-color: #373F4C;
+    color: whitesmoke;
     text-align: left;
     padding: 1rem 0.8rem;
 }
 
 .admin-sidebar button:hover {
     cursor: pointer;
-    background-color: #f1efef;
+    background-color: #396AAC;
 }
 
 .admin-sidebar .active-btn {
-    background-color: #f1efef;
+    background-color: #396AAC;
 }
 
 .admin-sidebar .home-btn {

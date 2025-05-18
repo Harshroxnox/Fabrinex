@@ -1,5 +1,4 @@
 .home {
-   
     display: flex;
     flex-direction: column;
     padding-right: 3.5rem;
@@ -11,7 +10,8 @@
     border: 0.01rem solid #a2a2a2;
     padding: 2rem;
     border-radius: 2rem;
-    background-color: #f9f7f7;
+    background-color: #FDFDFD;
+    color: #6ba1a9;
 }
 
 .piechart {
@@ -121,14 +121,14 @@
     border: 0.01rem solid #a2a2a2;
     padding: 2rem;
     border-radius: 2rem;
-    background-color: #f9f7f7;
+    background-color: #FDFDFD;
 }
 
 .card {
     border: 0.01rem solid #a2a2a2;
     padding: 2rem;
     border-radius: 2rem;
-    background-color: #f9f7f7;
+    background-color: #FDFDFD;
 }
 
 .card h2 {

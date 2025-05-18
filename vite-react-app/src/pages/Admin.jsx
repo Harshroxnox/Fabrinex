@@ -1,14 +1,17 @@
 import React from 'react'
 import { useState } from 'react'
 import Home from '../components/Home'
+import Orders from '../components/Orders'
 import "./Admin.css"
 
 const Admin = () => {
-  const [activeBtn, setActiveBtn] = useState("Home");
+  const [activeBtn, setActiveBtn] = useState("Dashboard");
 
   const renderMain = ()=>{
-    if(activeBtn == "Home"){
+    if(activeBtn == "Dashboard"){
       return (<Home />);
+    }else if(activeBtn == "Orders"){
+      return (<Orders />);
     }else{
       return (
       <>
@@ -21,15 +24,15 @@ const Admin = () => {
 
   return (
     <div className="admin-container">
-      <h1 className='admin-title'>{`Admin Panel: ${activeBtn}`}</h1>
+      <h1 className='admin-title'>{`Admin Panel ${activeBtn}`}</h1>
 
       <div className="admin-box">
         <div className="admin-sidebar">
           <button
-            onClick={()=>setActiveBtn("Home")} 
-            className={`home-btn ${(activeBtn=="Home")?"active-btn":""}`}
+            onClick={()=>setActiveBtn("Dashboard")} 
+            className={`home-btn ${(activeBtn=="Dashboard")?"active-btn":""}`}
           >
-            Home
+            Dashboard
           </button>
 
           <button 
