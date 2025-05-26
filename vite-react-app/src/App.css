@@ -1,0 +1,30 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Satoshi', 'sans-serif';
+  color: #292929;
+}
+
+#root {
+  background-color: #f4f4f4;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  width: 1.2rem;
+}
+
+.selector {
+  overflow: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+
+.selector::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
