@@ -29,4 +29,12 @@ export const constants = {
   PAYMENT_STATUSES: ['pending', 'completed', 'failed', 'refunded'],
 
   ORDER_STATUSES: ['pending', 'shipped', 'delivered', 'cancelled'],
+
+  ADMIN_ROLES: [
+    'superadmin',
+    'admin',
+    'web-editor',
+    'inventory-manager',
+    'marketing'
+  ],
 };

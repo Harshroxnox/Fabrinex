@@ -22,6 +22,21 @@ CREATE TABLE Users (
     refresh_token TEXT
 );
 
+CREATE TABLE AdminUsers (
+    adminID INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    refresh_token TEXT
+);
+
+CREATE TABLE AdminRoles (
+    roleID INT AUTO_INCREMENT PRIMARY KEY,
+    adminID INT NOT NULL,
+    role_name VARCHAR(15) NOT NULL,
+    FOREIGN KEY (adminID) REFERENCES AdminUsers(adminID) ON DELETE CASCADE
+);
+
 CREATE TABLE Products (
     productID INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -67,19 +82,26 @@ CREATE TABLE Addresses (
 
 CREATE TABLE Orders (
     orderID INT AUTO_INCREMENT PRIMARY KEY,
-    variantID INT NOT NULL,
     userID INT NOT NULL,
     addressID INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_method VARCHAR(50) NOT NULL,
     payment_status VARCHAR(20) NOT NULL, 
-    quantity INT NOT NULL CHECK (quantity > 0),
     order_location VARCHAR(255) NOT NULL,
     order_status VARCHAR(20) NOT NULL,
     barcode CHAR(13) UNIQUE, -- EAN-13 format
-    FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID),
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
+);
+
+CREATE TABLE OrderItems (
+    itemID INT AUTO_INCREMENT PRIMARY KEY,
+    orderID INT NOT NULL,
+    productVariantID INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    price_at_purchase DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (orderID) REFERENCES Orders(orderID) ON DELETE CASCADE,
+    FOREIGN KEY (productVariantID) REFERENCES ProductVariants(variantID) ON DELETE RESTRICT
 );
 
 CREATE TABLE Promotions (

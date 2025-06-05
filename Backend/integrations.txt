@@ -1,0 +1,39 @@
+Cloudinary:
+cloud_name
+api_key
+api_secret (masked *********)
+
+Email-Messaging:
+Email
+Email_pass
+
+Fast2SMS for SMS:
+api_key
+
+Razorpay for payment:
+key_id
+key_secret (masked *********)
+
+Delhivery for logistics delivery:
+api_token
+client_id
+warehouse_pin 
+
+Bank Details for receiving payment:
+Bank Name
+Account_Number (masked) XXXXXX3456
+IFSC_Code 
+UPI_ID (if used)
+Razorpay_merchant_id
+
+Domain Details:
+Domain Name (yourdomain.com)
+Domain Provider (GoDaddy)
+SSL Certificate (Let’s Encrypt)
+
+Hosting Details:
+Hosting Provider  (AWS)
+Hosting Region    (ap-south-1 (Mumbai))
+Instance Type     (t3.medium (optional))
+Deployed Using    (Docker / EC2 / Elastic Beanstalk (optional))
+
