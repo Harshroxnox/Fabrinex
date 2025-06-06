@@ -12,18 +12,18 @@ export const constants = {
   PRODUCT_SIZES: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
 
   PAYMENT_METHODS: [
-    'credit_card',
-    'debit_card',
+    'credit-card',
+    'debit-card',
     'paypal',
     'upi',
-    'net_banking',
-    'cash_on_delivery',
+    'net-banking',
+    'cash-on-delivery',
   ],
 
   PAYMENT_NETWORKS: [
-    'Visa',
-    'Mastercard',
-    'Rupay'
+    'visa',
+    'mastercard',
+    'rupay'
   ],
 
   PAYMENT_STATUSES: ['pending', 'completed', 'failed', 'refunded'],

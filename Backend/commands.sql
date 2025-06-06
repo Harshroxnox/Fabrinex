@@ -30,6 +30,7 @@ CREATE TABLE AdminUsers (
     refresh_token TEXT
 );
 
+-- Roles are hardcoded into config/constants.js whereas what admin has what role is stored here
 CREATE TABLE AdminRoles (
     roleID INT AUTO_INCREMENT PRIMARY KEY,
     adminID INT NOT NULL,

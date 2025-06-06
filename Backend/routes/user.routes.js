@@ -2,7 +2,7 @@ import { Router } from "express";
 import { 
     registerUser,
     loginUser,
-    refresh,
+    refreshUser,
     logoutUser, 
     getProfile, 
     getAllUsers,
@@ -19,7 +19,7 @@ const router = Router()
 // user routes
 router.route("/register").post(upload.single("profile_img"), registerUser);
 router.route("/login").post(loginUser)
-router.route("/refresh").post(refresh)
+router.route("/refresh").post(refreshUser)
 router.route("/logout").post(logoutUser);
 router.route("/get-profile").get(authMiddleware, getProfile);
 router.route("/get-all-users").get(getAllUsers);

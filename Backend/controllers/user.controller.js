@@ -5,14 +5,20 @@ import 'dotenv/config';
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
 
-const generateTokens = (userId) => {
+const generateTokens = (id, userType) => {
   const accessToken = jwt.sign(
-    { id: userId },
+    { 
+      id: id,
+      userType: userType
+    },
     process.env.ACCESS_TOKEN_SECRET,
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
   );
   const refreshToken = jwt.sign(
-    { id: userId },
+    { 
+      id: id,
+      userType: userType
+    },
     process.env.REFRESH_TOKEN_SECRET,
     { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
   );
@@ -65,7 +71,7 @@ const loginUser = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
 
     // Generate tokens
-    const { accessToken, refreshToken } = generateTokens(user.userID);
+    const { accessToken, refreshToken } = generateTokens(user.userID, 'user');
     
     // Store refresh token in DB
     await db.execute("UPDATE Users SET refresh_token = ? WHERE userID = ?", [refreshToken, user.userID]);
@@ -93,7 +99,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-const refresh = async (req, res) => {
+const refreshUser = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
   if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
 
@@ -109,7 +115,7 @@ const refresh = async (req, res) => {
       if (err) return res.status(403).json({ message: "Invalid or expired refresh token" });
 
       // Generate new tokens
-      const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.userID);
+      const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.userID, 'user');
 
       // Update refresh token in DB
       await db.execute("UPDATE Users SET refresh_token = ? WHERE userID = ?", [newRefreshToken, user.userID]);
@@ -244,12 +250,11 @@ const deleteAddress = async (req, res) => {
 };
 
 
-
-
 export {
+  generateTokens,
   registerUser,
   loginUser,
-  refresh,
+  refreshUser,
   logoutUser,
   getAllUsers,
   getProfile,
