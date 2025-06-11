@@ -5,6 +5,11 @@ Run this command inside the backend folder. This creates the database with all t
 sudo mysql -u root -p < ./commands.sql
 ```
 
+To install the dependencies of backend run this inside backend folder<br>
+```bash
+npm install
+```
+
 To start the server inside Backend run<br>
 ```bash
 npm start
