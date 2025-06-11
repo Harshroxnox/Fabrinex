@@ -9,7 +9,7 @@ const registerAdmin = async (req, res) => {
 
     // Here roles is an array like: roles = ['admin', 'web-editor']
     // Roles validation
-    const invalidRoles = roles.length === 0 || !Array.isArray(roles) || roles.some(role => !constants.ADMIN_ROLES.includes(role));
+    const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
     if (invalidRoles) {
         return res.status(400).json({
             message: 'Invalid roles provided. Allowed roles are: ' + constants.ADMIN_ROLES.join(', ')
@@ -27,7 +27,7 @@ const registerAdmin = async (req, res) => {
         "INSERT INTO AdminUsers (email, password) VALUES (?, ?)",
         [ email, hashedPassword ]
       );
-      console.log(result)
+      
       const adminID = result.insertId;
 
       // Inserting Roles for that User
@@ -183,11 +183,85 @@ const getRoleAdmin = async (req, res) => {
   }
 };
 
+const updateAdmin = async (req, res) => {
+  const { adminID } = req.params;
+  const { password, roles } = req.body; // `roles` is expected to be an array of strings
+
+  // Roles validation
+  const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
+  if (invalidRoles) {
+      return res.status(400).json({
+          message: 'Invalid roles provided. Allowed roles are: ' + constants.ADMIN_ROLES.join(', ')
+      });
+  }
+
+  try {
+    // 1. Check if admin exists
+    const [adminRows] = await db.execute(
+      `SELECT adminID FROM AdminUsers WHERE adminID = ?`,
+      [adminID]
+    );
+    if (adminRows.length === 0) {
+      return res.status(404).json({ error: 'Admin not found.' });
+    }
+
+    // 2. Update password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await db.execute(
+      `UPDATE AdminUsers SET password = ? WHERE adminID = ?`,
+      [hashedPassword, adminID]
+    );
+
+    // 3. Delete old roles
+    await db.execute(
+      `DELETE FROM AdminRoles WHERE adminID = ?`,
+      [adminID]
+    );
+
+    // 4. Insert new roles
+    const values = roles.map(role => [adminID, role]);
+    await db.query(
+      `INSERT INTO AdminRoles (adminID, role_name) VALUES ?`,
+      [values]
+    );
+
+    res.json({ message: 'Admin updated successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const deleteAdmin = async (req, res) => {
+  const { adminID } = req.params;
+
+  try {
+    // 1. Check if the admin exists
+    const [adminRows] = await db.execute(
+      `SELECT adminID FROM AdminUsers WHERE adminID = ?`,
+      [adminID]
+    );
+    if (adminRows.length === 0) {
+      return res.status(404).json({ error: 'Admin not found.' });
+    }
+
+    // 2. Delete the admin
+    await db.execute(
+      `DELETE FROM AdminUsers WHERE adminID = ?`,
+      [adminID]
+    );
+    res.json({ message: 'Admin deleted successfully.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 export { 
     registerAdmin,
     loginAdmin,
     refreshAdmin,
     logoutAdmin, 
     getAllAdmins,
-    getRoleAdmin
+    getRoleAdmin,
+    updateAdmin,
+    deleteAdmin
 };

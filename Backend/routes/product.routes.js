@@ -33,10 +33,10 @@ router.route("/edit-review/:productID").post(authMiddleware, editReview);
 
 // product variant routes
 router.route('/create-variant/:productID').post(upload.single("main_image"),createVariant);
-router.route('/update-variant/:variantID').put(upload.single("main_image"),updateVariant);
-router.route('/get-variants/:productID').get(getVariantsByProduct);
 router.route('/get-variant/:variantID').get(getVariantById);
+router.route('/update-variant/:variantID').put(upload.single("main_image"),updateVariant);
 router.route('/delete-variant/:variantID').delete(deleteVariant);
+router.route('/get-variants/:productID').get(getVariantsByProduct);
 router.route('/upload-secondary-image/:variantID').post(upload.array("images",5),productVariantImages)
 router.route('/update-secondary-image/:productImageID').put(upload.single("secondary_image"),updateSecondaryImage)
 
