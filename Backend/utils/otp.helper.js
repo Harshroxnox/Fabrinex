@@ -1,12 +1,7 @@
-import Redis from 'ioredis';
+import { redis } from '../index.js';
 import nodemailer from 'nodemailer';
 import twilio from 'twilio';
 
-const redis = new Redis({
-  host: process.env.REDIS_HOST || '127.0.0.1',
-  port: process.env.REDIS_PORT || 6379,
-  // password: process.env.REDIS_PASSWORD, // if needed
-});
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',

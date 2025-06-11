@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { db } from '../index.js'; 
-import 'dotenv/config';
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
 

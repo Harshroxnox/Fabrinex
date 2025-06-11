@@ -1,10 +1,13 @@
 import 'dotenv/config';
-import connectDB from "./DB/connection.js";
+import { connectDB, connectRedis } from "./DB/connection.js";
 import { app } from './app.js';
 
 let db;
+let redis;
 const startServer = async () => {
-    db = await connectDB(); // Store the connection
+    // Store the connection
+    db = await connectDB(); 
+    redis = await connectRedis();
 
     app.listen(process.env.PORT || 8000, () => {
         console.log(`⚙️ Server is running at port: ${process.env.PORT || 8000}`);
@@ -13,4 +16,4 @@ const startServer = async () => {
 
 startServer();
 
-export { db }; // Export the database connection
+export { db, redis }; // Export the database connection
