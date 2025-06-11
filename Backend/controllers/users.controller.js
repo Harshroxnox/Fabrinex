@@ -3,6 +3,7 @@ import bcrypt from "bcrypt"
 import { db } from '../index.js'; 
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
+import { razorpay } from "../utils/razorpay.utils.js";
 
 const generateTokens = (id, userType) => {
   const accessToken = jwt.sign(
@@ -44,9 +45,11 @@ const registerUser = async (req, res) => {
       profileImgUrl = uploadedImage?.url || null;
     }
 
+    const customer = await razorpay.customers.create({ name, email, phone_number });
+
     await db.execute(
-      "INSERT INTO Users (name, phone_number, whatsapp_number, email, password, profile_img) VALUES (?, ?, ?, ?, ?, ?)",
-      [name, phone_number, whatsapp_number, email, hashedPassword, profileImgUrl]
+      "INSERT INTO Users (name, phone_number, whatsapp_number, email, password, profile_img, razorpay_customer_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      [name, phone_number, whatsapp_number, email, hashedPassword, profileImgUrl, customer.id]
     );
 
     res.status(201).json({ message: "User registered successfully", profileImg: profileImgUrl });

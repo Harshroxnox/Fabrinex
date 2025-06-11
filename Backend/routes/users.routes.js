@@ -10,7 +10,7 @@ import {
     getAddress,
     updateAddress,
     deleteAddress
-} from "../controllers/user.controller.js";
+} from "../controllers/users.controller.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { upload } from "../middleware/multer.middleware.js";
 
@@ -22,15 +22,18 @@ router.route("/login").post(loginUser)
 router.route("/refresh").post(refreshUser)
 router.route("/logout").post(logoutUser);
 router.route("/get-profile").get(authMiddleware, getProfile);
+
+// admin routes 
 router.route("/get-all-users").get(getAllUsers);
 
-// user address routes
+// user address routes (user must be logged in)
 router.route("/add-address").post(authMiddleware, addAddress);
 router.route("/get-address").get(authMiddleware, getAddress);
 router.route("/update-address/:addressID").put(authMiddleware, updateAddress);
 router.route("/delete-address/:addressID").delete(authMiddleware, deleteAddress);
 
 // user payment routes
+
 
 // user cart routes
 

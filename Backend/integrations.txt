@@ -10,6 +10,11 @@ Email_pass
 Fast2SMS for SMS:
 api_key
 
+Twilio for Whatsapp:
+Twilio_Account_Sid
+Twilio_Auth_Token
+Twilio_Phone_Number
+
 Razorpay for payment:
 key_id
 key_secret (masked *********)

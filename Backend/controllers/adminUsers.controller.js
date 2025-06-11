@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { db } from '../index.js'; 
-import { generateTokens } from "./user.controller.js";
+import { generateTokens } from "./users.controller.js";
 import { constants } from "../config/constants.js";
 
 const registerAdmin = async (req, res) => {

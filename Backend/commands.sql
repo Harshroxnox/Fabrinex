@@ -18,6 +18,7 @@ CREATE TABLE Users (
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     profile_img VARCHAR(500),
+    razorpay_customer_id VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     refresh_token TEXT
 );
@@ -65,8 +66,8 @@ CREATE TABLE Reviews (
     userID INT NOT NULL,
     productID INT NOT NULL,
     rating DECIMAL(3,2) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     review VARCHAR(750) NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE,
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
 );
@@ -113,8 +114,11 @@ CREATE TABLE Promotions (
 CREATE TABLE Transactions (
     transactionID INT AUTO_INCREMENT PRIMARY KEY,
     orderID INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    razorpay_order_id VARCHAR(100),
+    razorpay_payment_id VARCHAR(100),
+    razorpay_signature VARCHAR(255),
     amount DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (orderID) REFERENCES Orders(orderID)
 );
 
@@ -125,7 +129,7 @@ CREATE TABLE Payments (
     card_holder_name VARCHAR(255) NOT NULL,
     expiration CHAR(7) NOT NULL,  -- YYYY-MM format ex 2027-09
     payment_network VARCHAR(20) NOT NULL,
-    payment_token VARCHAR(255) NOT NULL,  -- Store a secure token from payment gateway
+    razorpay_token VARCHAR(255) NOT NULL,  -- Store a secure token from payment gateway
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 

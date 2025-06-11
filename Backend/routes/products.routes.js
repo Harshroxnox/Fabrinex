@@ -1,4 +1,4 @@
-import {Router} from 'express'
+import { Router } from 'express'
 import {
     createProduct,
     reviewProduct,
@@ -14,7 +14,7 @@ import {
     productVariantImages,
     updateSecondaryImage,
     getVariantById
-} from '../controllers/product.controller.js';
+} from '../controllers/products.controller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/multer.middleware.js';
 
