@@ -29,6 +29,10 @@ export const verifyPayment = async (req, res) => {
         amount,
         payment_method
     } = req.body;
+
+    if(!constants.PAYMENT_METHODS.includes(payment_method)){
+        return res.status(400).json({ error: 'Invalid payment method' });
+    }
     
     const generatedSignature = crypto
         .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
@@ -70,7 +74,7 @@ export const saveCard = async (req, res) => {
         network
     } = req.body;
     
-    if (!constants.PAYMENT_NETWORKS.includes(network.toLowerCase())) {
+    if (!constants.PAYMENT_NETWORKS.includes(network)) {
         return res.status(400).json({ error: 'Invalid payment network' });
     }
 
@@ -107,5 +111,41 @@ export const chargeSavedCard = async (req, res) => {
         res.json(response);
     } catch (err) {
         res.status(500).json({ error: 'Charging saved card failed' });
+    }
+};
+
+export const verifyCardPayment = async (req, res) => {
+    const {
+        razorpay_payment_id,
+        orderID,
+        amount,
+        payment_method
+    } = req.body;
+
+    if(!constants.PAYMENT_METHODS.includes(payment_method)){
+        return res.status(400).json({ error: 'Invalid payment method' });
+    }
+
+    try {
+        // Fetch payment details from Razorpay
+        const payment = await razorpay.payments.fetch(razorpay_payment_id);
+        
+        if (payment.status !== 'captured') {
+            return res.status(400).json({ error: `Payment not captured. Status: ${payment.status}` });
+        }
+
+        await db.execute(
+            `INSERT INTO Transactions (orderID, razorpay_payment_id, amount) VALUES (?, ?, ?)`,
+            [orderID, razorpay_payment_id, amount]
+        );
+    
+        await db.execute(
+            `UPDATE Orders SET payment_status = 'completed', payment_method = ? WHERE orderID = ?`, 
+            [payment_method, orderID]
+        );
+    
+        res.json({ message: "Successfully verified!" });        
+    } catch (error) {
+        res.status(500).json({ error: 'Verification failed'});
     }
 };

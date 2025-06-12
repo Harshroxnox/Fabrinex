@@ -12,9 +12,7 @@ export const constants = {
   PRODUCT_SIZES: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
 
   PAYMENT_METHODS: [
-    'credit-card',
-    'debit-card',
-    'paypal',
+    'card',
     'upi',
     'net-banking',
     'cash-on-delivery',

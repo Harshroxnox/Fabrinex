@@ -113,9 +113,9 @@ CREATE TABLE Promotions (
 
 CREATE TABLE Transactions (
     transactionID INT AUTO_INCREMENT PRIMARY KEY,
-    orderID INT NOT NULL,
+    orderID INT UNIQUE NOT NULL,
     razorpay_order_id VARCHAR(100),
-    razorpay_payment_id VARCHAR(100),
+    razorpay_payment_id VARCHAR(100) UNIQUE NOT NULL,
     razorpay_signature VARCHAR(255),
     amount DECIMAL(10,2) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

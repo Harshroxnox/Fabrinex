@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Razorpay Payment</title>
+</head>
+<body>
+  <h1>Razorpay Payment Gateway Integration</h1>
+  <form id="login-form" onsubmit="loginUser(event)">
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+    
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+
+    <button type="submit">Login</button>
+  </form>
+
+  <form id="payment-form">
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" name="amount" required>
+    <button type="button" onclick="payNow()">Pay Now</button>
+  </form>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    // login user
+    async function loginUser(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('http://localhost:5000/api/v1/users/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include', // send & receive cookies
+          body: JSON.stringify({
+            email: email,
+            password: password
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Login failed: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('Response body:', data);
+
+      } catch (error) {
+        console.error('Error logging in:', error);
+      }
+    }
+
+    // payment verification
+    async function handleRazorpaySuccess(response) {
+      console.log('Payment successful!');
+      console.log('Razorpay Payment ID:', response.razorpay_payment_id);
+      console.log('Razorpay Order ID:', response.razorpay_order_id);
+      console.log('Razorpay Signature:', response.razorpay_signature);
+
+      // and then you would call the /verfiy route of payments
+    }
+
+    async function payNow() {
+      const amount = document.getElementById('amount').value;
+
+      // Create order by calling the server endpoint
+      const response = await fetch('http://localhost:5000/api/v1/payments/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ amount: amount, orderID: '12' })
+      });
+
+      const order = await response.json();
+
+      // Open Razorpay Checkout
+      const options = {
+        key: 'rzp_test_ZP4qBfHrurJwdM', // Replace with your Razorpay key_id
+        amount: order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+        currency: 'INR',
+        name: 'Noor Shop',
+        description: 'Test Transaction',
+        order_id: order.id, // This is the order_id created in the backend
+        handler: handleRazorpaySuccess,
+        prefill: {
+          name: 'Gaurav Kumar',
+          email: 'gaurav.kumar@example.com',
+          contact: '9999999999'
+        },
+        theme: {
+          color: '#F37254'
+        },
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
+
+  </script>
+</body>
+</html>
