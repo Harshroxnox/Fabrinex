@@ -133,10 +133,11 @@ CREATE TABLE Payments (
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
-CREATE TABLE Carts (
-    cartID INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE CartItems (
+    cartItemID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
     variantID INT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
@@ -145,6 +146,7 @@ CREATE TABLE VariantImages (
     variantImageID INT AUTO_INCREMENT PRIMARY KEY,
     variantID INT NOT NULL,
     image_url VARCHAR(255) NOT NULL,
+    cloudinary_id VARCHAR(255) NOT NULL,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
 

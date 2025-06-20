@@ -3,6 +3,7 @@ import {
     createProduct,
     reviewProduct,
     updateReview,
+    deleteReview,
     getProductById,
     getAllProducts,
     updateProduct,
@@ -12,7 +13,7 @@ import {
     getVariantsByProduct,
     deleteVariant, 
     uploadSecondaryImages,
-    updateSecondaryImage,
+    deleteSecondaryImage,
     getVariantById
 } from '../controllers/products.controller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
@@ -30,6 +31,7 @@ router.route('/delete-product/:productID').delete(deleteProduct);
 // product review routes
 router.route("/review-product/:productID").post(authMiddleware, reviewProduct);
 router.route("/update-review/:productID").put(authMiddleware, updateReview);
+router.route("/delete-review/:productID").delete(authMiddleware, deleteReview);
 
 // product variant routes
 router.route('/create-variant/:productID').post(upload.single("main_image"), createVariant);
@@ -38,6 +40,6 @@ router.route('/get-variant/:variantID').get(getVariantById);
 router.route('/update-variant/:variantID').put(upload.single("main_image"), updateVariant);
 router.route('/delete-variant/:variantID').delete(deleteVariant);
 router.route('/upload-secondary-images/:variantID').post(upload.array("images",5), uploadSecondaryImages); // This accepts upto max 5 images
-router.route('/update-secondary-image/:variantImageID').put(upload.single("secondary_image"), updateSecondaryImage)
+router.route('/delete-secondary-image/:variantImageID').delete(deleteSecondaryImage);
 
 export default router
