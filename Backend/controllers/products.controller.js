@@ -67,15 +67,37 @@ const updateProduct = async (req, res) => {
 
 
 const getProductById = async (req, res) => {
+    const productID = req.params.productID;
+
     try {
-        const [product] = await db.execute(
-            "SELECT *, (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating FROM Products WHERE productID = ?", 
-            [req.params.productID]
+        const [products] = await db.execute(`
+            SELECT 
+                name,
+                description,
+                category,
+                people_rated, 
+                (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating 
+            FROM 
+                Products 
+            WHERE 
+                productID = ?`, 
+            [productID]
         );
 
-        if (product.length === 0) return res.status(404).json({ message: "Product not found" });
+        // return if product not found
+        if (products.length === 0) return res.status(404).json({ message: "Product not found" });
 
-        res.json(product[0]);
+        const product = products[0];
+        
+        // Attach variants of the product
+        const [variants] = await db.execute(
+            "SELECT variantID, color, size, price, main_image, discount FROM ProductVariants WHERE productID = ?",
+            [productID]
+        );
+        
+        product.variants = variants;
+        res.json(product);
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -84,7 +106,22 @@ const getProductById = async (req, res) => {
 
 const getAllProducts = async (req, res) => {
     try {
-        const [products] = await db.execute("SELECT *, (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating FROM Products");
+        const [products] = await db.execute(`
+            SELECT 
+                p.*, 
+                pv.main_image, 
+                pv.price, 
+                pv.discount
+            FROM 
+                Products p
+            JOIN 
+                ProductVariants pv 
+                ON pv.variantID = (
+                    SELECT variantID FROM ProductVariants 
+                    WHERE productID = p.productID
+                    ORDER BY variantID ASC LIMIT 1
+                )
+        `);
         res.json(products);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -211,7 +248,7 @@ const deleteReview = async (req, res) => {
     const productID = req.params.productID;
     
     try {
-        // Check if the user has already reviewed this product
+        // Check if the user has reviewed this product
         const [existingReview] = await db.execute(
             "SELECT * FROM Reviews WHERE userID = ? AND productID = ?",
             [userID, productID]
@@ -338,9 +375,34 @@ const getAllVariants = async (req, res) => {
 
 
 const getVariantById = async (req, res) => {
+    const variantID = req.params.variantID;
+
     try {
-        const [variant] = await db.execute("SELECT * FROM ProductVariants WHERE variantID = ?", [req.params.variantID]);
+        // Get variant + product info
+        const [variants] = await db.execute(`
+            SELECT 
+                pv.*, 
+                p.name AS product_name, 
+                p.category
+            FROM ProductVariants pv
+            JOIN Products p ON pv.productID = p.productID
+            WHERE pv.variantID = ?
+        `, [variantID]);
+        
+        // Return if variant not found
+        if (variants.length === 0) {
+            return res.status(404).json({ message: "Variant not found." });
+        }
+        const variant = variants[0];
+
+        // Get secondary images for this variant
+        const [images] = await db.execute(
+            `SELECT image_url, cloudinary_id FROM VariantImages WHERE variantID = ?`, 
+            [variantID]
+        );
+        variant.secondary_images = images;
         res.json(variant);
+
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
