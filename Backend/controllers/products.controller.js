@@ -323,6 +323,20 @@ const getVariantsByProduct = async (req, res) => {
 };
 
 
+const getAllVariants = async (req, res) => {
+    try {
+        const [variants] = await db.execute(`
+            SELECT pv.*, p.name AS product_name, p.category
+            FROM ProductVariants pv
+            JOIN Products p ON pv.productID = p.productID
+        `);
+        res.json(variants);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+
 const getVariantById = async (req, res) => {
     try {
         const [variant] = await db.execute("SELECT * FROM ProductVariants WHERE variantID = ?", [req.params.variantID]);
@@ -443,6 +457,7 @@ export {
     updateVariant,
     getVariantsByProduct,
     getVariantById,
+    getAllVariants,
     uploadSecondaryImages,
     deleteSecondaryImage,
     deleteVariant

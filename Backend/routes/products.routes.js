@@ -11,10 +11,11 @@ import {
     createVariant,
     updateVariant,
     getVariantsByProduct,
+    getVariantById,
+    getAllVariants,
     deleteVariant, 
     uploadSecondaryImages,
-    deleteSecondaryImage,
-    getVariantById
+    deleteSecondaryImage
 } from '../controllers/products.controller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/multer.middleware.js';
@@ -37,6 +38,7 @@ router.route("/delete-review/:productID").delete(authMiddleware, deleteReview);
 router.route('/create-variant/:productID').post(upload.single("main_image"), createVariant);
 router.route('/get-variants/:productID').get(getVariantsByProduct);
 router.route('/get-variant/:variantID').get(getVariantById);
+router.route('/get-all-variants').get(getAllVariants);
 router.route('/update-variant/:variantID').put(upload.single("main_image"), updateVariant);
 router.route('/delete-variant/:variantID').delete(deleteVariant);
 router.route('/upload-secondary-images/:variantID').post(upload.array("images",5), uploadSecondaryImages); // This accepts upto max 5 images
