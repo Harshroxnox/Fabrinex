@@ -2,7 +2,7 @@ import { Router } from 'express'
 import {
     createProduct,
     reviewProduct,
-    editReview,
+    updateReview,
     getProductById,
     getAllProducts,
     updateProduct,
@@ -11,7 +11,7 @@ import {
     updateVariant,
     getVariantsByProduct,
     deleteVariant, 
-    productVariantImages,
+    uploadSecondaryImages,
     updateSecondaryImage,
     getVariantById
 } from '../controllers/products.controller.js';
@@ -29,15 +29,15 @@ router.route('/delete-product/:productID').delete(deleteProduct);
 
 // product review routes
 router.route("/review-product/:productID").post(authMiddleware, reviewProduct);
-router.route("/edit-review/:productID").post(authMiddleware, editReview);
+router.route("/update-review/:productID").put(authMiddleware, updateReview);
 
 // product variant routes
-router.route('/create-variant/:productID').post(upload.single("main_image"),createVariant);
-router.route('/get-variant/:variantID').get(getVariantById);
-router.route('/update-variant/:variantID').put(upload.single("main_image"),updateVariant);
-router.route('/delete-variant/:variantID').delete(deleteVariant);
+router.route('/create-variant/:productID').post(upload.single("main_image"), createVariant);
 router.route('/get-variants/:productID').get(getVariantsByProduct);
-router.route('/upload-secondary-image/:variantID').post(upload.array("images",5),productVariantImages)
-router.route('/update-secondary-image/:productImageID').put(upload.single("secondary_image"),updateSecondaryImage)
+router.route('/get-variant/:variantID').get(getVariantById);
+router.route('/update-variant/:variantID').put(upload.single("main_image"), updateVariant);
+router.route('/delete-variant/:variantID').delete(deleteVariant);
+router.route('/upload-secondary-images/:variantID').post(upload.array("images",5), uploadSecondaryImages); // This accepts upto max 5 images
+router.route('/update-secondary-image/:variantImageID').put(upload.single("secondary_image"), updateSecondaryImage)
 
 export default router

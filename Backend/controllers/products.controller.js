@@ -119,7 +119,7 @@ const reviewProduct = async (req, res) => {
 };
 
 
-const editReview = async (req, res) => {
+const updateReview = async (req, res) => {
     const { rating, review } = req.body;
     const userID = req.userID;
     const productID = req.params.productID;
@@ -310,7 +310,7 @@ const deleteVariant = async (req, res) => {
 };
 
 const updateSecondaryImage = async (req, res) => {
-    const { productImageID } = req.params;
+    const { variantImageID } = req.params;
     const file = req.file;
 
     try {
@@ -322,8 +322,8 @@ const updateSecondaryImage = async (req, res) => {
         const newImageUrl = uploadedImage.url;
 
         const [result] = await db.execute(
-            "UPDATE ProductImages SET image_url = ? WHERE productImageID = ?",
-            [newImageUrl, productImageID]
+            "UPDATE VariantImages SET image_url = ? WHERE variantImageID = ?",
+            [newImageUrl, variantImageID]
         );
 
         if (result.affectedRows === 0) {
@@ -332,7 +332,7 @@ const updateSecondaryImage = async (req, res) => {
 
         res.status(200).json({
             message: "Image updated successfully",
-            productImageID,
+            variantImageID,
             image_url: newImageUrl
         });
 
@@ -342,27 +342,29 @@ const updateSecondaryImage = async (req, res) => {
 };
 
 
-const productVariantImages = async (req, res) => {
+const uploadSecondaryImages = async (req, res) => {
     const files = req.files;
     const variantID = req.params.variantID;
 
     try {
         let imageUrls = [];
 
+        // Upload the images on cloudinary and get the url
         if (files && files.length > 0) {
             const uploadPromises = files.map(file => uploadOnCloudinary(file.path));
             const uploadResults = await Promise.all(uploadPromises);
             imageUrls = uploadResults.map(result => result.url);
         }
 
+        // Insert the url's into VariantImages
         const insertPromises = imageUrls.map(async (url) => {
             const [result] = await db.execute(
-                "INSERT INTO ProductImages (variantID, image_url) VALUES (?, ?)",
+                "INSERT INTO VariantImages (variantID, image_url) VALUES (?, ?)",
                 [variantID, url]
             );
 
             return {
-                productImageID: result.insertId,
+                variantImageID: result.insertId,
                 image_url: url
             };
         });
@@ -380,21 +382,19 @@ const productVariantImages = async (req, res) => {
 };
 
 
-export
-{
- createProduct,
- updateProduct,
- reviewProduct,
- editReview,
- getProductById,
- getAllProducts,
- deleteProduct,
- createVariant,
- updateVariant,
- getVariantsByProduct,
- getVariantById,
- productVariantImages,
- updateSecondaryImage,
- deleteVariant
-
+export {
+    createProduct,
+    updateProduct,
+    reviewProduct,
+    updateReview,
+    getProductById,
+    getAllProducts,
+    deleteProduct,
+    createVariant,
+    updateVariant,
+    getVariantsByProduct,
+    getVariantById,
+    uploadSecondaryImages,
+    updateSecondaryImage,
+    deleteVariant
 }

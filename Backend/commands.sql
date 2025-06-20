@@ -141,8 +141,8 @@ CREATE TABLE Carts (
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
 
-CREATE TABLE ProductImages (
-    productImageID INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE VariantImages (
+    variantImageID INT AUTO_INCREMENT PRIMARY KEY,
     variantID INT NOT NULL,
     image_url VARCHAR(255) NOT NULL,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
