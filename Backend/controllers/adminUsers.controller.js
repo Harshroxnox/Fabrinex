@@ -64,19 +64,17 @@ const loginAdmin = async (req, res) => {
     // Store refresh token in DB
     await db.execute("UPDATE AdminUsers SET refresh_token = ? WHERE adminID = ?", [refreshToken, admin.adminID]);
     
-
     res.cookie('accessToken', accessToken, {
-      httpOnly: true, // Cookie is not accessible via JavaScript
-      secure: process.env.NODE_ENV === 'production', // Cookie is sent only over HTTPS in production
-      sameSite: 'Strict', // Adjust based on your requirements
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite: 'Strict', 
       maxAge: 60 * 60 * 1000, // Cookie expires in 60 minutes
     });
 
     // Set the refresh token as an HTTP-only cookie
     res.cookie('refreshToken', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
+      httpOnly: true, // Cookie is not accessible via JavaScript
+      secure: process.env.NODE_ENV === 'production', // Cookie is sent only over HTTPS in production
+      sameSite: 'Strict', // Adjust based on your requirements
       maxAge: 10 * 24 * 60 * 60 * 1000, // Cookie expires in 10 days
     });
 
@@ -111,11 +109,11 @@ const refreshAdmin = async (req, res) => {
       // Set HTTP-only cookies for both tokens
       const isProduction = process.env.NODE_ENV === 'production';
       res.cookie('accessToken', accessToken, {
-        httpOnly: true,
         secure: isProduction,
         sameSite: 'Strict',
         maxAge: 60 * 60 * 1000, // 1 hour
       });
+      
       res.cookie('refreshToken', newRefreshToken, {
         httpOnly: true,
         secure: isProduction,
@@ -138,7 +136,12 @@ const logoutAdmin= async (req, res) => {
       // Remove refresh token from DB
       await db.execute("UPDATE AdminUsers SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
 
-      res.clearCookie('token', {
+      res.clearCookie('accessToken', {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'Strict',
+      });
+    
+      res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'Strict',
