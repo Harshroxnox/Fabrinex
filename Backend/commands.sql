@@ -1,13 +1,37 @@
 CREATE DATABASE ecommerce;
 USE ecommerce;
 
-/* To Clear Data from tables
+/* 
+To Clear Data from tables:
 SET FOREIGN_KEY_CHECKS = 0;
 
 TRUNCATE TABLE Users;
 TRUNCATE TABLE table2;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+
+Sample Order UserID 1, OrderID 1, AddressID 1 and variantID 1
+INSERT INTO Orders (
+    userID, addressID, payment_method, payment_status, order_location, order_status, barcode
+) VALUES (
+    1,               -- userID
+    1,               -- addressID
+    'Credit Card',   -- payment_method
+    'Paid',          -- payment_status
+    'Warehouse A',   -- order_location
+    'Processing',    -- order_status
+    '1234567890123'  -- barcode (unique EAN-13)
+);
+
+INSERT INTO OrderItems (
+    orderID, productVariantID, quantity, price_at_purchase
+) VALUES (
+    1, 
+    1, 
+    2, 
+    499.00
+);
 */
 
 CREATE TABLE Users (

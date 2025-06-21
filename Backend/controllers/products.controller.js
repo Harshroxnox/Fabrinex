@@ -158,8 +158,7 @@ const reviewProduct = async (req, res) => {
             JOIN OrderItems oi ON o.orderID = oi.orderID
             JOIN ProductVariants pv ON oi.productVariantID = pv.variantID
             WHERE o.userID = ?
-              AND pv.productID = ?
-              AND o.order_status = 'delivered'
+            AND pv.productID = ?
         `, [userID, productID]);
         
 
@@ -397,7 +396,7 @@ const getVariantById = async (req, res) => {
 
         // Get secondary images for this variant
         const [images] = await db.execute(
-            `SELECT image_url, cloudinary_id FROM VariantImages WHERE variantID = ?`, 
+            `SELECT variantImageID, image_url, cloudinary_id FROM VariantImages WHERE variantID = ?`, 
             [variantID]
         );
         variant.secondary_images = images;
