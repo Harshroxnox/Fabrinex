@@ -283,6 +283,13 @@ const createVariant = async (req, res) => {
     const { color, size, price, discount, stock } = req.body;
     const mainImgPath = req.file ? req.file.path : null;
     
+    if (!constants.PRODUCT_SIZES.includes(size)) {
+        return res.status(400).json({
+            success: false,
+            message: `Invalid size. Must be one of: ${constants.PRODUCT_SIZES.join(', ')}`,
+        });
+    }
+
     try {
         let mainImgCloudinaryUrl;
 
