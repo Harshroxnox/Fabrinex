@@ -12,16 +12,23 @@ export const constants = {
   PRODUCT_SIZES: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
 
   PAYMENT_METHODS: [
-    'card',
-    'upi',
-    'net-banking',
-    'cash-on-delivery',
+    'card', 
+    'upi', 
+    'netbanking', 
+    'wallet',
+    'cash-on-delivery'
   ],
 
   PAYMENT_NETWORKS: [
-    'visa',
-    'mastercard',
-    'rupay'
+    "Visa",
+    "MasterCard",
+    "RuPay",
+    "Amex",
+    "Diners Club",
+    "Discover",
+    "JCB",
+    "Maestro",
+    "UnionPay"
   ],
 
   PAYMENT_STATUSES: ['pending', 'completed', 'failed', 'refunded'],
@@ -35,4 +42,6 @@ export const constants = {
     'inventory-manager',
     'marketing'
   ],
+
+  // Approved Message Templates will go here!
 };

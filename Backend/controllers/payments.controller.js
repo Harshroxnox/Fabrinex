@@ -4,6 +4,7 @@ import * as crypto from 'crypto';
 import { constants } from "../config/constants.js";
 
 export const createOrder = async (req, res) => {
+    // This amount is in rupee
     const { amount, orderID } = req.body;
 
     try {
@@ -69,7 +70,6 @@ export const saveCard = async (req, res) => {
     const {
         card_token,
         last4,
-        holder_name,
         expiry,
         network
     } = req.body;
@@ -84,10 +84,10 @@ export const saveCard = async (req, res) => {
     
     try {
         await db.execute(
-            `INSERT INTO Payments 
-            (userID, last4_card_no, card_holder_name, expiration, payment_network, razorpay_token)
-            VALUES (?, ?, ?, ?, ?, ?)`,
-            [userID, last4, holder_name, expiry, network, card_token]
+            `INSERT INTO Cards
+            (userID, last4_card_no, expiration, payment_network, razorpay_token)
+            VALUES (?, ?, ?, ?, ?)`,
+            [userID, last4, expiry, network, card_token]
         );
     
         res.json({ message: 'Card saved' });
@@ -97,6 +97,7 @@ export const saveCard = async (req, res) => {
 };
 
 export const chargeSavedCard = async (req, res) => {
+    // This amount is in rupee
     const { amount, razorpay_token, razorpay_customer_id } = req.body;
 
     try {
@@ -114,17 +115,12 @@ export const chargeSavedCard = async (req, res) => {
     }
 };
 
-export const verifyCardPayment = async (req, res) => {
+export const verifySavedCardPayment = async (req, res) => {
     const {
         razorpay_payment_id,
         orderID,
-        amount,
-        payment_method
+        amount
     } = req.body;
-
-    if(!constants.PAYMENT_METHODS.includes(payment_method)){
-        return res.status(400).json({ error: 'Invalid payment method' });
-    }
 
     try {
         // Fetch payment details from Razorpay
@@ -140,8 +136,8 @@ export const verifyCardPayment = async (req, res) => {
         );
     
         await db.execute(
-            `UPDATE Orders SET payment_status = 'completed', payment_method = ? WHERE orderID = ?`, 
-            [payment_method, orderID]
+            `UPDATE Orders SET payment_status = 'completed', payment_method = 'card' WHERE orderID = ?`, 
+            [orderID]
         );
     
         res.json({ message: "Successfully verified!" });        

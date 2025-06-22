@@ -156,7 +156,7 @@ const reviewProduct = async (req, res) => {
             SELECT COUNT(*) AS bought
             FROM Orders o
             JOIN OrderItems oi ON o.orderID = oi.orderID
-            JOIN ProductVariants pv ON oi.productVariantID = pv.variantID
+            JOIN ProductVariants pv ON oi.variantID = pv.variantID
             WHERE o.userID = ?
             AND pv.productID = ?
         `, [userID, productID]);

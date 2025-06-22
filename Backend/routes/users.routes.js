@@ -32,9 +32,6 @@ router.route("/get-address").get(authMiddleware, getAddress);
 router.route("/update-address/:addressID").put(authMiddleware, updateAddress);
 router.route("/delete-address/:addressID").delete(authMiddleware, deleteAddress);
 
-// user payment routes
-
-
 // user cart routes
 
 export default router

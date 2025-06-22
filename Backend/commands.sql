@@ -2,6 +2,9 @@ CREATE DATABASE ecommerce;
 USE ecommerce;
 
 /* 
+To Clear the database
+drop database ecommerce;
+
 To Clear Data from tables:
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -11,7 +14,7 @@ TRUNCATE TABLE table2;
 SET FOREIGN_KEY_CHECKS = 1;
 
 
-Sample Order UserID 1, OrderID 1, AddressID 1 and variantID 1
+To Create Sample Order UserID 1, AddressID 1 and variantID 1 of OrderID 1.
 INSERT INTO Orders (
     userID, addressID, payment_method, payment_status, order_location, order_status, barcode
 ) VALUES (
@@ -121,13 +124,13 @@ CREATE TABLE Orders (
 );
 
 CREATE TABLE OrderItems (
-    itemID INT AUTO_INCREMENT PRIMARY KEY,
+    orderItemID INT AUTO_INCREMENT PRIMARY KEY,
     orderID INT NOT NULL,
-    productVariantID INT NOT NULL,
+    variantID INT NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
     price_at_purchase DECIMAL(10, 2) NOT NULL,
     FOREIGN KEY (orderID) REFERENCES Orders(orderID) ON DELETE CASCADE,
-    FOREIGN KEY (productVariantID) REFERENCES ProductVariants(variantID) ON DELETE RESTRICT
+    FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE RESTRICT
 );
 
 CREATE TABLE Promotions (
@@ -146,11 +149,10 @@ CREATE TABLE Transactions (
     FOREIGN KEY (orderID) REFERENCES Orders(orderID)
 );
 
-CREATE TABLE Payments (
-    paymentID INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE Cards (
+    cardID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
     last4_card_no CHAR(4) NOT NULL,
-    card_holder_name VARCHAR(255) NOT NULL,
     expiration CHAR(7) NOT NULL,  -- YYYY-MM format ex 2027-09
     payment_network VARCHAR(20) NOT NULL,
     razorpay_token VARCHAR(255) NOT NULL,  -- Store a secure token from payment gateway

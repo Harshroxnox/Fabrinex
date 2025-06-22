@@ -59,18 +59,30 @@
 
     // payment verification
     async function handleRazorpaySuccess(response) {
-      console.log('Payment successful!');
-      console.log('Razorpay Payment ID:', response.razorpay_payment_id);
-      console.log('Razorpay Order ID:', response.razorpay_order_id);
-      console.log('Razorpay Signature:', response.razorpay_signature);
 
+      // Check if response.razorpay_token exists
+      if (response.razorpay_token) {
+        // Save the card for future use
+        // Fetch the card metadata using razorpay (last4, expiry, network) from Razorpay's /tokens/:token_id API
+        // Here we will call the backend route /save-card giving card metadata and token 
+        console.log("card-saved");
+      } else {
+        // Payment was done via UPI, netbanking, etc.
+        console.log("No card token;");
+
+        console.log('Payment successful!');
+        console.log('Razorpay Payment ID:', response.razorpay_payment_id);
+        console.log('Razorpay Order ID:', response.razorpay_order_id);
+        console.log('Razorpay Signature:', response.razorpay_signature);
+      }
       // and then you would call the /verfiy route of payments
     }
 
     async function payNow() {
+      // This amount is in rupees
       const amount = document.getElementById('amount').value;
 
-      // Create order by calling the server endpoint
+      // Create order by calling the backend server endpoint
       const response = await fetch('http://localhost:5000/api/v1/payments/create-order', {
         method: 'POST',
         headers: {
@@ -87,8 +99,12 @@
         key: 'rzp_test_ZP4qBfHrurJwdM', // Replace with your Razorpay key_id
         amount: order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
         currency: 'INR',
+        method: 'card,upi,netbanking,wallet', // ✅ Only instant methods
         name: 'Noor Shop',
         description: 'Test Transaction',
+        tokenization: {
+          enabled: true // ✅ Will work only if user selects Card
+        },
         order_id: order.id, // This is the order_id created in the backend
         handler: handleRazorpaySuccess,
         prefill: {
