@@ -41,7 +41,5 @@ export const constants = {
     'web-editor',
     'inventory-manager',
     'marketing'
-  ],
-
-  // Approved Message Templates will go here!
+  ]
 };

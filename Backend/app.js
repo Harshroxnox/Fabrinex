@@ -30,7 +30,7 @@ import adminRouter from './routes/adminUsers.routes.js'
 import productRouter from './routes/products.routes.js'
 import authRouter from "./routes/auth.routes.js";
 import paymentRouter from "./routes/payments.routes.js"
-
+import marketingRouter from "./routes/marketing.routes.js"
 
 //routes declaration
 app.use("/api/v1/users", userRouter)
@@ -38,6 +38,7 @@ app.use("/api/v1/admins", adminRouter)
 app.use("/api/v1/products",productRouter)
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/payments", paymentRouter);
+app.use("/api/v1/marketing", marketingRouter);
 
 
 export { app }
