@@ -283,6 +283,10 @@ const createVariant = async (req, res) => {
     const { color, size, price, discount, stock } = req.body;
     const mainImgPath = req.file ? req.file.path : null;
     
+    if(!mainImgPath){
+        return res.status(400).json({ message: "Main image not provided!" });
+    }
+
     if (!constants.PRODUCT_SIZES.includes(size)) {
         return res.status(400).json({
             success: false,
@@ -291,18 +295,12 @@ const createVariant = async (req, res) => {
     }
 
     try {
-        let mainImgCloudinaryUrl;
-
-        if(mainImgPath){
-           const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
-           mainImgCloudinaryUrl=mainImgCloudinary.url;
-        }
-        
+        const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
         const barcode = await generateUniqueBarcode();
 
         const [result] = await db.execute(
-            "INSERT INTO ProductVariants (productID, color, size, price, discount, stock,main_image,barcode) VALUES (?, ?, ?, ?, ?, ?,?,?)", 
-            [req.params.productID, color, size, price, discount, stock,mainImgCloudinaryUrl,barcode]
+            "INSERT INTO ProductVariants (productID, color, size, price, discount, stock, main_image, cloudinary_id, barcode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+            [req.params.productID, color, size, price, discount, stock, mainImgCloudinary.url, mainImgCloudinary.public_id, barcode]
         );
         res.status(201).json({ message: "Variant created", variantID: result.insertId });
     } catch (err) {
@@ -319,9 +317,28 @@ const updateVariant = async (req, res) => {
     try {
         // If image is provided, upload to Cloudinary
         if (mainImgPath) {
+            const [variants] = await db.execute(
+                `SELECT cloudinary_id FROM ProductVariants WHERE variantID = ?`,
+                [req.params.variantID]
+            );
+
+            // If variant not found return 
+            if (variants.length === 0) {
+                return res.status(404).json({ error: 'Variant not found' });
+            }
+            let cloudinaryID = variants[0].cloudinary_id;
+            
+            // Delete previous image from Cloudinary
+            const deleteResult = await deleteFromCloudinary(cloudinaryID);
+            if (deleteResult.result !== "ok") {
+                return res.status(500).json({ error: "Failed to delete image from Cloudinary." });
+            }
+
+            // Upload this image to Cloudinary
             const uploadedImage = await uploadOnCloudinary(mainImgPath);
             if (uploadedImage && uploadedImage.url) {
                 fields.main_image = uploadedImage.url;
+                fields.cloudinary_id = uploadedImage.public_id;
             }
         }
 
@@ -417,8 +434,25 @@ const getVariantById = async (req, res) => {
 
 const deleteVariant = async (req, res) => {
     try {
+        const [variants] = await db.execute(
+            `SELECT cloudinary_id FROM ProductVariants WHERE variantID = ?`,
+            [req.params.variantID]
+        );
+
+        // If variant not found return 
+        if (variants.length === 0) {
+            return res.status(404).json({ error: 'Variant not found' });
+        }
+        let cloudinaryID = variants[0].cloudinary_id;
+        
+        // Delete main image from Cloudinary
+        const deleteResult = await deleteFromCloudinary(cloudinaryID);
+        if (deleteResult.result !== "ok") {
+            return res.status(500).json({ error: "Failed to delete image from Cloudinary." });
+        }
+
         const [result] = await db.execute("DELETE FROM ProductVariants WHERE variantID=?", [req.params.variantID]);
-        if (result.affectedRows === 0) return res.status(404).json({ message: "Variant not found" });
+        if (result.affectedRows === 0) return res.status(404).json({ message: "Failed to Delete" });
         res.json({ message: "Variant deleted" });
     } catch (err) {
         res.status(500).json({ error: err.message });
