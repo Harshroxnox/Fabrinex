@@ -1,7 +1,7 @@
-import express from "express";
+import { Router } from "express";
 import { getMessageTemplates } from "../controllers/marketing.controller.js"
 
-const router = express.Router();
+const router = Router();
 
 // Get Message Templates
 router.route("/get-message-templates").get(getMessageTemplates);

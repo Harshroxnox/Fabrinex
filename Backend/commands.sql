@@ -2,10 +2,19 @@ CREATE DATABASE ecommerce;
 USE ecommerce;
 
 /* 
-To Clear the database
+To Create a root user with all priveleges-------------------------------------------------------
+CREATE USER 'root'@'localhost' IDENTIFIED BY 'mysql';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' WITH GRANT OPTION;
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'mysql';
+FLUSH PRIVILEGES;
+
+See all users with plugins----------------------------------------------------------------------
+SELECT user, host, plugin FROM mysql.user;
+
+To Clear the database---------------------------------------------------------------------------
 drop database ecommerce;
 
-To Clear Data from tables:
+To Clear Data from tables-----------------------------------------------------------------------
 SET FOREIGN_KEY_CHECKS = 0;
 
 TRUNCATE TABLE Users;
@@ -14,7 +23,7 @@ TRUNCATE TABLE table2;
 SET FOREIGN_KEY_CHECKS = 1;
 
 
-To Create Sample Order UserID 1, AddressID 1 and variantID 1 of OrderID 1.
+To Create Sample Order UserID 1, AddressID 1 and variantID 1 of OrderID 1-----------------------
 INSERT INTO Orders (
     userID, addressID, payment_method, payment_status, order_location, order_status, barcode
 ) VALUES (
@@ -136,7 +145,8 @@ CREATE TABLE OrderItems (
 
 CREATE TABLE Promotions (
     promotionID INT AUTO_INCREMENT PRIMARY KEY,
-    promotion_code VARCHAR(50) UNIQUE NOT NULL
+    promotion_code VARCHAR(50) UNIQUE NOT NULL,
+    discount INT NOT NULL CHECK (discount > 0 AND discount < 100)
 );
 
 CREATE TABLE Transactions (
@@ -176,9 +186,3 @@ CREATE TABLE VariantImages (
     cloudinary_id VARCHAR(255) NOT NULL,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
-
-CREATE TABLE MessageTemplates (
-    messageTemplateID INT AUTO_INCREMENT PRIMARY KEY,
-    message TEXT NOT NULL
-);
-

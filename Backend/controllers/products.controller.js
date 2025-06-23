@@ -283,6 +283,10 @@ const createVariant = async (req, res) => {
     const { color, size, price, discount, stock } = req.body;
     const mainImgPath = req.file ? req.file.path : null;
     
+    if(discount < 0 || discount > 100){
+        return res.status(400).json({ error: "Discount must be between 0 and 100." });
+    }
+
     if(!mainImgPath){
         return res.status(400).json({ message: "Main image not provided!" });
     }
