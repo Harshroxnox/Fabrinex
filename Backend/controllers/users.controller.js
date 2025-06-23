@@ -26,6 +26,7 @@ const generateTokens = (id, userType) => {
   return { accessToken, refreshToken };
 };
 
+// User Routes ------------------------------------------------------------------------------------
 
 const registerUser = async (req, res) => {
   const { name, phone_number, whatsapp_number, email, password } = req.body;
@@ -194,6 +195,7 @@ const getProfile = async (req, res) => {
   }
 };
 
+// User Address Routes ----------------------------------------------------------------------------
 
 const addAddress = async (req, res) => {
   const userID = req.userID;
@@ -260,6 +262,115 @@ const deleteAddress = async (req, res) => {
   }
 };
 
+// User Cart Routes -------------------------------------------------------------------------------
+
+const addItem = async (req, res) => {
+  const variantID = req.params.variantID;
+  const { quantity = 1 } = req.body;
+  const userID = req.userID;
+
+  if (!variantID || quantity <= 0) {
+    return res.status(400).json({ error: "Invalid variantID or quantity" });
+  }
+
+  try {
+    const [items] = await db.execute("SELECT * FROM CartItems WHERE userID = ? AND variantID = ?",
+      [userID, variantID]
+    )
+
+    // If item is already added to card increase quantity
+    if(items.length !== 0){
+      await db.execute("UPDATE CartItems SET quantity = quantity + ? WHERE userID = ? AND variantID = ?",
+        [quantity, userID, variantID]
+      )
+      return res.status(200).json({ message: "Items added to cart" });
+    }
+
+    // Else add item in DB
+    await db.execute("INSERT INTO CartItems (userID, variantID, quantity) VALUES (?, ?, ?)",
+      [userID, variantID, quantity]
+    )
+    return res.status(200).json({ message: "Items added to cart" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const deleteItem = async (req, res) => {
+  const variantID = req.params.variantID;
+  const userID = req.userID;
+
+  if (!variantID) {
+    return res.status(400).json({ error: "Invalid variantID" });
+  }
+
+  try {
+    await db.execute("DELETE FROM CartItems WHERE userID = ? AND variantID = ?",
+      [userID, variantID]
+    )
+
+    return res.status(200).json({ message: "Items deleted from cart" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const updateQuantity = async (req, res) => {
+  const variantID = req.params.variantID;
+  const { quantity } = req.body;
+  const userID = req.userID;
+
+  if (!variantID || quantity <= 0) {
+    return res.status(400).json({ error: "Invalid variantID or quantity" });
+  }
+
+  try {
+    const [results] = await db.execute("UPDATE CartItems SET quantity = ? WHERE userID = ? AND variantID = ?",
+      [quantity, userID, variantID]
+    );
+
+    if(results.affectedRows === 0){
+      return res.status(400).json({ error: "Cart Item not found"});
+    }
+
+    return res.status(200).json({ message: "Item quantity updated" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+const getCart = async (req, res) => {
+  const userID = req.userID;
+
+  try {
+    const [cartItems] = await db.execute(`
+      SELECT 
+        p.name,
+        p.category,
+        pv.size,
+        pv.color,
+        pv.price,
+        pv.discount,
+        pv.main_image,
+        ci.quantity
+      FROM 
+        CartItems ci
+      JOIN 
+        ProductVariants pv ON ci.variantID = pv.variantID
+      JOIN 
+        Products p ON pv.productID = p.productID
+      WHERE 
+        ci.userID = ?
+    `, [userID]);
+
+    res.json(cartItems);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 export {
   generateTokens,
@@ -272,5 +383,9 @@ export {
   addAddress,
   getAddress,
   updateAddress,
-  deleteAddress
+  deleteAddress,
+  addItem,
+  deleteItem,
+  updateQuantity,
+  getCart
 }

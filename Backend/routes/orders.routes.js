@@ -9,7 +9,7 @@ import {
 } from '../controllers/orders.controller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 
-const router =Router()
+const router = Router();
 
 // order routes
 router.route("/create-order").post(authMiddleware, createOrder);

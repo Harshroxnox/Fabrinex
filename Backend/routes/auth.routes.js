@@ -1,7 +1,7 @@
-import express from "express";
+import { Router } from "express";
 import { sendOtpEmail, verifyOtpEmail, sendOtpPhone, verifyOtpPhone } from "../controllers/auth.controller.js";
 
-const router = express.Router();
+const router = Router();
 
 router.route("/send-otp-email").post(sendOtpEmail);
 router.route("/verify-otp-email").post(verifyOtpEmail);

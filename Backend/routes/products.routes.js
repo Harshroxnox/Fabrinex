@@ -20,7 +20,7 @@ import {
 import authMiddleware from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/multer.middleware.js';
 
-const router =Router()
+const router = Router();
 
 // product routes
 router.route("/create-product").post(createProduct);
