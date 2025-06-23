@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
+import crypto from 'crypto';
 
 
 // Configuration
@@ -16,32 +17,39 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 
     try {
-        // Upload the file to Cloudinary
-        const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: 'auto',
-            timeout: 60000,
-        });
-        console.log('Upload successful:', response);
+        if(process.env.NODE_ENV === 'production'){
+            // Upload the file to Cloudinary
+            const response = await cloudinary.uploader.upload(localFilePath, {
+                resource_type: 'auto',
+                timeout: 60000,
+            });
+            console.log('Upload successful:', response);
 
-        // Safely delete the local file
-        if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath);
+            // Safely delete the local file            
+            await fs.promises.unlink(localFilePath);
             console.log(`Temporary file deleted: ${localFilePath}`);
-        } else {
-            console.warn(`File not found for deletion: ${localFilePath}`);
+
+            return response;
         }
+
+        // Do this for development
+        const response = {
+            url: "http://res.cloudinary.com/dkvsin0cs/image/upload/v1750657987/qrbfty0zquwkr3mi3qvl.png",
+            public_id: crypto.randomBytes(6).toString('hex')
+        }
+
+        // Safely delete the local file            
+        await fs.promises.unlink(localFilePath);
+        console.log(`Temporary file deleted: ${localFilePath}`);
 
         return response;
-    } catch (uploadError) {
-        console.error('Upload failed:', uploadError);
 
-        // Attempt to delete the file even if the upload fails
-        if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath);
-            console.log(`Temporary file deleted after failed upload: ${localFilePath}`);
-        } else {
-            console.warn(`File not found for deletion after failed upload: ${localFilePath}`);
-        }
+    } catch (error) {
+        console.error('Upload failed:', error);
+
+        // Safely delete the local file            
+        await fs.promises.unlink(localFilePath);
+        console.log(`Temporary file deleted: ${localFilePath}`);
 
         return null;
     }
@@ -49,7 +57,16 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 
 const deleteFromCloudinary = async (publicId) => {
-    return cloudinary.uploader.destroy(publicId);
+    if(process.env.NODE_ENV === 'production'){
+        const response = await cloudinary.uploader.destroy(publicId);
+        return response;
+    }
+
+    // Do this instead in development
+    const response = {
+        result: "ok"
+    }
+    return response;
 };
 
 export { uploadOnCloudinary, deleteFromCloudinary };
