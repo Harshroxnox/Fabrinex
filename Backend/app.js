@@ -23,7 +23,6 @@ app.use(express.static("public"))
 app.use(cookieParser())
 
 
-
 //routes imports
 import userRouter from './routes/users.routes.js'
 import adminRouter from './routes/adminUsers.routes.js'
@@ -39,6 +38,5 @@ app.use("/api/v1/products",productRouter)
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/payments", paymentRouter);
 app.use("/api/v1/marketing", marketingRouter);
-
 
 export { app }

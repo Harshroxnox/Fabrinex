@@ -45,7 +45,7 @@ const registerUser = async (req, res) => {
       profileImgUrl = uploadedImage?.url || null;
     }
 
-    const customer = await razorpay.customers.create({ name, email, phone_number });
+    const customer = await razorpay.customers.create({ name, email, contact: phone_number });
 
     await db.execute(
       "INSERT INTO Users (name, phone_number, whatsapp_number, email, password, profile_img, razorpay_customer_id) VALUES (?, ?, ?, ?, ?, ?, ?)",

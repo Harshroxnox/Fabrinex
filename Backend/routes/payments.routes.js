@@ -1,6 +1,6 @@
 import { Router } from "express";
 import authMiddleware from '../middleware/authMiddleware.js';
-import { createOrder, verifyPayment, saveCard, chargeSavedCard, verifySavedCardPayment } from "../controllers/payments.controller.js";
+import { createOrder, verifyPayment, saveCard, chargeSavedCard, verifySavedCardPayment, getCards, deleteCard } from "../controllers/payments.controller.js";
 
 
 const router = Router();
@@ -15,7 +15,7 @@ router.route("/charge-saved-card").post(authMiddleware, chargeSavedCard);
 router.route("/verfiy-saved-card-payment").post(authMiddleware, verifySavedCardPayment);
 
 // Card management routes
-// get-cards
-// delete-card
+router.route("/get-cards").get(authMiddleware, getCards);
+router.route("/delete-card/:cardID").delete(authMiddleware, deleteCard);
 
 export default router;

@@ -145,3 +145,54 @@ export const verifySavedCardPayment = async (req, res) => {
         res.status(500).json({ error: 'Verification failed'});
     }
 };
+
+export const getCards = async (req, res) => {
+    const userID = req.userID;
+
+    try {
+        const [cards] = await db.execute(`
+            SELECT cardID, last4_card_no, expiration, payment_network 
+            FROM Cards WHERE userID = ? 
+        `, [userID]);
+
+        res.json(cards);
+    } catch (error) {
+        res.status(500).json({ error: "Unable to fetch Cards" });
+    }
+};
+
+export const deleteCard = async (req, res) => {
+    const cardID = req.params.cardID;
+    const userID = req.userID;
+
+    if (!userID || !cardID) {
+        return res.status(400).json({ error: "Missing userID or cardID" });
+    }
+
+    try {
+        const [cards] = await db.execute(
+            "SELECT razorpay_token FROM Cards WHERE cardID = ? AND userID = ?",
+            [cardID, userID]
+        );
+
+        if(cards.length === 0){
+            return res.status(404).json({ error: "Card not found or unauthorized" });
+        }
+
+        // Delete the card from razorpay
+        const [users] = await db.execute("SELECT razorpay_customer_id FROM Users WHERE userID = ?", [userID])
+        const razorpay_customer_id = users[0].razorpay_customer_id;
+        const card_razorpay_token = cards[0].razorpay_token
+        await razorpay.customers.deleteToken(razorpay_customer_id, card_razorpay_token);
+
+        // Delete the card from DB
+        await db.execute(
+            "DELETE FROM Cards WHERE cardID = ? AND userID = ?",
+            [cardID, userID]
+        );
+
+        res.json({ message: "Card deleted successfully" })
+    } catch (error) {
+        res.status(500).json({ error: "Unable to delete Card" });
+    }
+};
