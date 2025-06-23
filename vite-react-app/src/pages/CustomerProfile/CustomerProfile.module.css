@@ -1,6 +1,4 @@
-/* CustomerProfile.css */
-
-.customer-profile-container {
+.customerProfileContainer {
   background-color: #f9fafb;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   border: 0.01rem solid black;
@@ -10,7 +8,7 @@
   min-height: 100vh;
 }
 
-.customer-profile-content {
+.customerProfileContent {
   display: flex;
   flex-direction: column;
   padding: 32px 24px;
@@ -20,21 +18,20 @@
   overflow: hidden;
 }
 
-/* Header Styles */
-.profile-header {
+.profileHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
 }
 
-.header-left {
+.headerLeft {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
-.page-title {
+.pageTitle {
   font-size: 2rem;
   text-decoration: none;
   font-weight: 600;
@@ -42,30 +39,28 @@
   color: black;
 }
 
-.page-subtitle {
+.pageSubtitle {
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0;
   font-weight: 300;
 }
 
-/* Grid Layout */
-.profile-grid {
+.profileGrid {
   display: grid;
   grid-template-columns: 2fr 1fr;
   gap: 2rem;
   align-items: start;
 }
 
-.profile-left-column,
-.profile-right-column {
+.profileLeftColumn,
+.profileRightColumn {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-/* Card Styles */
-.profile-card {
+.profileCard {
   border: 0.01rem solid #a2a2a2;
   padding: 2rem;
   border-radius: 2rem;
@@ -73,15 +68,14 @@
   overflow: hidden;
 }
 
-/* Customer Header */
-.customer-header {
+.customerHeader {
   display: flex;
   align-items: flex-start;
   gap: 1.5rem;
   position: relative;
 }
 
-.customer-avatar {
+.customerAvatar {
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -89,38 +83,38 @@
   flex-shrink: 0;
 }
 
-.customer-avatar img {
+.customerAvatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.customer-basic-info {
+.customerBasicInfo {
   flex: 1;
 }
 
-.customer-name {
+.customerName {
   font-size: 1.5rem;
   font-weight: 600;
   color: black;
   margin: 0 0 0.25rem 0;
 }
 
-.customer-since {
+.customerSince {
   font-size: 0.875rem;
   color: #6b7280;
   margin: 0 0 0.25rem 0;
   font-weight: 300;
 }
 
-.customer-id {
+.customerId {
   font-size: 0.875rem;
   color: #2c2c2c;
   margin: 0;
   font-weight: 300;
 }
 
-.edit-profile-btn {
+.editProfileBtn {
   background-color: #111827;
   color: white;
   padding: 0.75rem 1.25rem;
@@ -138,33 +132,31 @@
   right: 0;
 }
 
-.edit-profile-btn:hover {
+.editProfileBtn:hover {
   background-color: #1f2937;
 }
 
-/* Section Titles */
-.section-title {
+.sectionTitle {
   font-size: 1.25rem;
   font-weight: 600;
   color: black;
   margin: 0 0 1.5rem 0;
 }
 
-/* Contact Information */
-.contact-info {
+.contactInfo {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.contact-item {
+.contactItem {
   display: grid;
   grid-template-columns: 120px 1fr;
   gap: 1rem;
   align-items: center;
 }
 
-.contact-label {
+.contactLabel {
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
@@ -173,18 +165,17 @@
   gap: 0.5rem;
 }
 
-.contact-value {
+.contactValue {
   font-size: 0.875rem;
   color: #2c2c2c;
   font-weight: 300;
 }
 
-/* Table Styles */
-.table-wrapper {
+.tableWrapper {
   overflow-x: auto;
 }
 
-.profile-table {
+.profileTable {
   border-collapse: separate;
   border-spacing: 0;
   border-radius: 0.8rem;
@@ -193,11 +184,11 @@
   min-width: 100%;
 }
 
-.profile-table thead {
+.profileTable thead {
   background-color: #FDFDFD;
 }
 
-.profile-table th {
+.profileTable th {
   font-weight: 500;
   padding: 0.75rem 1rem;
   text-align: left;
@@ -206,19 +197,19 @@
   white-space: nowrap;
 }
 
-.profile-table tbody {
+.profileTable tbody {
   background-color: #FDFDFD;
 }
 
-.profile-table tr {
+.profileTable tr {
   transition: background-color 0.2s;
 }
 
-.profile-table tr:hover {
+.profileTable tr:hover {
   background-color: #f9fafb;
 }
 
-.profile-table td {
+.profileTable td {
   padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 0.1rem solid #a2a2a2;
@@ -226,34 +217,11 @@
   white-space: nowrap;
 }
 
-.profile-table tr.last-row td {
+.profileTable tr.lastRow td {
   border-bottom: none;
 }
 
-/* Table Cell Specific Styles */
-.order-id {
-  font-weight: 600;
-  color: black;
-}
-
-.order-date,
-.interaction-date {
-  color: #2c2c2c;
-  font-weight: 300;
-}
-
-.order-total {
-  font-weight: 600;
-  color: black;
-}
-
-.interaction-subject {
-  color: black;
-  font-weight: 300;
-}
-
-/* Status Badges */
-.status-badge {
+.statusBadge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -263,64 +231,62 @@
   font-weight: 500;
 }
 
-.status-completed,
-.status-resolved {
+.statusCompleted,
+.statusResolved {
   background-color: #dcfce7;
   color: #166534;
 }
 
-.status-shipped {
+.statusShipped {
   background-color: #dbeafe;
   color: #1d4ed8;
 }
 
-.status-cancelled {
+.statusCancelled {
   background-color: #fee2e2;
   color: #dc2626;
 }
 
-.status-closed {
+.statusClosed {
   background-color: #f3f4f6;
   color: #374151;
 }
 
-.status-open {
+.statusOpen {
   background-color: #fef3c7;
   color: #92400e;
 }
 
-.status-default {
+.statusDefault {
   background-color: #f3f4f6;
   color: #374151;
 }
 
-/* Customer Summary */
-.summary-stats {
+.summaryStats {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
-.stat-item {
+.statItem {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.stat-label {
+.statLabel {
   font-size: 0.875rem;
   color: #6b7280;
   font-weight: 300;
 }
 
-.stat-value {
+.statValue {
   font-size: 2rem;
   font-weight: 600;
   color: black;
 }
 
-/* Notes */
-.notes-textarea {
+.notesTextarea {
   width: 100%;
   background-color: #FDFDFD;
   border: 0.01rem solid #a2a2a2;
@@ -335,22 +301,21 @@
   font-family: inherit;
 }
 
-.notes-textarea::placeholder {
+.notesTextarea::placeholder {
   color: #9ca3af;
 }
 
-.notes-textarea:focus {
+.notesTextarea:focus {
   border-color: #1d4ed8;
 }
 
-/* Tags */
-.tags-container {
+.tagsContainer {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
 }
 
-.customer-tag {
+.customerTag {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -363,48 +328,47 @@
   border: 0.01rem solid #d1d5db;
 }
 
-/* Responsive Design */
 @media (max-width: 1024px) {
-  .profile-grid {
+  .profileGrid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
-  .customer-profile-content {
+
+  .customerProfileContent {
     padding: 24px 16px;
   }
-  
-  .profile-card {
+
+  .profileCard {
     padding: 1.5rem;
   }
 }
 
 @media (max-width: 768px) {
-  .customer-header {
+  .customerHeader {
     flex-direction: column;
     align-items: center;
     text-align: center;
     gap: 1rem;
   }
-  
-  .edit-profile-btn {
+
+  .editProfileBtn {
     position: static;
   }
-  
-  .contact-item {
+
+  .contactItem {
     grid-template-columns: 1fr;
     gap: 0.5rem;
   }
-  
-  .contact-label {
+
+  .contactLabel {
     font-weight: 600;
   }
-  
-  .summary-stats {
+
+  .summaryStats {
     gap: 1.5rem;
   }
-  
-  .page-title {
+
+  .pageTitle {
     font-size: 1.5rem;
   }
 }

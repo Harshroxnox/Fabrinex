@@ -1,0 +1,141 @@
+/* Login.module.css */
+
+.loginContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #6b46c1 0%, #9333ea 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem;
+}
+
+.leftSection {
+  flex: 1;
+  max-width: 600px;
+  color: white;
+  padding-right: 4rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.logoDots {
+  display: flex;
+  margin-right: 0.5rem;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.mainHeading {
+  font-size: 3rem;
+  font-weight: bold;
+  line-height: 1.2;
+  margin-bottom: 1.5rem;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+
+.loginCard {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 500px;
+  margin-left: 2rem;
+}
+
+.cardTitle {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.formInput {
+  width: 100%;
+  padding: 1rem;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 12px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.formInput:focus {
+  background: #e5e7eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.formInput::placeholder {
+  color: #9ca3af;
+}
+
+.loginButton {
+  width: 100%;
+  padding: 1rem;
+  background: #374151;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.loginButton:hover {
+  background: #1f2937;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.loginButton:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .loginContainer {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .leftSection {
+    text-align: center;
+    padding-right: 0;
+    margin-bottom: 2rem;
+  }
+
+  .mainHeading {
+    font-size: 2rem;
+  }
+
+  .loginCard {
+    margin-left: 0;
+    max-width: 100%;
+  }
+}

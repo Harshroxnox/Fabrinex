@@ -1,12 +1,12 @@
-export const productData=[
-    { id: 1, name: 'Eco-Friendly Bamboo Toothbrush', price: 4.99, stock: 150, icon: '🦷', color: '#16a34a', barcode: '789123456789' },
-    { id: 2, name: 'Organic Cotton T-Shirt', price: 19.99, stock: 200, icon: '👕', color: '#bbf7d0', barcode: '456789012345' },
-    { id: 3, name: 'Reusable Shopping Bag', price: 9.99, stock: 300, icon: '🛍️', color: '#15803d', barcode: '123456789123' },
-    { id: 4, name: 'Stainless Steel Water Bottle', price: 14.99, stock: 100, icon: '🍶', color: '#166534', barcode: '901234567891' },
-    { id: 5, name: 'Natural Soy Candle', price: 12.99, stock: 250, icon: '🕯️', color: '#22c55e', barcode: '678901234567' },
-    { id: 6, name: 'Recycled Paper Notebook', price: 7.99, stock: 180, icon: '📓', color: '#16a34a', barcode: '345678901234' },
-    { id: 7, name: 'Wooden Phone Stand', price: 11.99, stock: 120, icon: '📱', color: '#15803d', barcode: '012345678901' },
-    { id: 8, name: 'Plant-Based Cleaning Spray', price: 6.99, stock: 220, icon: '🧽', color: '#fb923c', barcode: '890123456789' },
-    { id: 9, name: 'Biodegradable Phone Case', price: 16.99, stock: 90, icon: '📱', color: '#facc15', barcode: '567890123456' },
-    { id: 10, name: 'Upcycled Denim Tote Bag', price: 24.99, stock: 70, icon: '👜', color: '#16a34a', barcode: '234567890123' }
-  ]
+export const productData = [
+  { id: 1, name: 'Cotton Kurti', price: 799.00, stock: 120, icon: '👗', color: '#fbbf24', barcode: '890123456001' },
+  { id: 2, name: 'Chikankari Kurta', price: 1299.00, stock: 90, icon: '🧵', color: '#f87171', barcode: '890123456002' },
+  { id: 3, name: 'Georgette Saree', price: 1599.00, stock: 75, icon: '🧣', color: '#f472b6', barcode: '890123456003' },
+  { id: 4, name: 'Silk Dupatta', price: 599.00, stock: 150, icon: '🧕', color: '#60a5fa', barcode: '890123456004' },
+  { id: 5, name: 'Anarkali Suit Set', price: 1899.00, stock: 65, icon: '👘', color: '#c084fc', barcode: '890123456005' },
+  { id: 6, name: 'Cotton Palazzo Pants', price: 699.00, stock: 140, icon: '👖', color: '#86efac', barcode: '890123456006' },
+  { id: 7, name: 'Floral Printed Kurti', price: 899.00, stock: 100, icon: '🌸', color: '#fb7185', barcode: '890123456007' },
+  { id: 8, name: 'Handloom Saree', price: 2199.00, stock: 50, icon: '🧶', color: '#34d399', barcode: '890123456008' },
+  { id: 9, name: 'Embroidered Salwar Kameez', price: 1699.00, stock: 80, icon: '🪡', color: '#fcd34d', barcode: '890123456009' },
+  { id: 10, name: 'Rayon A-Line Kurti', price: 999.00, stock: 110, icon: '🪭', color: '#a78bfa', barcode: '890123456010' }
+];

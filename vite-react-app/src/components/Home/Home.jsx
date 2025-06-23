@@ -1,7 +1,7 @@
 import React from 'react'
 import { LineChart, PieChart, BarChart } from 'react-chartkick';
 import 'chartkick/chart.js';
-import ProductCard from './ProductCard';
+import ProductCard from '../ProductCard';
 import "./Home.css"
 
 const Home = () => {

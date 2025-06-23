@@ -1,127 +1,144 @@
-import React from 'react'
-import { useState } from 'react'
-import Home from '../../components/Home'
-import Orders from '../../components/Orders'
-import "./Admin.css"
-import OrdersPage from '../Orders'
-import ProductCard from '../../components/ProductCard'
-import ProductsPage from '../Products'
-import CustomersPage from '../Customers'
-import MessagingSection from '../Messages'
-import WebPage from '../Web'
-import PromotionsPage from '../Promotions'
+import React, { useState } from 'react';
+import Home from '../../components/Home/Home';
+// import OrdersCrea from '../Orders';
+// import ProductsPage from '../Products/Products.jsx';
+import CustomersPage from '../../pages/Customers/Customers.jsx';
+import MessagingSection from '../Messages/Messages.jsx';
+import WebPage from '../Web/Web.jsx';
+import PromotionsPage from '../Promotions/Promotions.jsx';
+import Settings from '../Settings/Settings';
+import './Admin.css';
+import UserRolesPage from '../UserRoles/UserRoles.jsx';
+import IntegrationsPage from '../Integrations/Integrations.jsx';
+import OrderCreationCRM from '../Orders/Orders.jsx';
+import ProductsList from '../Products/ProductsList.jsx';
+// import ProductsPage from '../Products/ProductsPage.jsx';
+// import MainContainer from '../Products/MainContainer.jsx';
 
 const Admin = () => {
   const [activeBtn, setActiveBtn] = useState("Dashboard");
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
-  const renderMain = ()=>{
-    if(activeBtn == "Dashboard"){
-      return (<Home />);
-    }else if(activeBtn == "Orders"){
-      return (<OrdersPage />);
-    }else if(activeBtn == "Products"){
-      return (<ProductsPage />);}
-    else if(activeBtn == "Customers"){
-      return (<CustomersPage/>)
-    }
-    else if(activeBtn == "Messaging"){
-      return (<MessagingSection/>)
-    }
-    else if(activeBtn == "Web"){
-      return (<WebPage/>)
-    }
-    else if(activeBtn == "Promotions"){
-      return (<PromotionsPage/>)
-    }
+  const renderMain = () => {
+    if (activeBtn === "Dashboard") return <Home />;
+    if (activeBtn === "Orders") return <OrderCreationCRM />;
+    if (activeBtn === "Products") return <ProductsList />;
+    if (activeBtn === "Customers") return <CustomersPage />;
+    if (activeBtn === "Messaging") return <MessagingSection />;
+    if (activeBtn === "Web") return <WebPage />;
+    if (activeBtn === "Promotions") return <PromotionsPage />;
+    if (activeBtn === "Settings/UserRoles") return <UserRolesPage />;
+    if (activeBtn === "Settings/Integrations") return <IntegrationsPage/>;
+    if (activeBtn === "Settings") return <Settings />;
 
-    else{
-      return (
+    return (
       <>
-        <p>{`Currently you have selected ${activeBtn}`}</p> 
-        <p>This section will keep on changing depending upon what is selected from side panel</p> 
+        <p>{`Currently you have selected ${activeBtn}`}</p>
+        <p>This section will keep on changing depending upon what is selected from side panel</p>
       </>
-      );
-    }
+    );
   };
 
   return (
     <div className="admin-container">
-      {/* <h1 className='admin-title'>{`Admin Panel ${activeBtn}`}</h1> */}
-
       <div className="admin-box">
         <div className="admin-sidebar">
           <button
-            onClick={()=>setActiveBtn("Dashboard")} 
-            className={`home-btn ${(activeBtn=="Dashboard")?"active-btn":""}`}
+            onClick={() => setActiveBtn("Dashboard")}
+            className={`home-btn ${activeBtn === "Dashboard" ? "active-btn" : ""}`}
           >
             Dashboard
           </button>
 
-          <button 
-            onClick={()=>setActiveBtn("Orders")} 
-            className={(activeBtn=="Orders")?"active-btn":""}
+          <button
+            onClick={() => setActiveBtn("Orders")}
+            className={activeBtn === "Orders" ? "active-btn" : ""}
           >
             Orders
           </button>
 
-          <button 
-            onClick={()=>setActiveBtn("Products")} 
-            className={(activeBtn=="Products")?"active-btn":""}
+          <button
+            onClick={() => setActiveBtn("Products")}
+            className={activeBtn === "Products" ? "active-btn" : ""}
           >
             Products
           </button>
 
-          <button 
-            onClick={()=>setActiveBtn("Customers")} 
-            className={(activeBtn=="Customers")?"active-btn":""}
+          <button
+            onClick={() => setActiveBtn("Customers")}
+            className={activeBtn === "Customers" ? "active-btn" : ""}
           >
             Customers
           </button>
-          
-          <button 
-            onClick={()=>setActiveBtn("Messaging")} 
-            className={(activeBtn=="Messaging")?"active-btn":""}
+
+          <button
+            onClick={() => setActiveBtn("Messaging")}
+            className={activeBtn === "Messaging" ? "active-btn" : ""}
           >
             Messaging
           </button>
 
-          <button 
-            onClick={()=>setActiveBtn("Promotions")} 
-            className={(activeBtn=="Promotions")?"active-btn":""}
+          <button
+            onClick={() => setActiveBtn("Promotions")}
+            className={activeBtn === "Promotions" ? "active-btn" : ""}
           >
             Promotions
           </button>
-          
-          <button 
-            onClick={()=>setActiveBtn("Web")} 
-            className={(activeBtn=="Web")?"active-btn":""}
+
+          <button
+            onClick={() => setActiveBtn("Web")}
+            className={activeBtn === "Web" ? "active-btn" : ""}
           >
             Web
           </button>
 
-          <button 
-            onClick={()=>setActiveBtn("Analytics")} 
-            className={(activeBtn=="Analytics")?"active-btn":""}
+          <button
+            onClick={() => setActiveBtn("Analytics")}
+            className={activeBtn === "Analytics" ? "active-btn" : ""}
           >
             Analytics
           </button>
-       
-          <button 
-            onClick={()=>setActiveBtn("Settings")} 
-            className={(activeBtn=="Settings")?"active-btn":""}
-          >
-            Settings
-          </button>
+
+          {/* Settings dropdown */}
+          <div>
+            <button
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              className={activeBtn.startsWith("Settings") ? "active-btn" : ""}
+            >
+              Settings ▾
+            </button>
+
+            {settingsOpen && (
+              <div style={{ marginLeft: "1rem", display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                <button
+                  onClick={() => {
+                    setActiveBtn("Settings/UserRoles");
+                    setSettingsOpen(false);
+                  }}
+                  className={activeBtn === "Settings/UserRoles" ? "active-btn" : ""}
+                >
+                  User Roles
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveBtn("Settings/Integrations");
+                    setSettingsOpen(false);
+                  }}
+                  className={activeBtn === "Settings/Integrations" ? "active-btn" : ""}
+                >
+                  Integrations
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="admin-main">
           {renderMain()}
         </div>
-        
       </div>
-
     </div>
-  )
-}
+  );
+};
 
-export default Admin
+export default Admin;

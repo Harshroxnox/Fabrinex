@@ -1,0 +1,56 @@
+.variants-container {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.variants-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.variants-table th, .variants-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.variants-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.variant-image {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.edit-btn {
+  /* background-color: #2196F3; */
+  /* color: white; */
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 5px;
+}
+
+.edit-btn:hover {
+  background-color: #0b7dda;
+}
+
+.delete-btn {
+  /* background-color: blue; */
+  background-color: white;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  /* background-color: #da190b; */
+}

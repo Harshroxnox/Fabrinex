@@ -1,74 +1,9 @@
 import React, { useState } from 'react';
 import { ChevronDown, Plus, Edit, Trash2, Calendar, Percent, Tag, Filter, Save, X } from 'lucide-react';
-import summerSale from '../assets/summerSale.jpg';
-import welcomeSale from '../assets/welcomeSale.jpg';
-import holidaySale from '../assets/holidaySale.jpg';
+
+import promotionsData from '../../constants/promotionsData';
 const PromotionsPage = () => {
-  const [promotions, setPromotions] = useState([
-    {
-      id: 1,
-      code: 'SUMMER20',
-      discount: 20,
-      discountType: 'percentage',
-      status: 'Active',
-      startDate: '2023-06-01',
-      endDate: '2023-08-31',
-      description: 'Summer season discount for all products',
-      usageLimit: 1000,
-      usedCount: 156,
-      promotionImage: summerSale
-    },
-    {
-      id: 2,
-      code: 'WELCOME10',
-      discount: 10,
-      discountType: 'percentage',
-      status: 'Active',
-      startDate: '2023-01-01',
-      endDate: '2023-12-31',
-      description: 'Welcome discount for new customers',
-      usageLimit: 500,
-      usedCount: 89,
-    promotionImage: welcomeSale
-    },
-    {
-      id: 3,
-      code: 'HOLIDAY15',
-      discount: 15,
-      discountType: 'percentage',
-      status: 'Inactive',
-      startDate: '2023-12-01',
-      endDate: '2023-12-31',
-      description: 'Holiday season special discount',
-      usageLimit: 2000,
-      usedCount: 0,
-      promotionImage: holidaySale
-    },
-    {
-      id: 4,
-      code: 'BACKTOSCHOOL',
-      discount: 25,
-      discountType: 'percentage',
-      status: 'Active',
-      startDate: '2023-08-01',
-      endDate: '2023-09-30',
-      description: 'Back to school promotion',
-      usageLimit: 750,
-      usedCount: 234
-    },
-    {
-      id: 5,
-      code: 'SPRINGCLEAN',
-      discount: 30,
-      discountType: 'percentage',
-      status: 'Inactive',
-      startDate: '2023-03-01',
-      endDate: '2023-04-30',
-      description: 'Spring cleaning sale',
-      usageLimit: 300,
-      usedCount: 300
-    }
-  ]);
+  const [promotions, setPromotions] = useState(promotionsData);
 
   const [showFilters, setShowFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
@@ -492,9 +427,10 @@ const PromotionsPage = () => {
           <div style={styles.headerButtons}>
             <button 
               onClick={handleNewPromotion}
-              style={styles.newPromotionButton}
+              style={{...styles.newPromotionButton ,cursor: localStorage.getItem("roleLoggedIn") !== "marketingManager" ? 'not-allowed' : 'pointer'}}
               onMouseOver={(e) => e.target.style.backgroundColor = '#1f2937'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#111827'}
+              disabled={localStorage.getItem("roleLoggedIn") !== "marketingManager"}
             >
               <Plus size={16} />
               New promotion
@@ -607,17 +543,19 @@ const PromotionsPage = () => {
                   <td style={index === filteredPromotions.length - 1 ? styles.lastRowTd : styles.td}>
                     <button
                       onClick={() => handleEditPromotion(promotion)}
-                      style={styles.actionButton}
+                      style={{...styles.actionButton, cursor: localStorage.getItem("roleLoggedIn") !== "marketingManager" ? 'not-allowed' : 'pointer'}}
                       onMouseOver={(e) => e.target.style.backgroundColor = '#f3f4f6'}
                       onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                      disabled={localStorage.getItem("roleLoggedIn") !== "marketingManager"}
                     >
                       <Edit size={16} color="#6b7280" />
                     </button>
                     <button
                       onClick={() => handleDeletePromotion(promotion.id)}
-                      style={styles.actionButton}
+                      style={{...styles.actionButton, cursor: localStorage.getItem("roleLoggedIn") !== "marketingManager" ? 'not-allowed' : 'pointer'}}
                       onMouseOver={(e) => e.target.style.backgroundColor = '#fee2e2'}
                       onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                      disabled={localStorage.getItem("roleLoggedIn") !== "marketingManager" }
                     >
                       <Trash2 size={16} color="#dc2626" />
                     </button>

@@ -1,4 +1,4 @@
-.container {
+.container{
   min-height: 100vh;
   background-color: #f9fafb;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -6,7 +6,7 @@
   border-radius: 2rem;
 }
 
-.main-content {
+.mainContent{
   display: flex;
   flex-direction: column;
   padding-right: 3.5rem;
@@ -31,13 +31,13 @@
   color: black;
 }
 
-.header-buttons {
+.headerButtons {
   display: flex;
   gap: 12px;
   align-items: center;
 }
 
-.add-button {
+.addButton {
   background-color: #111827;
   color: white;
   padding: 12px 20px;
@@ -52,7 +52,7 @@
   gap: 8px;
 }
 
-.download-button {
+.downloadButton {
   background-color: #059669;
   color: white;
   padding: 12px 20px;
@@ -67,21 +67,21 @@
   gap: 8px;
 }
 
-.search-container {
+.searchContainer {
   margin-bottom: 24px;
 }
 
-.search-wrapper {
+.searchWrapper {
   display: flex;
   align-items: center;
-  background-color: #fdfdfd;
+  background-color: #FDFDFD;
   border: 0.01rem solid #a2a2a2;
   border-radius: 2rem;
   padding: 1rem;
   max-width: 400px;
 }
 
-.search-input {
+.searchInput {
   background-color: transparent;
   border: none;
   outline: none;
@@ -92,20 +92,20 @@
   margin-left: 8px;
 }
 
-.filters-container {
+.filtersContainer {
   display: flex;
   align-items: center;
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.select-wrapper {
+.selectWrapper {
   position: relative;
 }
 
 .select {
   appearance: none;
-  background-color: #fdfdfd;
+  background-color: #FDFDFD;
   border: 0.01rem solid #a2a2a2;
   border-radius: 2rem;
   padding: 1rem;
@@ -118,7 +118,7 @@
   padding-right: 1.5rem;
 }
 
-.select-icon {
+.selectIcon {
   position: absolute;
   left: calc(100% - 24px);
   top: 65%;
@@ -128,8 +128,8 @@
   color: #9ca3af;
 }
 
-.bulk-actions {
-  background-color: #fdfdfd;
+.bulkActions {
+  background-color: #FDFDFD;
   border: 0.01rem solid #a2a2a2;
   border-radius: 2rem;
   padding: 1rem 2rem;
@@ -139,7 +139,11 @@
   gap: 16px;
 }
 
-.bulk-button {
+.bulkActionsText {
+  /* Add any specific styles for bulk actions text */
+}
+
+.bulkButton {
   background-color: #6366f1;
   color: white;
   padding: 8px 16px;
@@ -154,31 +158,32 @@
   gap: 6px;
 }
 
-.table-container {
+.tableContainer {
   border: 0.01rem solid #a2a2a2;
   padding: 2rem;
   border-radius: 2rem;
-  background-color: #fdfdfd;
+  background-color: #FDFDFD;
   overflow: hidden;
 }
 
-.table-wrapper {
+.tableWrapper {
   overflow-x: auto;
 }
 
 .table {
   border-collapse: separate;
   border-spacing: 0;
+  /* border: 0.1rem solid #a2a2a2; */
   border-radius: 0.8rem;
   font-size: 1rem;
   width: 100%;
 }
 
-.table-header {
-  background-color: #fdfdfd;
+.tableHeader {
+  background-color: #FDFDFD;
 }
 
-.th {
+.th{
   font-weight: 500;
   padding: 0.6rem 1.5rem;
   text-align: left;
@@ -186,7 +191,7 @@
   font-size: 1rem;
 }
 
-.th-checkbox {
+.thCheckbox {
   font-weight: 500;
   padding: 0.6rem 1rem;
   text-align: center;
@@ -196,7 +201,7 @@
 }
 
 .tbody {
-  background-color: #fdfdfd;
+  background-color: #FDFDFD;
 }
 
 .tr {
@@ -210,51 +215,65 @@
   font-size: 1rem;
 }
 
-.td-checkbox {
+.tdCheckbox {
   padding: 0.6rem 1rem;
   text-align: center;
   border-bottom: 0.1rem solid #a2a2a2;
   font-size: 1rem;
 }
 
-.last-row-td {
+.lastRowTd {
   padding: 0.6rem 1.5rem;
   text-align: left;
+  /* border: none; */
   font-size: 1rem;
 }
 
-.last-row-td-checkbox {
+.lastRowTdCheckbox {
   padding: 0.6rem 1rem;
   text-align: center;
+  /* border: none; */
   font-size: 1rem;
 }
 
-.customer-name {
+.customerName {
   font-weight: 600;
   color: black;
   cursor: pointer;
   text-decoration: none;
 }
 
-.email,
-.phone,
-.customer-id,
-.joined-date {
+.email{
   color: #2c2c2c;
   font-weight: 300;
 }
 
-.orders {
+.phone{
+  color: #2c2c2c;
+  font-weight: 300;
+}
+
+.orders{
   color: black;
   font-weight: 300;
 }
 
-.total-spent {
+.totalSpent {
   font-weight: 600;
   color: black;
 }
 
-.edit-input {
+.customerId {
+  color: #2c2c2c;
+  font-weight: 300;
+}
+
+.joinedDate {
+  color: #2c2c2c;
+  font-weight: 300;
+}
+
+.editInput {
   background-color: #f9f9f9;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -263,13 +282,13 @@
   width: 100%;
 }
 
-.action-buttons {
+.actionButtons {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
-.edit-button {
+.editButton {
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -277,7 +296,7 @@
   padding: 4px;
 }
 
-.save-button {
+.saveButton {
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -285,7 +304,7 @@
   padding: 4px;
 }
 
-.cancel-button {
+.cancelButton {
   background-color: transparent;
   border: none;
   cursor: pointer;
@@ -299,7 +318,7 @@
   cursor: pointer;
 }
 
-.no-results {
+.noResults {
   text-align: center;
   padding: 2rem;
   color: #6b7280;

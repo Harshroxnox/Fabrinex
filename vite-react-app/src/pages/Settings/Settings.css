@@ -8,12 +8,14 @@
     background: linear-gradient(180deg, #e8e8e8, #ffffff);
 }
 
-.admin-main {
-    overflow: auto; 
-    max-height: 100vh;
-    padding-left: 2rem;
+.setting-main {
+    overflow: auto;
+    padding-left: 0;
+    padding-top: 0;
+    max-height: fit-content;
+    /* padding-left: 2rem; */
     font-size: 3rem;
-    padding-top: 2rem;;
+    /* padding-top: 2rem;; */
 }
 
 .admin-box {

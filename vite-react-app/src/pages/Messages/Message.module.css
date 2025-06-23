@@ -45,7 +45,7 @@
 }
 
 .searchInput {
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
   border: 0.01rem solid #a2a2a2;
   border-radius: 2rem;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
@@ -59,7 +59,7 @@
 .searchIcon {
   position: absolute;
   left: 12px;
-  top: 50%;
+  top: 65%;
   transform: translateY(-50%);
   color: #9ca3af;
 }
@@ -102,7 +102,7 @@
   position: absolute;
   top: 100%;
   right: 0;
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
   border: 0.01rem solid #a2a2a2;
   border-radius: 1rem;
   padding: 1rem;
@@ -135,7 +135,7 @@
 
 .select {
   appearance: none;
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
   border: 0.01rem solid #a2a2a2;
   border-radius: 2rem;
   padding: 0.75rem 1rem;
@@ -149,7 +149,7 @@
 }
 
 .dateInput {
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
   border: 0.01rem solid #a2a2a2;
   border-radius: 2rem;
   padding: 0.75rem 1rem;
@@ -173,7 +173,7 @@
   border: 0.01rem solid #a2a2a2;
   padding: 2rem;
   border-radius: 2rem;
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
   overflow: hidden;
   margin-bottom: 2rem;
 }
@@ -192,10 +192,10 @@
 }
 
 .tableHeader {
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
 }
 
-th {
+.th {
   font-weight: 500;
   padding: 0.75rem 1rem;
   text-align: left;
@@ -204,15 +204,15 @@ th {
   white-space: nowrap;
 }
 
-tbody {
-  background-color: #FDFDFD;
+.tbody {
+  background-color: #fdfdfd;
 }
 
-tr {
+.tr {
   transition: background-color 0.2s;
 }
 
-td {
+.td {
   padding: 0.75rem 1rem;
   text-align: left;
   border-bottom: 0.1rem solid #a2a2a2;
@@ -294,7 +294,7 @@ td {
 }
 
 .modalContent {
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
   border-radius: 1rem;
   padding: 2rem;
   max-width: 600px;
@@ -340,7 +340,7 @@ td {
 }
 
 .input {
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
   border: 0.01rem solid #a2a2a2;
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;
@@ -352,7 +352,7 @@ td {
 }
 
 .textarea {
-  background-color: #FDFDFD;
+  background-color: #fdfdfd;
   border: 0.01rem solid #a2a2a2;
   border-radius: 0.5rem;
   padding: 0.75rem 1rem;

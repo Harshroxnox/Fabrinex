@@ -1,7 +1,6 @@
-// Invoice.jsx
 import React from "react";
 import html2pdf from "html2pdf.js";
-import "./invoice.css";
+import styles from "./Invoice.module.css"; // Changed to CSS Module
 
 const Invoice = ({ order }) => {
   const downloadPDF = () => {
@@ -15,24 +14,24 @@ const Invoice = ({ order }) => {
   const total = +(subtotal + tax).toFixed(2);
 
   return (
-    <div className="invoice-container">
-      <div id="invoice" className="invoice-box">
-        <div className="invoice-header">
-          <div className="bill-to">
+    <div className={styles.invoiceContainer}>
+      <div id="invoice" className={styles.invoiceBox}>
+        <div className={styles.invoiceHeader}>
+          <div className={styles.billTo}>
             <h4>Bill To:</h4>
             <p>{order.customer}</p>
             <p>{order.location}</p>
             <p>{order.country}</p>
             <p>{order.email}</p>
           </div>
-          <div className="invoice-details">
+          <div className={styles.invoiceDetails}>
             <p><strong>Invoice #</strong> {order.id}</p>
             <p><strong>Invoice Date:</strong> {order.date}</p>
-            <p className="amount-due"><strong>Amount Due:</strong> ₹{total}</p>
+            <p className={styles.amountDue}><strong>Amount Due:</strong> ₹{total}</p>
           </div>
         </div>
 
-        <table className="items-table">
+        <table className={styles.itemsTable}>
           <thead>
             <tr>
               <th>Item</th>
@@ -55,20 +54,20 @@ const Invoice = ({ order }) => {
           </tbody>
         </table>
 
-        <div className="notes">
+        <div className={styles.notes}>
           <p><strong>Notes / Memo:</strong></p>
           <p>{order.notes || "Free Shipping with 30-day money-back guarantee."}</p>
         </div>
 
-        <div className="summary">
+        <div className={styles.summary}>
           <p><strong>Subtotal:</strong> ₹{subtotal.toFixed(2)}</p>
           <p><strong>Tax (13%):</strong> ₹{tax.toFixed(2)}</p>
-          <p><strong>Delievery Charge:</strong>₹{delieveryCharge.toFixed(2)}</p>
-          <p className="total"><strong>Total:</strong> ₹{total.toFixed(2)}</p>
+          <p><strong>Delievery Charge:</strong> ₹{delieveryCharge.toFixed(2)}</p>
+          <p className={styles.total}><strong>Total:</strong> ₹{total.toFixed(2)}</p>
         </div>
       </div>
 
-      <button onClick={downloadPDF} className="download-btn">
+      <button onClick={downloadPDF} className={styles.downloadBtn}>
         Download Invoice
       </button>
     </div>

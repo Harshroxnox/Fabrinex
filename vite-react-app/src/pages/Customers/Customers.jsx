@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Search, Plus, ChevronDown, Edit, Mail, MessageCircle, Phone, Download, X, Check, XCircle } from 'lucide-react';
-import CustomerProfile from './CustomerProfile';
-import { customerData } from '../constants/customerData';
+import CustomerProfile from '../CustomerProfile/CustomerProfile';
+import { customerData } from '../../constants/customerData';
+import styles from './Customers.module.css';
+
 const CustomersPage = () => {
   const [purchaseHistoryFilter, setPurchaseHistoryFilter] = useState('All History');
   const [locationFilter, setLocationFilter] = useState('All Locations');
@@ -136,307 +138,29 @@ const CustomersPage = () => {
     
     return searchMatch && locationMatch && spentMatch;
   });
-
-  const styles = {
-    container: {
-      minHeight: '100vh',
-      backgroundColor: '#f9fafb',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-      border: '0.01rem solid black',
-      borderRadius: '2rem',
-    },
-    mainContent: {
-      display: 'flex',
-      flexDirection: 'column',
-      paddingRight: '3.5rem',
-      gap: '1rem',
-      maxWidth: '86vw',
-      margin: '0 auto',
-      padding: '32px 24px'
-    },
-    header: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginBottom: '32px'
-    },
-    title: {
-      fontSize: '2rem',
-      textDecoration: 'none',
-      fontWeight: '600',
-      margin: 0,
-      color: 'black'
-    },
-    headerButtons: {
-      display: 'flex',
-      gap: '12px',
-      alignItems: 'center'
-    },
-    addButton: {
-      backgroundColor: '#111827',
-      color: 'white',
-      padding: '12px 20px',
-      borderRadius: '8px',
-      border: 'none',
-      fontSize: '1rem',
-      fontWeight: '300',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px'
-    },
-    downloadButton: {
-      backgroundColor: '#059669',
-      color: 'white',
-      padding: '12px 20px',
-      borderRadius: '8px',
-      border: 'none',
-      fontSize: '1rem',
-      fontWeight: '300',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px'
-    },
-    searchContainer: {
-      marginBottom: '24px'
-    },
-    searchWrapper: {
-      display: 'flex',
-      alignItems: 'center',
-      backgroundColor: '#FDFDFD',
-      border: '0.01rem solid #a2a2a2',
-      borderRadius: '2rem',
-      padding: '1rem',
-      maxWidth: '400px'
-    },
-    searchInput: {
-      backgroundColor: 'transparent',
-      border: 'none',
-      outline: 'none',
-      fontSize: '1rem',
-      fontWeight: '300',
-      color: '#2c2c2c',
-      width: '100%',
-      marginLeft: '8px'
-    },
-    filtersContainer: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '16px',
-      marginBottom: '24px'
-    },
-    selectWrapper: {
-      position: 'relative'
-    },
-    select: {
-      appearance: 'none',
-      backgroundColor: '#FDFDFD',
-      border: '0.01rem solid #a2a2a2',
-      borderRadius: '2rem',
-      padding: '1rem',
-      fontSize: '1rem',
-      fontWeight: '300',
-      color: '#2c2c2c',
-      cursor: 'pointer',
-      outline: 'none',
-      width: 'fit-content',
-      paddingRight: '1.5rem',
-    },
-    selectIcon: {
-      position: 'absolute',
-      left: 'calc(100% - 24px)',
-      top: '65%',
-      alignItems: 'center',
-      transform: 'translateY(-60%)',
-      pointerEvents: 'none',
-      color: '#9ca3af'
-    },
-    bulkActions: {
-      backgroundColor: '#FDFDFD',
-      border: '0.01rem solid #a2a2a2',
-      borderRadius: '2rem',
-      padding: '1rem 2rem',
-      marginBottom: '24px',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '16px'
-    },
-    bulkButton: {
-      backgroundColor: '#6366f1',
-      color: 'white',
-      padding: '8px 16px',
-      borderRadius: '6px',
-      border: 'none',
-      fontSize: '0.9rem',
-      fontWeight: '300',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px'
-    },
-    tableContainer: {
-      border: '0.01rem solid #a2a2a2',
-      padding: '2rem',
-      borderRadius: '2rem',
-      backgroundColor: '#FDFDFD',
-      overflow: 'hidden'
-    },
-    tableWrapper: {
-      overflowX: 'auto'
-    },
-    table: {
-      borderCollapse: 'separate',
-      borderSpacing: '0',
-    //   border: '0.1rem solid #a2a2a2',
-      borderRadius: '0.8rem',
-      fontSize: '1rem',
-      width: '100%'
-    },
-    tableHeader: {
-      backgroundColor: '#FDFDFD'
-    },
-    th: {
-      fontWeight: '500',
-      padding: '0.6rem 1.5rem',
-      textAlign: 'left',
-      borderBottom: '0.1rem solid #a2a2a2',
-      fontSize: '1rem'
-    },
-    thCheckbox: {
-      fontWeight: '500',
-      padding: '0.6rem 1rem',
-      textAlign: 'center',
-      borderBottom: '0.1rem solid #a2a2a2',
-      fontSize: '1rem',
-      width: '50px'
-    },
-    tbody: {
-      backgroundColor: '#FDFDFD'
-    },
-    tr: {
-      transition: 'background-color 0.2s'
-    },
-    td: {
-      padding: '0.6rem 1.5rem',
-      textAlign: 'left',
-      borderBottom: '0.1rem solid #a2a2a2',
-      fontSize: '1rem'
-    },
-    tdCheckbox: {
-      padding: '0.6rem 1rem',
-      textAlign: 'center',
-      borderBottom: '0.1rem solid #a2a2a2',
-      fontSize: '1rem'
-    },
-    lastRowTd: {
-      padding: '0.6rem 1.5rem',
-      textAlign: 'left',
-    //   border: 'none',
-      fontSize: '1rem'
-    },
-    lastRowTdCheckbox: {
-      padding: '0.6rem 1rem',
-      textAlign: 'center',
-    //   border: 'none',
-      fontSize: '1rem'
-    },
-    customerName: {
-      fontWeight: '600',
-      color: 'black',
-      cursor: 'pointer',
-      textDecoration: 'none'
-    },
-    email: {
-      color: '#2c2c2c',
-      fontWeight: '300'
-    },
-    phone: {
-      color: '#2c2c2c',
-      fontWeight: '300'
-    },
-    orders: {
-      color: 'black',
-      fontWeight: '300'
-    },
-    totalSpent: {
-      fontWeight: '600',
-      color: 'black'
-    },
-    customerId: {
-      color: '#2c2c2c',
-      fontWeight: '300'
-    },
-    joinedDate: {
-      color: '#2c2c2c',
-      fontWeight: '300'
-    },
-    editInput: {
-      backgroundColor: '#f9f9f9',
-      border: '1px solid #ddd',
-      borderRadius: '4px',
-      padding: '4px 8px',
-      fontSize: '1.2rem',
-      width: '100%'
-    },
-    actionButtons: {
-      display: 'flex',
-      gap: '8px',
-      alignItems: 'center'
-    },
-    editButton: {
-      backgroundColor: 'transparent',
-      border: 'none',
-      cursor: 'pointer',
-      color: '#6366f1',
-      padding: '4px'
-    },
-    saveButton: {
-      backgroundColor: 'transparent',
-      border: 'none',
-      cursor: 'pointer',
-      color: '#059669',
-      padding: '4px'
-    },
-    cancelButton: {
-      backgroundColor: 'transparent',
-      border: 'none',
-      cursor: 'pointer',
-      color: '#dc2626',
-      padding: '4px'
-    },
-    checkbox: {
-      width: '16px',
-      height: '16px',
-      cursor: 'pointer'
-    },
-    noResults: {
-      textAlign: 'center',
-      padding: '2rem',
-      color: '#6b7280',
-      fontSize: '1rem'
-    }
-  };
+  // const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedCtoView, setSelectedCtoView] = useState(null);
   const [showProfile, setShowProfile] = useState(false);  
+  const handleCustomerClick = (customer) => {
+    setSelectedCtoView(customer);
+    setShowProfile(true);
+  };
 
   return (
-    <div style={styles.container}>
+    <div className={styles.container}>
+      
       {showProfile ? (
         <div>
           <XCircle style={{position: 'absolute', top: '1rem', right: '1rem', cursor: 'pointer'}} onClick={() => setShowProfile(false)}/>
-          <CustomerProfile/>
+          <CustomerProfile customer={selectedCtoView} onClose={() => setShowProfile(false)} />
           </div>
         ) : (
-             <div style={styles.mainContent}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>Customers</h1>
-          <div style={styles.headerButtons}>
+             <div className={styles.mainContent}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Customers</h1>
+          <div className={styles.headerButtons}>
             <button 
-              style={styles.downloadButton}
+              className={styles.downloadButton}
               onClick={handleDownloadSheet}
               onMouseOver={(e) => e.target.style.backgroundColor = '#047857'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#059669'}
@@ -445,7 +169,7 @@ const CustomersPage = () => {
               Download Sheet
             </button>
             <button 
-              style={styles.addButton}
+              className={styles.addButton}
               onClick={handleAddCustomer}
               onMouseOver={(e) => e.target.style.backgroundColor = '#1f2937'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#111827'}
@@ -456,25 +180,25 @@ const CustomersPage = () => {
           </div>
         </div>
 
-        <div style={styles.searchContainer}>
-          <div style={styles.searchWrapper}>
+        <div className={styles.searchContainer}>
+          <div className={styles.searchWrapper}>
             <Search size={16} color="#9ca3af" />
             <input
               type="text"
               placeholder="Search customers"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={styles.searchInput}
+              className={styles.searchInput}
             />
           </div>
         </div>
 
-        <div style={styles.filtersContainer}>
-          <div style={styles.selectWrapper}>
+        <div className={styles.filtersContainer}>
+          <div className={styles.selectWrapper}>
             <select
               value={purchaseHistoryFilter}
               onChange={(e) => setPurchaseHistoryFilter(e.target.value)}
-              style={styles.select}
+              className={styles.select}
             >
               {purchaseHistoryOptions.map(option => (
                 <option key={option} value={option}>
@@ -482,14 +206,14 @@ const CustomersPage = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown style={styles.selectIcon} size={16} />
+            <ChevronDown className={styles.selectIcon} size={16} />
           </div>
-          
-          <div style={styles.selectWrapper}>
+
+          <div className={styles.selectWrapper}>
             <select
               value={locationFilter}
               onChange={(e) => setLocationFilter(e.target.value)}
-              style={styles.select}
+              className={styles.select}
             >
               {locationOptions.map(location => (
                 <option key={location} value={location}>
@@ -497,14 +221,14 @@ const CustomersPage = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown style={styles.selectIcon} size={16} />
+            <ChevronDown className={styles.selectIcon} size={16} />
           </div>
 
-          <div style={styles.selectWrapper}>
+          <div className={styles.selectWrapper}>
             <select
               value={totalSpentFilter}
               onChange={(e) => setTotalSpentFilter(e.target.value)}
-              style={styles.select}
+              className={styles.select}
             >
               {totalSpentOptions.map(amount => (
                 <option key={amount} value={amount}>
@@ -512,17 +236,17 @@ const CustomersPage = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown style={styles.selectIcon} size={16} />
+            <ChevronDown className={styles.selectIcon} size={16} />
           </div>
         </div>
 
         {selectedCustomers.length > 0 && (
-          <div style={styles.bulkActions}>
-            <span style={{fontSize: '1rem', color: '#2c2c2c'}}>
+          <div className={styles.bulkActions}>
+            <span className={styles.bulkActionsText}>
               {selectedCustomers.length} customer{selectedCustomers.length > 1 ? 's' : ''} selected:
             </span>
             <button 
-              style={styles.bulkButton}
+              className={styles.bulkButton}
               onClick={handleBulkWhatsApp}
               onMouseOver={(e) => e.target.style.backgroundColor = '#4f46e5'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#6366f1'}
@@ -531,7 +255,7 @@ const CustomersPage = () => {
               WhatsApp
             </button>
             <button 
-              style={styles.bulkButton}
+              className={styles.bulkButton}
               onClick={handleBulkEmail}
               onMouseOver={(e) => e.target.style.backgroundColor = '#4f46e5'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#6366f1'}
@@ -540,7 +264,7 @@ const CustomersPage = () => {
               Email
             </button>
             <button 
-              style={styles.bulkButton}
+              className={styles.bulkButton}
               onClick={handleBulkSMS}
               onMouseOver={(e) => e.target.style.backgroundColor = '#4f46e5'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#6366f1'}
@@ -551,122 +275,122 @@ const CustomersPage = () => {
           </div>
         )}
 
-        <div style={styles.tableContainer}>
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
-              <thead style={styles.tableHeader}>
+        <div className={styles.tableContainer}>
+          <div className={styles.tableWrapper}>
+            <table className={styles.table}>
+              <thead className={styles.tableHeader}>
                 <tr>
-                  <th style={styles.thCheckbox}>
+                  <th className={styles.thCheckbox}>
                     <input
                       type="checkbox"
-                      style={styles.checkbox}
+                      className={styles.checkbox}
                       checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
                       onChange={handleSelectAll}
                     />
                   </th>
-                  <th style={styles.th}>Name</th>
-                  <th style={styles.th}>Phone</th>
-                  <th style={styles.th}>WhatsApp</th>
-                  <th style={styles.th}>Email</th>
-                  <th style={styles.th}>Orders</th>
-                  <th style={styles.th}>Customer ID</th>
-                  <th style={styles.th}>Joined</th>
-                  <th style={styles.th}>Actions</th>
+                  <th className={styles.th}>Name</th>
+                  <th className={styles.th}>Phone</th>
+                  <th className={styles.th}>WhatsApp</th>
+                  <th className={styles.th}>Email</th>
+                  <th className={styles.th}>Orders</th>
+                  <th className={styles.th}>Customer ID</th>
+                  <th className={styles.th}>Joined</th>
+                  <th className={styles.th}>Actions</th>
                 </tr>
               </thead>
-              <tbody style={styles.tbody}>
+              <tbody className={styles.tbody}>
                 {filteredCustomers.map((customer, index) => (
                   <tr 
                     key={customer.customerId} 
-                    style={styles.tr}
+                    className={styles.tr}
                     onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                     onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#FDFDFD'}
                   >
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTdCheckbox : styles.tdCheckbox}>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTdCheckbox : styles.tdCheckbox}>
                       <input
                         type="checkbox"
-                        style={styles.checkbox}
+                        className={styles.checkbox}
                         checked={selectedCustomers.includes(customer.customerId)}
                         onChange={() => handleSelectCustomer(customer.customerId)}
                       />
                     </td>
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
                       {editingCustomer === customer.customerId ? (
                         <input
                           type="text"
                           value={editForm.name}
                           onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                          style={styles.editInput}
+                          className={styles.editInput}
                         />
                       ) : (
                         <span 
-                          style={styles.customerName}
+                          className={styles.customerName}
                           onMouseOver={(e) => e.target.style.color = '#1d4ed8'}
                           onMouseOut={(e) => e.target.style.color = 'black'}
-                          onClick={()=>{setShowProfile(true)}}
+                          onClick={()=>{setShowProfile(true);handleCustomerClick(customer)}}
                         >
                           {customer.name}
                         </span>
                       )}
                     </td>
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
                       {editingCustomer === customer.customerId ? (
                         <input
                           type="text"
                           value={editForm.phone}
                           onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
-                          style={styles.editInput}
+                          className={styles.editInput}
                         />
                       ) : (
-                        <span style={styles.phone}>{customer.phone}</span>
+                        <span className={styles.phone}>{customer.phone}</span>
                       )}
                     </td>
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
                       {editingCustomer === customer.customerId ? (
                         <input
                           type="text"
                           value={editForm.whatsapp}
                           onChange={(e) => setEditForm({...editForm, whatsapp: e.target.value})}
-                          style={styles.editInput}
+                          className={styles.editInput}
                         />
                       ) : (
-                        <span style={styles.phone}>{customer.whatsapp}</span>
+                        <span className={styles.phone}>{customer.whatsapp}</span>
                       )}
                     </td>
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
                       {editingCustomer === customer.customerId ? (
                         <input
                           type="email"
                           value={editForm.email}
                           onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                          style={styles.editInput}
+                          className={styles.editInput}
                         />
                       ) : (
-                        <span style={styles.email}>{customer.email}</span>
+                        <span className={styles.email}>{customer.email}</span>
                       )}
                     </td>
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
-                      <span style={styles.totalSpent}>{customer.orders}</span>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
+                      <span className={styles.totalSpent}>{customer.orders}</span>
                     </td>
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
-                      <span style={styles.customerId}>{customer.customerId}</span>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
+                      <span className={styles.customerId}>{customer.customerId}</span>
                     </td>
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
-                      <span style={styles.joinedDate}>{customer.joinedDate}</span>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
+                      <span className={styles.joinedDate}>{customer.joinedDate}</span>
                     </td>
-                    <td style={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
-                      <div style={styles.actionButtons}>
+                    <td className={index === filteredCustomers.length - 1 ? styles.lastRowTd : styles.td}>
+                      <div className={styles.actionButtons}>
                         {editingCustomer === customer.customerId ? (
                           <>
                             <button 
-                              style={styles.saveButton}
+                              className={styles.saveButton}
                               onClick={handleSaveEdit}
                               title="Save"
                             >
                               <Check size={16} />
                             </button>
                             <button 
-                              style={styles.cancelButton}
+                              className={styles.cancelButton}
                               onClick={handleCancelEdit}
                               title="Cancel"
                             >
@@ -675,7 +399,7 @@ const CustomersPage = () => {
                           </>
                         ) : (
                           <button 
-                            style={styles.editButton}
+                            className={styles.editButton}
                             onClick={() => handleEditCustomer(customer)}
                             title="Edit"
                           >
@@ -691,7 +415,7 @@ const CustomersPage = () => {
           </div>
 
           {filteredCustomers.length === 0 && (
-            <div style={styles.noResults}>
+            <div className={styles.noResults}>
               No customers found matching your search criteria.
             </div>
           )}
