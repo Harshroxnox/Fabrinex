@@ -29,7 +29,7 @@ export const LoginProvider=({children})=>{
   try {
     // Just make the request — browser will send the HttpOnly cookie
     const res = await axios.get('http://localhost:5000/api/v1/admins/get-roles', {
-      withCredentials: true, // 🔥 required to send cookies
+      withCredentials: true, // required to send cookies
     });
 
     setRole(res.data); // assuming setRole is defined in your component

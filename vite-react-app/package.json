@@ -16,6 +16,7 @@
     "html2pdf.js": "^0.10.3",
     "js-cookie": "^3.0.5",
     "lucide-react": "^0.511.0",
+    "quill": "^2.0.3",
     "react": "^19.0.0",
     "react-chartkick": "^0.5.4",
     "react-dom": "^19.0.0",

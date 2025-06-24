@@ -9,6 +9,7 @@ import {LoginProvider} from './contexts/LoginContext';
 import Register from "./pages/Register"
 import { useContext } from "react"
 import { ProductProvider } from "./contexts/ProductContext"
+import TextEditor from "./Editor/TextEditor"
 const App = () => {
   const location = window.location.pathname;
   return (
@@ -19,6 +20,7 @@ const App = () => {
     <Routes >
       <Route path="/" element={<Login />}/>
       <Route path="/admin" element={<Admin />} />
+      <Route path="/ad" element={<TextEditor/>} />
     </Routes>
     {/* <Register/> */}
   </ProductProvider>

@@ -1,140 +1,151 @@
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import ProductItem from './ProductItem';
 import ProductFilters from './ProductFilters';
 import AddProductDialog from './AddProductDialog';
 import './ProductsList.css';
+import { ProductContext } from '../../contexts/ProductContext';
 
 const ProductsList = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: 'T-Shirt',
-      description: 'Comfortable cotton t-shirt',
-      category: 'Clothing',
-      variants: [
-        { id: 1, price: 20, stock: 100, color: 'Red', size: 'M', image: 'tshirt-red.jpg' },
-        { id: 2, price: 20, stock: 80, color: 'Blue', size: 'M', image: 'tshirt-blue.jpg' }
-      ]
-    },
-    {
-      id: 2,
-      name: 'Jeans',
-      description: 'Slim fit jeans',
-      category: 'Clothing',
-      variants: [
-        { id: 3, price: 50, stock: 50, color: 'Black', size: '32', image: 'jeans-black.jpg' }
-      ]
-    }
-  ]);
-
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const { 
+    getAllProducts, 
+    createProduct,
+    loading, 
+    error 
+  } = useContext(ProductContext);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const productsData = await getAllProducts();
+        setProducts(productsData);
+        setFilteredProducts(productsData);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+      }
+    };
+    
+    fetchProducts();
+  }, [getAllProducts]);
+
   const handleSearch = (searchTerm) => {
-    const filtered = products.filter(product => 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    if (!searchTerm.trim()) {
+      setFilteredProducts(products);
+      return;
+    }
+    
+   const filtered = products.filter(product => {
+    const searchLower = searchTerm.toLowerCase();
+    const nameMatch = product.name?.toLowerCase().includes(searchLower);
+    const categoryMatch = product.category?.toLowerCase().includes(searchLower);
+    
+    let descriptionMatch = false;
+    if (typeof product.description === 'object') {
+      if (product.description.content) {
+        descriptionMatch = product.description.content.toLowerCase().includes(searchLower);
+      } else {
+        descriptionMatch = Object.values(product.description).some(val => 
+          String(val).toLowerCase().includes(searchLower)
+        ); // Added missing parenthesis here
+      }
+    } else if (product.description) {
+      descriptionMatch = String(product.description).toLowerCase().includes(searchLower);
+    }
+    
+    return nameMatch || categoryMatch || descriptionMatch;
+  });
+    
     setFilteredProducts(filtered);
   };
 
   const handleVariantSearch = (searchTerm) => {
+    if (!searchTerm.trim()) {
+      setFilteredProducts(products);
+      return;
+    }
+    
     const filtered = products.map(product => ({
       ...product,
-      variants: product.variants.filter(variant => 
-        variant.color.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        variant.size.toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      variants: product.variants?.filter(variant => {
+        const searchLower = searchTerm.toLowerCase();
+        const colorMatch = variant.color?.toLowerCase().includes(searchLower);
+        const sizeMatch = variant.size?.toLowerCase().includes(searchLower);
+        return colorMatch || sizeMatch;
+      }) || []
     })).filter(product => product.variants.length > 0);
+    
     setFilteredProducts(filtered);
   };
 
-  const addProduct = (newProduct) => {
-    setProducts([...products, newProduct]);
-    setFilteredProducts([...filteredProducts, newProduct]);
-    setIsAddDialogOpen(false);
+  const handleResetFilters = () => {
+    setFilteredProducts(products);
   };
 
-  const updateProduct = (updatedProduct) => {
-    const updatedProducts = products.map(p => 
-      p.id === updatedProduct.id ? updatedProduct : p
+  const handleAddProduct = async (newProduct) => {
+    try {
+      setIsAddDialogOpen(false);
+      const productsData = await getAllProducts(); // Refresh the list
+      setProducts(productsData);
+      setFilteredProducts(productsData);
+    } catch (err) {
+      console.error('Error refreshing products:', err);
+    }
+  };
+
+  const handleUpdateProduct = (updatedProduct) => {
+    setProducts(prev => 
+      prev.map(p => p.productID === updatedProduct.productID ? updatedProduct : p)
     );
-    setProducts(updatedProducts);
-    setFilteredProducts(updatedProducts);
-  };
-
-  const deleteProduct = (productId) => {
-    const updatedProducts = products.filter(p => p.id !== productId);
-    setProducts(updatedProducts);
-    setFilteredProducts(updatedProducts);
-  };
-
-  const updateVariant = (productId, updatedVariant) => {
-    const updatedProducts = products.map(product => {
-      if (product.id === productId) {
-        return {
-          ...product,
-          variants: product.variants.map(v => 
-            v.id === updatedVariant.id ? updatedVariant : v
-          )
-        };
-      }
-      return product;
-    });
-    setProducts(updatedProducts);
-    setFilteredProducts(updatedProducts);
-  };
-
-  const deleteVariant = (productId, variantId) => {
-    const updatedProducts = products.map(product => {
-      if (product.id === productId) {
-        return {
-          ...product,
-          variants: product.variants.filter(v => v.id !== variantId)
-        };
-      }
-      return product;
-    }).filter(product => product.variants.length > 0 || product.id === productId);
-    
-    setProducts(updatedProducts);
-    setFilteredProducts(updatedProducts);
+    setFilteredProducts(prev => 
+      prev.map(p => p.productID === updatedProduct.productID ? updatedProduct : p)
+    );
   };
 
   return (
     <div className="products-container">
       <div className="products-header">
         <h5>Products</h5>
-        <button 
+        <button
           className="add-product-btn"
           onClick={() => setIsAddDialogOpen(true)}
+          disabled={loading}
         >
-          Add Product
+          Add New Product
         </button>
       </div>
 
-      <ProductFilters 
+      <ProductFilters
         onSearch={handleSearch}
         onVariantSearch={handleVariantSearch}
+        onReset={handleResetFilters}
       />
 
-      <div className="products-list">
-        {filteredProducts.map(product => (
-          <ProductItem
-            key={product.id}
-            product={product}
-            onUpdate={updateProduct}
-            onDelete={deleteProduct}
-            onVariantUpdate={updateVariant}
-            onVariantDelete={deleteVariant}
-          />
-        ))}
-      </div>
+      {error && <p className="error-message">{error}</p>}
+
+      {loading && !products.length ? (
+        <div className="loading-indicator">Loading products...</div>
+      ) : (
+        <div className="products-list">
+          {filteredProducts.length > 0 ? (
+            filteredProducts.map(product => (
+              <ProductItem
+                key={product.productID}
+                product={product}
+                onUpdate={handleUpdateProduct}
+              />
+            ))
+          ) : (
+            <p className="no-products-message">No products found matching your criteria</p>
+          )}
+        </div>
+      )}
 
       <AddProductDialog
         isOpen={isAddDialogOpen}
         onClose={() => setIsAddDialogOpen(false)}
-        onSave={addProduct}
+        onSave={handleAddProduct}
       />
     </div>
   );
