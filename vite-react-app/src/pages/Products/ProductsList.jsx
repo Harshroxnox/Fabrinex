@@ -9,15 +9,15 @@ const ProductsList = () => {
   const { 
     getAllProducts, 
     createProduct,
-    loading, 
     error 
   } = useContext(ProductContext);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-
+  const [loading,setLoading]=useState(false);
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
         const productsData = await getAllProducts();
         setProducts(productsData);
@@ -28,6 +28,7 @@ const ProductsList = () => {
     };
     
     fetchProducts();
+    setLoading(false);
   }, [getAllProducts]);
 
   const handleSearch = (searchTerm) => {
@@ -84,6 +85,7 @@ const ProductsList = () => {
   };
 
   const handleAddProduct = async (newProduct) => {
+    setLoading(true);
     try {
       setIsAddDialogOpen(false);
       const productsData = await getAllProducts(); // Refresh the list
@@ -91,6 +93,9 @@ const ProductsList = () => {
       setFilteredProducts(productsData);
     } catch (err) {
       console.error('Error refreshing products:', err);
+    }
+    finally{
+      setLoading(false);
     }
   };
 
@@ -110,7 +115,7 @@ const ProductsList = () => {
         <button
           className="add-product-btn"
           onClick={() => setIsAddDialogOpen(true)}
-          disabled={loading}
+          // disabled={loading}
         >
           Add New Product
         </button>

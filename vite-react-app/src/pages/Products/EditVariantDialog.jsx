@@ -10,7 +10,7 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
   });
   const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState('');
-  const { updateVariant, loading, error: contextError, clearError } = useContext(ProductContext);
+  const { updateVariant,error: contextError, clearError } = useContext(ProductContext);
 
   useEffect(() => {
     if (variant) {
@@ -37,8 +37,9 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
       }));
     }
   };
-
+  const [loading,setLoading]=useState(false);
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
     
     if (!editedVariant.price) {
@@ -72,6 +73,8 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
     } catch (err) {
       console.error('Error updating variant:', err);
       setError(contextError || 'Failed to update variant');
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -148,7 +151,8 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
               className="save-btn"
               disabled={loading}
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading== true? 'saving....' : 'Save Changes'}
+              {/* Save Changes */}
             </button>
           </div>
         </form>

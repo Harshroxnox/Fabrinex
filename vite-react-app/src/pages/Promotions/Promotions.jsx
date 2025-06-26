@@ -484,7 +484,7 @@ const PromotionsPage = () => {
         <div style={styles.livePromotionsContainer}>
           <h2 style={styles.sectionTitle}>Live promotions</h2>
           {livePromotions.map(promotion => (
-            <div key={promotion.id} style={styles.promotionCard}>
+            <div key={promotion.id} style={styles .promotionCard}>
               <div style={styles.promotionInfo}>
                 <div style={styles.promotionTitle}>{promotion.code}</div>
                 <div style={styles.promotionDescription}>{promotion.description}</div>

@@ -8,9 +8,10 @@ import { ProductContext } from '../../contexts/ProductContext';
 const VariantsList = ({ variants, productId }) => {
   const [editingVariant, setEditingVariant] = useState(null);
   const [deletingVariant, setDeletingVariant] = useState(null);
-  const { updateVariant, deleteVariant, loading, error } = useContext(ProductContext);
-
+  const { updateVariant, deleteVariant,error } = useContext(ProductContext);
+  const [loading,setLoading]=useState(false);
   const handleUpdate = async (updatedVariant) => {
+    setLoading(true);
     try {
       await updateVariant(updatedVariant.variantID, {
         price: updatedVariant.price,
@@ -21,14 +22,21 @@ const VariantsList = ({ variants, productId }) => {
     } catch (err) {
       console.error('Error updating variant:', err);
     }
+    finally{
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (variantId) => {
+    setLoading(true);
     try {
       await deleteVariant(variantId);
       setDeletingVariant(null);
     } catch (err) {
       console.error('Error deleting variant:', err);
+    }
+    finally{
+      setLoading(false);
     }
   };
 

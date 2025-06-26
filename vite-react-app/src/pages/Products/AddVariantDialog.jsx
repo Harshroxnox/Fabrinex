@@ -15,7 +15,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
 
   const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState('');
-  const { loading, error: contextError, clearError } = useContext(ProductContext);
+  const { error: contextError, clearError } = useContext(ProductContext);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,7 +42,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       return () => URL.revokeObjectURL(url);
     } else {
       setPreviewUrl(null);
-    }
+    } 
   }, [variant.main_image]);
 
   const handleSubmit = (e) => {
@@ -101,7 +101,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 value={variant.color}
                 onChange={handleChange}
                 required
-                disabled={loading}
+                // disabled={loading}
               />
             </div>
 
@@ -113,7 +113,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 value={variant.size}
                 onChange={handleChange}
                 required
-                disabled={loading}
+                // disabled={loading}
               />
             </div>
           </div>
@@ -129,7 +129,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 min="0.01"
                 step="0.01"
                 required
-                disabled={loading}
+                // disabled={loading}
               />
             </div>
 
@@ -142,7 +142,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 onChange={handleChange}
                 min="0"
                 max="100"
-                disabled={loading}
+                // disabled={loading}
               />
             </div>
           </div>
@@ -157,7 +157,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 onChange={handleChange}
                 min="1"
                 required
-                disabled={loading}
+                // disabled={loading}
               />
             </div>
 
@@ -181,7 +181,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               accept="image/*"
               onChange={handleFileChange}
               required
-              disabled={loading}
+              // disabled={loading}
             />
           </div>
 
@@ -200,16 +200,17 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               type="button" 
               className="cancel-btn" 
               onClick={onClose}
-              disabled={loading}
+              // disabled={loading}
             >
               Cancel
             </button>
             <button 
               type="submit" 
               className="save-btn"
-              disabled={loading}
+              // disabled={loading}
             >
-              {loading ? 'Adding...' : 'Add Variant'}
+              {/* {loading ? 'Adding...' : 'Add Variant'} */}
+              Add Variant
             </button>
           </div>
         </form>

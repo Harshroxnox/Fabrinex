@@ -17,8 +17,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
   const [showVariantDialog, setShowVariantDialog] = useState(false);
   const [error, setError] = useState('');
   const [currentStep, setCurrentStep] = useState(1); // For multi-step form
-  const { createProduct, createVariant, loading, error: contextError, clearError } = useContext(ProductContext);
-
+  const { createProduct, createVariant,error: contextError, clearError } = useContext(ProductContext);
+  const [loading,setLoading]=useState(false);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setNewProduct((prev) => ({
@@ -71,7 +71,7 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
 
     try {
       clearError(); // Clear any previous errors
-      
+      setLoading(true);
       // Create product first
       const res = await createProduct(newProduct);
       console.log(newProduct);
@@ -99,6 +99,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
     } catch (err) {
       console.error('Error saving product or variants:', err);
       setError(contextError || 'Failed to save product. Please try again.');
+    } finally{
+      setLoading(false);
     }
   };
 
@@ -125,11 +127,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
           </div>
         )}
 
-        {loading ? (
-          <div className="loading-indicator">
-            <p>Saving product...</p>
-          </div>
-        ) : (
+      
+        (
           <form onSubmit={handleSubmit}>
             {currentStep === 1 && (
               <div className="form-step">
@@ -234,7 +233,7 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
               </div>
             )}
           </form>
-        )}
+        )
 
         <AddVariantDialog
           isOpen={showVariantDialog}

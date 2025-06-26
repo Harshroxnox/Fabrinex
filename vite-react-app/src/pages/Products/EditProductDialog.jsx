@@ -10,7 +10,7 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
     category: ''
   });
   const [error, setError] = useState('');
-  const { updateProduct, loading, error: contextError, clearError } = useContext(ProductContext);
+  const { updateProduct,error: contextError, clearError } = useContext(ProductContext);
 
   useEffect(() => {
     if (product) {
@@ -33,10 +33,10 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
       description: { content }
     }));
   };
-
+  const [loading,setLoading]=useState(false);
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setLoading(true);
     if (!editedProduct.name.trim()) {
       setError('Product name is required');
       return;
@@ -54,6 +54,8 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
     } catch (err) {
       console.error('Error updating product:', err);
       setError(contextError || 'Failed to update product');
+    } finally{
+      setLoading(true);
     }
   };
 
@@ -113,7 +115,8 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
               className="save-btn"
               disabled={loading}
             >
-              {loading ? 'Saving...' : 'Save Changes'}
+              {loading === true ?'Saving' : 'Save Changes'}
+              {/* Save Changes */}
             </button>
           </div>
         </form>

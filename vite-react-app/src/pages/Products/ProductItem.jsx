@@ -10,22 +10,30 @@ const ProductItem = ({ product, onUpdate }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const {deleteProduct, loading, error ,getVariantsByProduct} = useContext(ProductContext);
+  const {deleteProduct,error ,getVariantsByProduct} = useContext(ProductContext);
   // console.log(product);
   const toggleExpand = () => setIsExpanded(!isExpanded);
+  const [loading,setLoading]=useState(false);
   const [variants,setVariants]= useState([]);
   useEffect(()=>{
     const fetchVariants= async ()=>{
+      setLoading(true);
       try {
         const variantsData= await getVariantsByProduct(product.productID);
         setVariants(variantsData);
       } catch (error) {
         console.error("error fetching variants:", error);
       }
+      finally{
+        setLoading(false);
+      }
     };
     fetchVariants();
   },[getVariantsByProduct]);
-  getVariantsByProduct(product.productID);
+  useEffect(()=>{
+
+      getVariantsByProduct(product.productID);
+  },[])
   // console.log(variants);
   const handleUpdate = (updatedProduct) => {
     onUpdate(updatedProduct);
@@ -33,11 +41,15 @@ const ProductItem = ({ product, onUpdate }) => {
   };
 
   const handleDelete = async () => {
+    setLoading(true);
     try {
       await deleteProduct(product.productID);
       setIsDeleteDialogOpen(false);
     } catch (err) {
       console.error('Error deleting product:', err);
+    }
+    finally{
+      setLoading(true);
     }
   };
 
