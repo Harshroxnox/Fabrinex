@@ -4,8 +4,8 @@ import {
     getOrder,
     getOrdersByUser,
     getAllOrders,
-    updateOrder,
-    deleteOrder
+    // updateOrder,
+    // deleteOrder
 } from '../controllers/orders.controller.js';
 import authMiddleware from '../middleware/authMiddleware.js';
 
@@ -18,8 +18,9 @@ router.route("/get-orders-user/:userID").get(getOrdersByUser);
 
 // admin specific
 router.route("/get-all-orders").get(getAllOrders);
-router.route("/update-order/:orderID").put(updateOrder);
-router.route("/delete-order/:orderID").delete(deleteOrder);
+
+// router.route("/update-order/:orderID").put(updateOrder);
+// router.route("/delete-order/:orderID").delete(deleteOrder);
 
 
 export default router;

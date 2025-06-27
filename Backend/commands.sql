@@ -125,10 +125,9 @@ CREATE TABLE Orders (
     addressID INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_method VARCHAR(50) NOT NULL,
-    payment_status VARCHAR(20) NOT NULL, 
+    payment_status VARCHAR(20) NOT NULL DEFAULT 'pending',
     order_location VARCHAR(255) NOT NULL,
-    order_status VARCHAR(20) NOT NULL,
-    barcode CHAR(13) UNIQUE, -- EAN-13 format
+    order_status VARCHAR(20) NOT NULL DEFAULT 'pending',
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
 );

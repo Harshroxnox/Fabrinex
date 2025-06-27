@@ -1,14 +1,14 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import crypto from 'crypto';
-import { db } from '../index.js'; 
+import { db } from '../index.js';
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
 import { razorpay } from "../utils/razorpay.utils.js";
 
 const generateTokens = (id, userType) => {
   const accessToken = jwt.sign(
-    { 
+    {
       id: id,
       userType: userType
     },
@@ -16,7 +16,7 @@ const generateTokens = (id, userType) => {
     { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
   );
   const refreshToken = jwt.sign(
-    { 
+    {
       id: id,
       userType: userType
     },
@@ -48,11 +48,11 @@ const registerUser = async (req, res) => {
     }
 
     let razorpay_customer_id = crypto.randomBytes(6).toString('hex');
-    if (process.env.NODE_ENV === 'production'){
+    if (process.env.NODE_ENV === 'production') {
       const customer = await razorpay.customers.create({ name, email, contact: phone_number });
       razorpay_customer_id = customer.id;
     }
-    
+
     await db.execute(
       "INSERT INTO Users (name, phone_number, whatsapp_number, email, password, profile_img, razorpay_customer_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [name, phone_number, whatsapp_number, email, hashedPassword, profileImgUrl, razorpay_customer_id]
@@ -80,10 +80,10 @@ const loginUser = async (req, res) => {
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user.userID, 'user');
-    
+
     // Store refresh token in DB
     await db.execute("UPDATE Users SET refresh_token = ? WHERE userID = ?", [refreshToken, user.userID]);
-    
+
 
     res.cookie('accessToken', accessToken, {
       secure: process.env.NODE_ENV === 'production', // Cookie is sent only over HTTPS in production
@@ -149,38 +149,38 @@ const refreshUser = async (req, res) => {
   }
 };
 
-const logoutUser=async (req, res) => {
-  const refreshToken  = req.cookies.refreshToken;
- 
+const logoutUser = async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
   if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
 
   try {
-      // Remove refresh token from DB
-      await db.execute("UPDATE Users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
+    // Remove refresh token from DB
+    await db.execute("UPDATE Users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
 
-      res.clearCookie('accessToken', {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
-      });
-    
-      res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'Strict',
-      });
-    
-      res.status(200).json({ message: "Logged out successfully" });
+    res.clearCookie('accessToken', {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+    });
+
+    res.clearCookie('refreshToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Strict',
+    });
+
+    res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-      res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message });
   }
 }
 
 const getAllUsers = async (req, res) => {
   try {
-      const [users] = await db.execute("SELECT name, email, phone_number FROM Users");
-      res.json(users);
+    const [users] = await db.execute("SELECT name, email, phone_number FROM Users");
+    res.json(users);
   } catch (err) {
-      res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -203,7 +203,7 @@ const addAddress = async (req, res) => {
 
   try {
     await db.execute(
-      "INSERT INTO Addresses (userID, city, pincode, state, address_line) VALUES (?, ?, ?, ?, ?)", 
+      "INSERT INTO Addresses (userID, city, pincode, state, address_line) VALUES (?, ?, ?, ?, ?)",
       [userID, city, pincode, state, address_line]
     );
     res.status(201).json({ message: "Address added successfully" });
@@ -279,7 +279,7 @@ const addItem = async (req, res) => {
     )
 
     // If item is already added to card increase quantity
-    if(items.length !== 0){
+    if (items.length !== 0) {
       await db.execute("UPDATE CartItems SET quantity = quantity + ? WHERE userID = ? AND variantID = ?",
         [quantity, userID, variantID]
       )
@@ -331,8 +331,8 @@ const updateQuantity = async (req, res) => {
       [quantity, userID, variantID]
     );
 
-    if(results.affectedRows === 0){
-      return res.status(400).json({ error: "Cart Item not found"});
+    if (results.affectedRows === 0) {
+      return res.status(400).json({ error: "Cart Item not found" });
     }
 
     return res.status(200).json({ message: "Item quantity updated" });

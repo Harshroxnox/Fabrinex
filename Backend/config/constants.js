@@ -41,5 +41,7 @@ export const constants = {
     'web-editor',
     'inventory-manager',
     'marketing'
-  ]
+  ],
+
+  ORDER_LOCATION: "Noor Store, Jammu"
 };
