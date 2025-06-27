@@ -32,6 +32,7 @@ import paymentRouter from "./routes/payments.routes.js"
 import marketingRouter from "./routes/marketing.routes.js"
 import promotionRouter from "./routes/promotions.routes.js"
 import orderRouter from "./routes/orders.routes.js"
+import bannerRouter from "./routes/banners.routes.js"
 
 //routes declaration
 app.use("/api/v1/users", userRouter)
@@ -39,8 +40,9 @@ app.use("/api/v1/admins", adminRouter)
 app.use("/api/v1/products",productRouter)
 app.use("/api/v1/auth", authRouter)
 app.use("/api/v1/payments", paymentRouter);
-app.use("/api/v1/marketing", marketingRouter);
-app.use("/api/v1/promotions", promotionRouter);
+app.use("/api/v1/marketing", marketingRouter)
+app.use("/api/v1/promotions", promotionRouter)
 app.use("/api/v1/orders",orderRouter)
+app.use("/api/v1/banners",bannerRouter)
 
 export { app }

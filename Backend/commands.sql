@@ -185,3 +185,11 @@ CREATE TABLE VariantImages (
     cloudinary_id VARCHAR(255) NOT NULL,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
+
+CREATE TABLE Banners (
+    bannerID INT AUTO_INCREMENT PRIMARY KEY,
+    image_url VARCHAR(500) NOT NULL,
+    cloudinary_id VARCHAR(255) NOT NULL,
+    title VARCHAR(100),                   
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
