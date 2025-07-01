@@ -5,43 +5,43 @@ import { generateTokens } from "./users.controller.js";
 import { constants } from "../config/constants.js";
 
 const registerAdmin = async (req, res) => {
-    const { email, password, roles } = req.body;
+  const { email, password, roles } = req.body;
 
-    // Here roles is an array like: roles = ['admin', 'web-editor']
-    // Roles validation
-    const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
-    if (invalidRoles) {
-        return res.status(400).json({
-            message: 'Invalid roles provided. Allowed roles are: ' + constants.ADMIN_ROLES.join(', ')
-        });
-    }
+  // Here roles is an array like: roles = ['admin', 'web-editor']
+  // Roles validation
+  const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
+  if (invalidRoles) {
+    return res.status(400).json({
+      message: 'Invalid roles provided. Allowed roles are: ' + constants.ADMIN_ROLES.join(', ')
+    });
+  }
 
-    try {
-      const [existingUser] = await db.execute("SELECT * FROM AdminUsers WHERE email = ?", [email]);
-      if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });
-  
-      const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const [existingUser] = await db.execute("SELECT * FROM AdminUsers WHERE email = ?", [email]);
+    if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });
 
-      // Inserting Admin User
-      const [result] = await db.execute(
-        "INSERT INTO AdminUsers (email, password) VALUES (?, ?)",
-        [ email, hashedPassword ]
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Inserting Admin User
+    const [result] = await db.execute(
+      "INSERT INTO AdminUsers (email, password) VALUES (?, ?)",
+      [ email, hashedPassword ]
+    );
+    
+    const adminID = result.insertId;
+
+    // Inserting Roles for that User
+    for (const role of roles) {
+      await db.execute(
+        "INSERT INTO AdminRoles (adminID, role_name) VALUES (?, ?)",
+        [ adminID, role ]
       );
-      
-      const adminID = result.insertId;
-
-      // Inserting Roles for that User
-      roles.forEach(async (role) => {
-        await db.execute(
-            "INSERT INTO AdminRoles (adminID, role_name) VALUES (?, ?)",
-            [ adminID, role ]
-        );
-      })
-
-      res.status(201).json({ message: "AdminUser registered successfully" });
-    } catch (error) {
-      res.status(500).json({ error: error.message });
     }
+
+    res.status(201).json({ message: "AdminUser registered successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 const loginAdmin = async (req, res) => {

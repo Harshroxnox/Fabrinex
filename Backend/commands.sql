@@ -71,7 +71,7 @@ CREATE TABLE AdminUsers (
 CREATE TABLE AdminRoles (
     roleID INT AUTO_INCREMENT PRIMARY KEY,
     adminID INT NOT NULL,
-    role_name VARCHAR(15) NOT NULL,
+    role_name VARCHAR(40) NOT NULL,
     FOREIGN KEY (adminID) REFERENCES AdminUsers(adminID) ON DELETE CASCADE
 );
 
