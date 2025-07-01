@@ -280,6 +280,7 @@ const deleteReview = async (req, res) => {
 // Variant Controller 
 
 const createVariant = async (req, res) => {
+    const productID = req.params.productID;
     const { color, size, price, discount, stock } = req.body;
     const mainImgPath = req.file ? req.file.path : null;
     
@@ -288,14 +289,7 @@ const createVariant = async (req, res) => {
     }
 
     if(!mainImgPath){
-        return res.status(400).json({ message: "Main image not provided!" });
-    }
-
-    if (!constants.PRODUCT_SIZES.includes(size)) {
-        return res.status(400).json({
-            success: false,
-            message: `Invalid size. Must be one of: ${constants.PRODUCT_SIZES.join(', ')}`,
-        });
+        return res.status(400).json({ error: "Main image not provided!" });
     }
 
     try {
@@ -304,7 +298,7 @@ const createVariant = async (req, res) => {
 
         const [result] = await db.execute(
             "INSERT INTO ProductVariants (productID, color, size, price, discount, stock, main_image, cloudinary_id, barcode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-            [req.params.productID, color, size, price, discount, stock, mainImgCloudinary.url, mainImgCloudinary.public_id, barcode]
+            [productID, color, size, price, discount, stock, mainImgCloudinary.url, mainImgCloudinary.public_id, barcode]
         );
         res.status(201).json({ message: "Variant created", variantID: result.insertId });
     } catch (err) {

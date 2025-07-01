@@ -34,7 +34,7 @@ const registerUser = async (req, res) => {
 
   try {
     const verified = await isOTPVerified(email, phone_number);
-    if (!verified) return res.status(403).json({ message: "Please verify OTP before registering" });
+    //if (!verified) return res.status(403).json({ message: "Please verify OTP before registering" });
 
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
     if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });
@@ -177,10 +177,26 @@ const logoutUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const [users] = await db.execute("SELECT name, email, phone_number FROM Users");
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    const [users] = await db.execute(`
+      SELECT 
+        u.userID,
+        u.name,
+        u.email,
+        u.phone_number,
+        u.whatsapp_number,
+        u.created_at,
+        COUNT(o.orderID) AS order_count
+      FROM Users u
+      LEFT JOIN Orders o ON u.userID = o.userID
+      GROUP BY u.userID, u.name, u.email, u.phone_number, u.whatsapp_number, u.created_at;
+    `);
+    res.status(200).json({
+      message: "All users fetched successfully",
+      users: users 
+    });
+  } catch (error) {
+    console.error("Error fetching Users:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
