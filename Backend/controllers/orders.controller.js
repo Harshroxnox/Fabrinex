@@ -3,42 +3,45 @@ import { constants } from '../config/constants.js';
 
 
 export const createOrder = async (req, res) => {
-
   const { addressID, payment_method } = req.body;
   const userID = req.userID;
+  let conn;
 
   try {
-    await db.beginTransaction();
+    // Make connection for transaction
+    conn = await db.getConnection();
+    await conn.beginTransaction();
 
     // Checking if address exists and belongs to user
-    const [addressRows] = await db.execute(
+    const [addressRows] = await conn.execute(
       `SELECT * FROM Addresses WHERE addressID = ? AND userID = ?`,
       [addressID, userID]
     );
 
     if (addressRows.length === 0) {
-      await db.rollback();
+      await conn.rollback();
       return res.status(400).json({ error: 'Invalid address' });
     }
 
     // Checking if payment method is valid
     if(!constants.PAYMENT_METHODS.includes(payment_method)){
+      await conn.rollback();
       return res.status(400).json({ error: 'Invalid payment method' });
     }
 
     // Fetching cart items
-    const [cartItems] = await db.execute(
+    const [cartItems] = await conn.execute(
       `SELECT variantID, quantity FROM CartItems WHERE userID = ?`,
       [userID]
     );
 
     if (cartItems.length === 0) {
-      await db.rollback();
+      await conn.rollback();
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
     // Creating order
-    const [orderResult] = await db.execute(
+    const [orderResult] = await conn.execute(
       `INSERT INTO Orders (userID, addressID, payment_method, order_location) 
        VALUES (?, ?, ?, ?)`,
       [userID, addressID, payment_method, constants.SHOP_LOCATION]
@@ -48,21 +51,21 @@ export const createOrder = async (req, res) => {
 
     // Inserting into OrderItems using cart data
     for (const item of cartItems) {
-      // getting price at time of purchase
-      const [variantRow] = await db.execute(
+      // Getting price at time of purchase
+      const [variantRow] = await conn.execute(
         `SELECT price, discount FROM ProductVariants WHERE variantID = ?`,
         [item.variantID]
       );
 
       if (variantRow.length === 0) {
-        await db.rollback();
+        await conn.rollback();
         return res.status(400).json({ error: 'Invalid product variant in cart' });
       }
 
       const { price, discount } = variantRow[0];
       const discountedPrice = price - (price * (discount / 100));
 
-      await db.execute(
+      await conn.execute(
         `INSERT INTO OrderItems (orderID, variantID, quantity, price_at_purchase)
          VALUES (?, ?, ?, ?)`,
         [orderID, item.variantID, item.quantity, discountedPrice]
@@ -70,12 +73,13 @@ export const createOrder = async (req, res) => {
     }
 
     // Clearing the cart
-    await db.execute(
+    await conn.execute(
       `DELETE FROM CartItems WHERE userID = ?`,
       [userID]
     );
 
-    await db.commit();
+    // Commit database changes
+    await conn.commit();
 
     res.status(201).json({
       message: 'Order created successfully',
@@ -83,10 +87,13 @@ export const createOrder = async (req, res) => {
     });
 
   } catch (error) {
-    await db.rollback();
+    if (conn) await conn.rollback(); // rollback if failed
     console.error('Error creating order:', error);
     res.status(500).json({ error: 'Internal server error' });
-  } 
+
+  } finally {
+    if (conn) conn.release(); // always release connection
+  }
 };
 
 
@@ -131,7 +138,7 @@ export const getOrder = async (req, res) => {
 
 
 export const getOrdersByUser = async (req, res) => {
-  const { userID } = req.params;
+  const userID = req.userID;
 
   try {
     const [orders] = await db.execute(
