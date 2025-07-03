@@ -22,13 +22,13 @@ npm start
 
 Controller function format of backend<br>
 ```js
-const controllerFunc = async (req, res) => {
+export const controllerFunc = async (req, res) => {
   // ✅ Extract inputs
   const userID = req.userID; // Typically set by auth middleware
   const { name, category } = req.body;
   const { id } = req.params;
 
-  // ✅ Validate inputs (ideally move this to a separate middleware or helper)
+  // ✅ Validate inputs
   // check if category is valid
   if (!constants.PRODUCT_CATEGORIES.includes(category)) {
     return res.status(400).json({

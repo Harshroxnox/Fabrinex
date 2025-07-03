@@ -9,8 +9,6 @@ export const constants = {
     'accessories',
   ],
 
-  PRODUCT_SIZES: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
-
   PAYMENT_METHODS: [
     'card', 
     'upi', 
@@ -43,5 +41,5 @@ export const constants = {
     'marketing'
   ],
 
-  ORDER_LOCATION: "Noor Store, Jammu"
+  SHOP_LOCATION: "Noor Store, Jammu"
 };

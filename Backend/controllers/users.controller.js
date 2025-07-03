@@ -34,7 +34,7 @@ const registerUser = async (req, res) => {
 
   try {
     const verified = await isOTPVerified(email, phone_number);
-    //if (!verified) return res.status(403).json({ message: "Please verify OTP before registering" });
+    if (!verified) return res.status(403).json({ message: "Please verify OTP before registering" });
 
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
     if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });

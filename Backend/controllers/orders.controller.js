@@ -1,13 +1,11 @@
 import { db } from '../index.js';
 import { constants } from '../config/constants.js';
-const { ORDER_LOCATION } = constants;
 
 
-const createOrder = async (req, res) => {
+export const createOrder = async (req, res) => {
 
   const { addressID, payment_method } = req.body;
   const userID = req.userID;
-
 
   try {
     await db.beginTransaction();
@@ -20,7 +18,12 @@ const createOrder = async (req, res) => {
 
     if (addressRows.length === 0) {
       await db.rollback();
-      return res.status(400).json({ message: 'Invalid address' });
+      return res.status(400).json({ error: 'Invalid address' });
+    }
+
+    // Checking if payment method is valid
+    if(!constants.PAYMENT_METHODS.includes(payment_method)){
+      return res.status(400).json({ error: 'Invalid payment method' });
     }
 
     // Fetching cart items
@@ -31,14 +34,14 @@ const createOrder = async (req, res) => {
 
     if (cartItems.length === 0) {
       await db.rollback();
-      return res.status(400).json({ message: 'Cart is empty' });
+      return res.status(400).json({ error: 'Cart is empty' });
     }
 
     // Creating order
     const [orderResult] = await db.execute(
       `INSERT INTO Orders (userID, addressID, payment_method, order_location) 
        VALUES (?, ?, ?, ?)`,
-      [userID, addressID, payment_method, ORDER_LOCATION]
+      [userID, addressID, payment_method, constants.SHOP_LOCATION]
     );
 
     const orderID = orderResult.insertId;
@@ -53,7 +56,7 @@ const createOrder = async (req, res) => {
 
       if (variantRow.length === 0) {
         await db.rollback();
-        return res.status(400).json({ message: 'Invalid product variant in cart' });
+        return res.status(400).json({ error: 'Invalid product variant in cart' });
       }
 
       const { price, discount } = variantRow[0];
@@ -66,7 +69,7 @@ const createOrder = async (req, res) => {
       );
     }
 
-    //Clearing the cart
+    // Clearing the cart
     await db.execute(
       `DELETE FROM CartItems WHERE userID = ?`,
       [userID]
@@ -79,15 +82,15 @@ const createOrder = async (req, res) => {
       orderID
     });
 
-  } catch (err) {
+  } catch (error) {
     await db.rollback();
-    console.error('Error creating order:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Error creating order:', error);
+    res.status(500).json({ error: 'Internal server error' });
   } 
 };
 
 
- const getOrder = async (req, res) => {
+export const getOrder = async (req, res) => {
   const { orderID } = req.params;
 
   try {
@@ -101,12 +104,12 @@ const createOrder = async (req, res) => {
     );
 
     if (orderRows.length === 0) {
-      return res.status(404).json({ message: "Order not found" });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     const [items] = await db.execute(
       `SELECT oi.*, pv.color, pv.size, pv.price AS current_price, pv.main_image,
-              p.name AS product_name
+        p.name AS product_name
        FROM OrderItems oi
        JOIN ProductVariants pv ON oi.variantID = pv.variantID
        JOIN Products p ON pv.productID = p.productID
@@ -115,18 +118,19 @@ const createOrder = async (req, res) => {
     );
 
     return res.status(200).json({
+      message: 'Order fetched successfully',
       order: orderRows[0],
       items,
     });
 
-  } catch (err) {
-    console.error('Error fetching order:', err);
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
 
- const getOrdersByUser = async (req, res) => {
+export const getOrdersByUser = async (req, res) => {
   const { userID } = req.params;
 
   try {
@@ -138,36 +142,43 @@ const createOrder = async (req, res) => {
       [userID]
     );
 
-    return res.status(200).json({ orders });
+    return res.status(200).json({
+      message: 'User orders fetched successfully',
+      orders 
+    });
 
-  } catch (err) {
-    console.error('Error fetching user orders:', err);
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-const getAllOrders = async (req, res) => {
+
+export const getAllOrders = async (req, res) => {
   try {
-    const [orders] = await db.execute(
-      `SELECT 
-         o.orderID, 
-         o.created_at, 
-         o.payment_method, 
-         o.payment_status, 
-         o.order_status, 
-         u.userID, 
-         u.name AS customer_name, 
-         u.email
-       FROM Orders o
-       JOIN Users u ON o.userID = u.userID
-       ORDER BY o.created_at DESC`
-    );
+    const [orders] = await db.execute(`
+      SELECT 
+        o.orderID, 
+        o.created_at, 
+        o.payment_method, 
+        o.payment_status, 
+        o.order_status, 
+        u.userID, 
+        u.name AS customer_name, 
+        u.email
+      FROM Orders o
+      JOIN Users u ON o.userID = u.userID
+      ORDER BY o.created_at DESC
+    `);
 
-    return res.status(200).json({ orders });
-  } catch (err) {
-    console.error('Error fetching all orders:', err);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(200).json({ 
+      message: 'All orders fetched successfully',
+      orders 
+    });
+
+  } catch (error) {
+    console.error('Error fetching all orders:', error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-export { createOrder,getOrder,getOrdersByUser,getAllOrders }
