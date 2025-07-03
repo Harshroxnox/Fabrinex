@@ -1,5 +1,4 @@
 import { db } from '../index.js';
-
 import {
   generateOTP,
   storeOTPTemp,
@@ -11,22 +10,23 @@ import {
 } from '../utils/otp.helper.js';
 
 export const sendOtpEmail = async (req, res) => {
-    const { email } = req.body;
-    try {
-        const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-        if (existingUser.length > 0)
-            return res.status(400).json({ message: "User already exists" });
+  const { email } = req.body;
 
-        const otp = generateOTP();
-        console.log('otp is',otp);
+  try {
+    const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
+    if (existingUser.length > 0)
+      return res.status(400).json({ error: "User already exists" });
 
-        await storeOTPTemp(email, otp);
-        await sendOtpByEmail(email, otp);
+    const otp = generateOTP();
 
-        res.status(200).json({ message: "OTP sent successfully" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    await storeOTPTemp(email, otp);
+    await sendOtpByEmail(email, otp);
+
+    res.status(200).json({ message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Error sending otp email:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 export const verifyOtpEmail = async (req, res) => {
@@ -34,34 +34,35 @@ export const verifyOtpEmail = async (req, res) => {
 
   try {
     const isValid = await verifyStoredOTP(email, otp);
-    if (!isValid) return res.status(400).json({ message: "Invalid or expired OTP" });
+    if (!isValid) return res.status(400).json({ error: "Invalid or expired OTP" });
 
     await deleteStoredOTP(email);
     await markOTPVerified(email);
 
     res.status(200).json({ message: "OTP verified successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("Error verifying otp email:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
 export const sendOtpPhone = async (req, res) => {
-    const { phone_number } = req.body;
-    try {
-        const [existingUser] = await db.execute("SELECT * FROM Users WHERE phone_number = ?", [phone_number]);
-        if (existingUser.length > 0)
-            return res.status(400).json({ message: "User already exists" });
+  const { phone_number } = req.body;
+  try {
+    const [existingUser] = await db.execute("SELECT * FROM Users WHERE phone_number = ?", [phone_number]);
+    if (existingUser.length > 0)
+      return res.status(400).json({ error: "User already exists" });
 
-        const otp = generateOTP();
-        console.log('otp is',otp);
+    const otp = generateOTP();
 
-        await storeOTPTemp(phone_number, otp);
-        await sendOtpBySMS(phone_number, otp);
+    await storeOTPTemp(phone_number, otp);
+    await sendOtpBySMS(phone_number, otp);
 
-        res.status(200).json({ message: "OTP sent successfully" });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
-    }
+    res.status(200).json({ message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Error sending otp phone:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 export const verifyOtpPhone = async (req, res) => {
@@ -69,14 +70,15 @@ export const verifyOtpPhone = async (req, res) => {
   
   try {
     const isValid = await verifyStoredOTP(phone_number, otp);
-    if (!isValid) return res.status(400).json({ message: "Invalid or expired OTP" });
+    if (!isValid) return res.status(400).json({ error: "Invalid or expired OTP" });
 
     await deleteStoredOTP(phone_number);
     await markOTPVerified(phone_number);
 
     res.status(200).json({ message: "OTP verified successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error("Error verifying otp phone:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
