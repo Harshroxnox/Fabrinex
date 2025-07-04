@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import { db } from '../index.js'; 
-import { generateTokens } from "./users.controller.js";
+import { generateTokens } from "../utils/jwt.utils.js";
 import { constants } from "../config/constants.js";
 
 

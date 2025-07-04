@@ -5,39 +5,20 @@ import { db } from '../index.js';
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
 import { razorpay } from "../utils/razorpay.utils.js";
-
-const generateTokens = (id, userType) => {
-  const accessToken = jwt.sign(
-    {
-      id: id,
-      userType: userType
-    },
-    process.env.ACCESS_TOKEN_SECRET,
-    { expiresIn: process.env.ACCESS_TOKEN_EXPIRY }
-  );
-  const refreshToken = jwt.sign(
-    {
-      id: id,
-      userType: userType
-    },
-    process.env.REFRESH_TOKEN_SECRET,
-    { expiresIn: process.env.REFRESH_TOKEN_EXPIRY }
-  );
-  return { accessToken, refreshToken };
-};
+import { generateTokens } from "../utils/jwt.utils.js";
 
 // User Routes ------------------------------------------------------------------------------------
 
-const registerUser = async (req, res) => {
+export const registerUser = async (req, res) => {
   const { name, phone_number, whatsapp_number, email, password } = req.body;
   const profilePicPath = req.file ? req.file.path : null;
 
   try {
     const verified = await isOTPVerified(email, phone_number);
-    if (!verified) return res.status(403).json({ message: "Please verify OTP before registering" });
+    if (!verified) return res.status(403).json({ error: "Please verify OTP before registering" });
 
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-    if (existingUser.length > 0) return res.status(400).json({ message: "Email already exists" });
+    if (existingUser.length > 0) return res.status(400).json({ error: "Email already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -60,23 +41,24 @@ const registerUser = async (req, res) => {
 
     res.status(201).json({ message: "User registered successfully", profileImg: profileImgUrl });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const loginUser = async (req, res) => {
+export const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     // Check if user exists
     const [users] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-    if (users.length === 0) return res.status(400).json({ message: "User not found" });
+    if (users.length === 0) return res.status(400).json({ error: "User not found" });
 
     const user = users[0];
 
     // Validate password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user.userID, 'user');
@@ -102,24 +84,25 @@ const loginUser = async (req, res) => {
     res.status(200).json({ message: 'Login successful' });
 
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error logging user:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const refreshUser = async (req, res) => {
+export const refreshUser = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
+  if (!refreshToken) return res.status(401).json({ error: "No refresh token provided" });
 
   try {
     // Check if refresh token exists in DB
     const [users] = await db.execute("SELECT * FROM Users WHERE refresh_token = ?", [refreshToken]);
-    if (users.length === 0) return res.status(403).json({ message: "Invalid refresh token" });
+    if (users.length === 0) return res.status(403).json({ error: "Invalid refresh token" });
 
     const user = users[0];
 
     // Verify refresh token
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
-      if (err) return res.status(403).json({ message: "Invalid or expired refresh token" });
+      if (err) return res.status(403).json({ error: "Invalid or expired refresh token" });
 
       // Generate new tokens
       const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.userID, 'user');
@@ -145,14 +128,15 @@ const refreshUser = async (req, res) => {
       res.status(200).json({ message: "Tokens refreshed successfully" });
     });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error refresh token user:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const logoutUser = async (req, res) => {
+export const logoutUser = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
 
-  if (!refreshToken) return res.status(401).json({ message: "No refresh token provided" });
+  if (!refreshToken) return res.status(401).json({ error: "No refresh token provided" });
 
   try {
     // Remove refresh token from DB
@@ -171,11 +155,12 @@ const logoutUser = async (req, res) => {
 
     res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error logout user:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
     const [users] = await db.execute(`
       SELECT 
@@ -195,25 +180,30 @@ const getAllUsers = async (req, res) => {
       users: users 
     });
   } catch (error) {
-    console.error("Error fetching Users:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    console.error("Error fetching all users:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
-const getProfile = async (req, res) => {
+export const getProfile = async (req, res) => {
+  const userID = req.userID;
   try {
-    const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE userID = ?", [req.userID]);
-    if (users.length === 0) return res.status(404).json({ message: "User not found" });
+    const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE userID = ?", [userID]);
+    if (users.length === 0) return res.status(404).json({ error: "User not found" });
 
-    res.status(200).json(users[0]);
+    res.status(200).json({
+      message: "Fetched user profile succesfully", 
+      user: users[0] 
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 // User Address Routes ----------------------------------------------------------------------------
 
-const addAddress = async (req, res) => {
+export const addAddress = async (req, res) => {
   const userID = req.userID;
   const { city, pincode, state, address_line } = req.body;
 
@@ -223,12 +213,13 @@ const addAddress = async (req, res) => {
       [userID, city, pincode, state, address_line]
     );
     res.status(201).json({ message: "Address added successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error adding address:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const getAddress = async (req, res) => {
+export const getAddress = async (req, res) => {
   const userID = req.userID;
 
   try {
@@ -237,13 +228,17 @@ const getAddress = async (req, res) => {
       [userID]
     );
 
-    res.status(200).json({ addresses });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(200).json({
+      message: "Fetched users address successfully", 
+      addresses 
+    });
+  } catch (error) {
+    console.error('Error fetching address:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const updateAddress = async (req, res) => {
+export const updateAddress = async (req, res) => {
   const userID = req.userID;
   const { addressID } = req.params;
   const { city, pincode, state, address_line } = req.body;
@@ -257,12 +252,13 @@ const updateAddress = async (req, res) => {
     );
 
     res.status(200).json({ message: "Address updated successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error updating address:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const deleteAddress = async (req, res) => {
+export const deleteAddress = async (req, res) => {
   const userID = req.userID;
   const { addressID } = req.params;
 
@@ -273,14 +269,15 @@ const deleteAddress = async (req, res) => {
     );
 
     res.status(200).json({ message: "Address deleted successfully" });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error deleting address:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 // User Cart Routes -------------------------------------------------------------------------------
 
-const addItem = async (req, res) => {
+export const addItem = async (req, res) => {
   const variantID = req.params.variantID;
   const { quantity = 1 } = req.body;
   const userID = req.userID;
@@ -308,12 +305,13 @@ const addItem = async (req, res) => {
     )
     return res.status(200).json({ message: "Items added to cart" });
 
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error adding to cart:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const deleteItem = async (req, res) => {
+export const deleteItem = async (req, res) => {
   const variantID = req.params.variantID;
   const userID = req.userID;
 
@@ -328,12 +326,13 @@ const deleteItem = async (req, res) => {
 
     return res.status(200).json({ message: "Items deleted from cart" });
 
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error deleting from cart:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const updateQuantity = async (req, res) => {
+export const updateQuantity = async (req, res) => {
   const variantID = req.params.variantID;
   const { quantity } = req.body;
   const userID = req.userID;
@@ -353,12 +352,13 @@ const updateQuantity = async (req, res) => {
 
     return res.status(200).json({ message: "Item quantity updated" });
 
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    console.error('Error updating cart:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-const getCart = async (req, res) => {
+export const getCart = async (req, res) => {
   const userID = req.userID;
 
   try {
@@ -382,26 +382,12 @@ const getCart = async (req, res) => {
         ci.userID = ?
     `, [userID]);
 
-    res.json(cartItems);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(200).json({
+      message: "Fetched user cart successfully", 
+      cartItems 
+    });
+  } catch (error) {
+    console.error('Error fetching cart:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-export {
-  generateTokens,
-  registerUser,
-  loginUser,
-  refreshUser,
-  logoutUser,
-  getAllUsers,
-  getProfile,
-  addAddress,
-  getAddress,
-  updateAddress,
-  deleteAddress,
-  addItem,
-  deleteItem,
-  updateQuantity,
-  getCart
-}
