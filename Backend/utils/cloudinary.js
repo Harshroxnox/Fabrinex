@@ -57,8 +57,12 @@ const uploadOnCloudinary = async (localFilePath) => {
 
 
 const deleteFromCloudinary = async (publicId) => {
+  try{
     if(process.env.NODE_ENV === 'production'){
         const response = await cloudinary.uploader.destroy(publicId);
+        if (response.result !== "ok") {
+            console.warn("Failed to delete Cloudinary image:", publicId);
+        }
         return response;
     }
 
@@ -67,6 +71,10 @@ const deleteFromCloudinary = async (publicId) => {
         result: "ok"
     }
     return response;
+  } catch (error) {
+    console.warn("Cloudinary deletion failed. CloudinaryID:", publicId);
+    return { result: "error"};
+  }
 };
 
 export { uploadOnCloudinary, deleteFromCloudinary };
