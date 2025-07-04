@@ -2,7 +2,6 @@ import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode } from '../utils/generateBarcode.js';
-import { isNumber } from 'razorpay/dist/utils/razorpay-utils.js';
 
 // product controller 
 
@@ -98,7 +97,7 @@ export const getProductById = async (req, res) => {
     product.variants = variants;
     res.status(200).json({
       message: "Fetched product successfully",
-      product 
+      product
     });
 
   } catch (error) {
@@ -127,8 +126,8 @@ export const getAllProducts = async (req, res) => {
         )
     `);
     res.status(200).json({
-      message: "All products fetched successfully", 
-      products 
+      message: "All products fetched successfully",
+      products
     });
   } catch (error) {
     console.error('Error fetching all products:', error);
@@ -136,7 +135,7 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
-
+// To DISCUSS: I (Ak) think that product variant will get deleted from table but we will need to have deletion of cloudinary images of variants ? 
 export const deleteProduct = async (req, res) => {
   try {
     const [result] = await db.execute("DELETE FROM Products WHERE productID=?", [req.params.productID]);
@@ -399,7 +398,7 @@ export const updateVariant = async (req, res) => {
   let parsedDiscount;
   let parsedStock;
 
-  if (price != null){
+  if (price != null) {
     parsedPrice = parseFloat(price);
     if (isNaN(parsedPrice) || parsedPrice < 0) {
       return res.status(400).json({ error: "Price must be a non-negative number." });
@@ -407,7 +406,7 @@ export const updateVariant = async (req, res) => {
     fields.price = parsedPrice;
   }
 
-  if (discount != null){
+  if (discount != null) {
     parsedDiscount = parseFloat(discount)
     if (isNaN(parsedDiscount) || parsedDiscount < 0 || parsedDiscount > 100) {
       return res.status(400).json({ error: "Discount must be a number between 0 and 100." });
@@ -415,7 +414,7 @@ export const updateVariant = async (req, res) => {
     fields.discount = parsedDiscount;
   }
 
-  if (stock != null){
+  if (stock != null) {
     parsedStock = Number(stock);
     if (!Number.isInteger(parsedStock) || parsedStock < 0) {
       return res.status(400).json({ error: "Stock must be a non-negative integer." });
@@ -433,7 +432,7 @@ export const updateVariant = async (req, res) => {
     if (variants.length === 0) {
       return res.status(404).json({ error: 'Variant not found' });
     }
-    
+
     // If image is provided, upload to Cloudinary
     if (mainImgPath) {
       cloudinaryID = variants[0].cloudinary_id;
@@ -467,12 +466,13 @@ export const updateVariant = async (req, res) => {
       return res.status(404).json({ error: "Variant not found" });
     }
 
+    res.status(200).json({ message: "Variant updated successfully", updatedFields: fields });
+
     // Delete previous image from Cloudinary
-    if (cloudinaryID){
-      await deleteFromCloudinary(cloudinaryID);
+    if (cloudinaryID) {
+       deleteFromCloudinary(cloudinaryID);
     }
 
-    res.status(200).json({ message: "Variant updated successfully", updatedFields: fields  });
 
   } catch (error) {
     console.error('Error updating variant:', error);
@@ -486,8 +486,8 @@ export const getVariantsByProduct = async (req, res) => {
   try {
     const [variants] = await db.execute("SELECT * FROM ProductVariants WHERE productID = ?", [productID]);
     res.status(200).json({
-      message: "Fetched all variants of given product successfully", 
-      variants 
+      message: "Fetched all variants of given product successfully",
+      variants
     });
   } catch (error) {
     console.error('Error fetching variants of product:', error);
@@ -503,9 +503,9 @@ export const getAllVariants = async (req, res) => {
       FROM ProductVariants pv
       JOIN Products p ON pv.productID = p.productID
     `);
-    res.status(200).json({ 
+    res.status(200).json({
       message: "Fetched all variants successfully",
-      variants 
+      variants
     });
   } catch (error) {
     console.error('Error fetching all variants:', error);
@@ -543,8 +543,8 @@ export const getVariantById = async (req, res) => {
     variant.secondary_images = images;
 
     res.status(200).json({
-      message: "Fetched variant successfully", 
-      variant 
+      message: "Fetched variant successfully",
+      variant
     });
 
   } catch (error) {
@@ -584,8 +584,8 @@ export const deleteVariant = async (req, res) => {
     // Delete main image and secondary images from Cloudinary
     // Fire and forget, non blocking, does not affect response, does not use await
     deleteFromCloudinary(cloudinaryID);
-    secondaryImgs.forEach((image)=> deleteFromCloudinary(image.cloudinary_id));
-    
+    secondaryImgs.forEach((image) => deleteFromCloudinary(image.cloudinary_id));
+
   } catch (error) {
     console.error('Error deleting variant:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -595,50 +595,76 @@ export const deleteVariant = async (req, res) => {
 // TODO: Probably need to wrap this in transaction and do cloudinary non-blocking fire and forget cleanup
 // we should avoid promise.all here in any case I think
 // cloud storage wasted and database inconsistencies in this function
+
 export const uploadSecondaryImages = async (req, res) => {
   const files = req.files;
   const variantID = req.params.variantID;
 
-  // check if files are provided
+  if (!variantID || isNaN(variantID)) {
+    return res.status(400).json({ error: "Invalid or missing variant ID." });
+  }
+
   if (!files || files.length === 0) {
     return res.status(400).json({ error: "No files were provided." });
   }
 
-  // TODO: check if variant exists
+  // Check if variant exists
+  const [variants] = await db.execute(
+    `SELECT cloudinary_id FROM ProductVariants WHERE variantID = ?`,
+    [variantID]
+  );
+
+  if (variants.length === 0) {
+    return res.status(404).json({ error: 'Variant not found' });
+  }
+
+  let conn;
+
+  // To store {url, public_id} for possible rollback
+  const uploadedImages = []; 
 
   try {
-    let uploadResults = [];
+    conn = await db.getConnection();
+    await conn.beginTransaction();
 
-    // Upload the images on cloudinary and get the url
-    // NOTE: promise.all only resolves when all uploads are successfull otherwise we go into catch
-    if (files && files.length > 0) {
-      const uploadPromises = files.map(file => uploadOnCloudinary(file.path));
-      uploadResults = await Promise.all(uploadPromises);
-    }
+    const insertedImages = [];
 
-    // Insert the Images into VariantImages
-    const insertPromises = uploadResults.map(async (result) => {
-      const [output] = await db.execute(
+    for (const file of files) {
+      const result = await uploadOnCloudinary(file.path);
+
+      // Save public_id for rollback if needed
+      uploadedImages.push(result.public_id); 
+
+      const [output] = await conn.execute(
         "INSERT INTO VariantImages (variantID, image_url, cloudinary_id) VALUES (?, ?, ?)",
         [variantID, result.url, result.public_id]
       );
 
-      return {
+      insertedImages.push({
         variantImageID: output.insertId,
         image_url: result.url
-      };
-    });
+      });
+    }
 
-    const insertedImages = await Promise.all(insertPromises);
+    await conn.commit();
 
     res.status(200).json({
       message: "Secondary images uploaded successfully",
       images: insertedImages
     });
 
-  } catch (error) {
+  }
+  catch (error) {
+    if (conn) await conn.rollback();
+
     console.error('Error uploading secondary images:', error);
     res.status(500).json({ error: 'Internal server error' });
+
+    // Fire-and-forget Cloudinary cleanup
+    uploadedImages.forEach((public_id) => deleteFromCloudinary(public_id));
+  }
+  finally {
+    if (conn) conn.release();
   }
 };
 
@@ -669,33 +695,14 @@ export const deleteSecondaryImage = async (req, res) => {
       [variantImageID]
     );
 
-    // Delete from Cloudinary
-    await deleteFromCloudinary(cloudinaryID);
-
     res.status(200).json({ message: "Secondary Image deleted successfully." });
+
+    // Fire-and-forget Cloudinary cleanup
+     deleteFromCloudinary(cloudinaryID);
+
 
   } catch (error) {
     console.error('Error deleting secondary image:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
-
-
-export {
-  createProduct,
-  updateProduct,
-  reviewProduct,
-  updateReview,
-  deleteReview,
-  getProductById,
-  getAllProducts,
-  deleteProduct,
-  createVariant,
-  updateVariant,
-  getVariantsByProduct,
-  getVariantById,
-  getAllVariants,
-  uploadSecondaryImages,
-  deleteSecondaryImage,
-  deleteVariant
-}
