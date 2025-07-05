@@ -77,7 +77,7 @@ CREATE TABLE AdminRoles (
 
 CREATE TABLE Products (
     productID INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL,
     description JSON,
     category VARCHAR(50) NOT NULL,
     cumulative_rating DECIMAL(10,2) DEFAULT 0.00,
@@ -125,9 +125,9 @@ CREATE TABLE Orders (
     addressID INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_method VARCHAR(50) NOT NULL,
-    payment_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    payment_status VARCHAR(40) NOT NULL DEFAULT 'pending',
     order_location VARCHAR(255) NOT NULL,
-    order_status VARCHAR(20) NOT NULL DEFAULT 'pending',
+    order_status VARCHAR(40) NOT NULL DEFAULT 'pending',
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
 );
@@ -164,7 +164,7 @@ CREATE TABLE Cards (
     userID INT NOT NULL,
     last4_card_no CHAR(4) NOT NULL,
     expiration CHAR(7) NOT NULL,  -- YYYY-MM format ex 2027-09
-    payment_network VARCHAR(20) NOT NULL,
+    payment_network VARCHAR(40) NOT NULL,
     razorpay_token VARCHAR(255) NOT NULL,  -- Store a secure token from payment gateway
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );

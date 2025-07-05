@@ -72,6 +72,7 @@ const deleteFromCloudinary = async (publicId) => {
     }
     return response;
   } catch (error) {
+    console.error("Error deleting from cloudinary:", error);
     console.warn("Cloudinary deletion failed. CloudinaryID:", publicId);
     return { result: "error"};
   }
