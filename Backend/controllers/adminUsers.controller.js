@@ -140,12 +140,11 @@ export const refreshAdmin = async (req, res) => {
 
 
 export const logoutAdmin= async (req, res) => {
-  const refreshToken  = req.cookies.refreshToken;
-  if (!refreshToken) return res.status(401).json({ error: "No refresh token provided" });
+  const adminID = req.adminID; // from auth middleware
 
   try {
       // Remove refresh token from DB
-      await db.execute("UPDATE AdminUsers SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
+      await db.execute("UPDATE AdminUsers SET refresh_token = NULL WHERE adminID = ?", [adminID]);
 
       res.clearCookie('accessToken', {
         secure: process.env.NODE_ENV === 'production',

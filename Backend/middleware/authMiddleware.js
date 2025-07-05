@@ -1,31 +1,72 @@
 import jwt from 'jsonwebtoken';
+import { db } from '../index.js'; 
 
-const authMiddleware = (req, res, next) => {
+export const authMiddleware = (allowedUser) => (req, res, next) => {
   const authHeader = req.header("Authorization");
   if (!authHeader) {
-    return res.status(401).json({ message: "Authorization header missing" });
+    return res.status(401).json({ error: "Authorization header missing" });
   }
 
   const parts = authHeader.split(' ');
   if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    return res.status(401).json({ message: "Authorization header format is 'Bearer <token>'" });
+    return res.status(401).json({ error: "Authorization header format is 'Bearer <token>'" });
   }
 
   const token = parts[1];
 
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const { id, userType } = decoded;
 
-    if(decoded.userType === 'user'){
-      req.userID = decoded.id; // Attach user ID to request object
-    }else if(decoded.userType === 'admin'){
-      req.adminID = decoded.id; // Attach admin ID to request object
+    // Validate userType is allowed 
+    if (userType !== allowedUser) {
+      return res.status(403).json({ error: 'Invalid token' });
+    }
+
+    // Validate that id is a positive integer
+    if (!Number.isInteger(id) || id <= 0) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    if(userType === 'user'){
+      req.userID = id; // Attach user ID to request object
+      req.userType = userType;
+    }else if(userType === 'admin'){
+      req.adminID = id; // Attach admin ID to request object
+      req.userType = userType;
     }
     
     next(); // Proceed to the next middleware or route handler
   } catch (error) {
-    res.status(401).json({ message: "Invalid token" });
+    console.error("Error auth middleware:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-export default authMiddleware;
+
+export const checkAdminRoles = (allowedRoles=[]) => async (req, res, next) => {
+  // check if admin from userType
+  if (req.userType !== 'admin'){
+    return res.status(403).json({ error: 'Access denied' });
+  }
+  const adminID = req.adminID;
+
+  try {
+    const [roles] = await db.execute(
+      'SELECT role_name FROM AdminRoles WHERE adminID = ?',
+      [adminID]  
+    );
+    const roleNames = roles.map(r => r.role_name);
+
+    const hasAccess = roleNames.some(role => allowedRoles.includes(role));
+    if (!hasAccess) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    next();
+    
+  } catch (error) {
+    console.error("Error checking admin roles:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+}

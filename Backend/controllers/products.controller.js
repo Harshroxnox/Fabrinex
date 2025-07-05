@@ -2,7 +2,6 @@ import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode } from '../utils/generateBarcode.js';
-import { isNumber } from 'razorpay/dist/utils/razorpay-utils.js';
 
 // product controller 
 
@@ -680,22 +679,3 @@ export const deleteSecondaryImage = async (req, res) => {
   }
 };
 
-
-export {
-  createProduct,
-  updateProduct,
-  reviewProduct,
-  updateReview,
-  deleteReview,
-  getProductById,
-  getAllProducts,
-  deleteProduct,
-  createVariant,
-  updateVariant,
-  getVariantsByProduct,
-  getVariantById,
-  getAllVariants,
-  uploadSecondaryImages,
-  deleteSecondaryImage,
-  deleteVariant
-}

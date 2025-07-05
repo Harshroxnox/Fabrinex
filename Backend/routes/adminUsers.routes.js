@@ -1,5 +1,5 @@
 import { Router } from "express";
-import authMiddleware from "../middleware/authMiddleware.js";
+import { authMiddleware, checkAdminRoles } from "../middleware/authMiddleware.js";
 import { 
     registerAdmin,
     loginAdmin,
@@ -17,10 +17,10 @@ const router = Router()
 router.route("/register").post(registerAdmin);
 router.route("/login").post(loginAdmin);
 router.route("/refresh").post(refreshAdmin);
-router.route("/logout").post(logoutAdmin);
-router.route("/update/:adminID").put(updateAdmin);
-router.route("/delete/:adminID").delete(deleteAdmin);
-router.route("/get-all-admins").get(getAllAdmins);
-router.route("/get-roles").get(authMiddleware, getRoleAdmin);
+router.route("/logout").post(authMiddleware('admin'), logoutAdmin);
+router.route("/update/:adminID").put(authMiddleware('admin'), checkAdminRoles(['superadmin']), updateAdmin);
+router.route("/delete/:adminID").delete(authMiddleware('admin'), checkAdminRoles(['superadmin']), deleteAdmin);
+router.route("/get-all-admins").get(authMiddleware('admin'), checkAdminRoles(['superadmin']), getAllAdmins);
+router.route("/get-roles").get(authMiddleware('admin'), getRoleAdmin);
 
 export default router

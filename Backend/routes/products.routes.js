@@ -17,7 +17,7 @@ import {
     uploadSecondaryImages,
     deleteSecondaryImage
 } from '../controllers/products.controller.js';
-import authMiddleware from '../middleware/authMiddleware.js';
+import { authMiddleware } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/multer.middleware.js';
 
 const router = Router();
@@ -30,9 +30,9 @@ router.route("/get-all-products").get(getAllProducts);
 router.route('/delete-product/:productID').delete(deleteProduct);
 
 // product review routes
-router.route("/review-product/:productID").post(authMiddleware, reviewProduct);
-router.route("/update-review/:productID").put(authMiddleware, updateReview);
-router.route("/delete-review/:productID").delete(authMiddleware, deleteReview);
+router.route("/review-product/:productID").post(authMiddleware('user'), reviewProduct);
+router.route("/update-review/:productID").put(authMiddleware('user'), updateReview);
+router.route("/delete-review/:productID").delete(authMiddleware('user'), deleteReview);
 
 // product variant routes
 router.route('/create-variant/:productID').post(upload.single("main_image"), createVariant);
