@@ -25,10 +25,6 @@ const uploadOnCloudinary = async (localFilePath) => {
             });
             console.log('Upload successful:', response);
 
-            // Safely delete the local file            
-            await fs.promises.unlink(localFilePath);
-            console.log(`Temporary file deleted: ${localFilePath}`);
-
             return response;
         }
 
@@ -38,18 +34,10 @@ const uploadOnCloudinary = async (localFilePath) => {
             public_id: crypto.randomBytes(6).toString('hex')
         }
 
-        // Safely delete the local file            
-        await fs.promises.unlink(localFilePath);
-        console.log(`Temporary file deleted: ${localFilePath}`);
-
         return response;
 
     } catch (error) {
         console.error('Upload failed:', error);
-
-        // Safely delete the local file            
-        await fs.promises.unlink(localFilePath);
-        console.log(`Temporary file deleted: ${localFilePath}`);
 
         return null;
     }

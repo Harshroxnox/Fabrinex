@@ -2,7 +2,8 @@ import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode } from '../utils/generateBarcode.js';
-import { validID } from '../utils/validators.utils.js';
+import { validID,validStringChar,validString,validDecimal } from '../utils/validators.utils.js';
+import {deleteTempImg} from '../utils/deleteTempImg.js';
 
 // product controller 
 
@@ -345,59 +346,100 @@ export const createVariant = async (req, res) => {
   const productID = req.params.productID;
   const { color, size, price, discount, stock } = req.body;
   const mainImgPath = req.file ? req.file.path : null;
-  let cloudinaryID; // new image
-
-  // Validate color and size (non-empty, non-whitespace string)
-  if (typeof color !== "string" || color.trim() === "") {
-    return res.status(400).json({ error: "Color must be a non-empty string." });
-  }
-
-  if (typeof size !== "string" || size.trim() === "") {
-    return res.status(400).json({ error: "Size must be a non-empty string." });
-  }
-
-  // Validate price and discount as numbers (decimal allowed)
-  const parsedPrice = parseFloat(price);
-  const parsedDiscount = parseFloat(discount);
-
-  if (isNaN(parsedPrice) || parsedPrice < 0) {
-    return res.status(400).json({ error: "Price must be a non-negative number." });
-  }
-
-  if (isNaN(parsedDiscount) || parsedDiscount < 0 || parsedDiscount > 100) {
-    return res.status(400).json({ error: "Discount must be a number between 0 and 100." });
-  }
-
-  // Validate stock as an integer >= 0
-  const parsedStock = Number(stock);
-  if (!Number.isInteger(parsedStock) || parsedStock < 0) {
-    return res.status(400).json({ error: "Stock must be a non-negative integer." });
-  }
-
-  if (!mainImgPath) {
-    return res.status(400).json({ error: "Main image not provided!" });
-  }
+  let cloudinaryID;
 
   try {
+
+    // VALIDATIONS 
+    const validatedProductID = validID(productID);
+    if (!validatedProductID) {
+      throw { status: 400, message: "Invalid product ID" };
+    }
+
+    const validatedColor = validStringChar(color, 1, 50); 
+    if (!validatedColor) {
+      throw { status: 400, message: "Invalid color" };
+    }
+
+    const validatedSize = validString(size, 1, 10); 
+    if (!validatedSize) {
+      throw { status: 400, message: "Invalid size" };
+    }
+
+    const validatedPrice = validDecimal(price);
+    if (validatedPrice === null || validatedPrice < 0) {
+      throw { status: 400, message: "Invalid price" };
+    }
+
+    const validatedDiscount = validDecimal(discount);
+    if (
+      validatedDiscount === null ||
+      validatedDiscount < 0 ||
+      validatedDiscount > 100
+    ) {
+      throw { status: 400, message: "Invalid discount" };
+    }
+
+    //Is it ok to reuse validID for integer check ?  can use isInteger()
+    const parsedStock = validID(stock); 
+    if (parsedStock === null) {
+      throw { status: 400, message: "Invalid stock value" };
+    }
+
+    if (!mainImgPath) {
+      throw { status: 400, message: "Main image not provided!" };
+    }
+
+    // UPLOAD IMAGE 
     const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
-    const barcode = await generateUniqueBarcode();
     cloudinaryID = mainImgCloudinary.public_id;
 
-    const [result] = await db.execute(
-      "INSERT INTO ProductVariants (productID, color, size, price, discount, stock, main_image, cloudinary_id, barcode) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      [productID, color.trim(), size.trim(), parsedPrice, parsedDiscount, parsedStock, mainImgCloudinary.url, mainImgCloudinary.public_id, barcode]
-    );
-    res.status(201).json({ message: "Variant created", variantID: result.insertId });
-  } catch (error) {
-    console.error('Error creating variant:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    const barcode = await generateUniqueBarcode();
 
-    // clean up uploaded cloudinary image
+    const [result] = await db.execute(
+      `INSERT INTO ProductVariants 
+       (productID, color, size, price, discount, stock, main_image, cloudinary_id, barcode) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        validatedProductID,
+        validatedColor,
+        validatedSize,
+        validatedPrice,
+        validatedDiscount,
+        parsedStock,
+        mainImgCloudinary.url,
+        cloudinaryID,
+        barcode,
+      ]
+    );
+
+    return res.status(201).json({
+      message: "Variant created",
+      variantID: result.insertId,
+    });
+
+  } catch (error) {
+    console.error("Error creating variant:", error.message);
+
+    if (error.status) {
+      return res.status(error.status).json({ error: error.message });
+    }
+
+    res.status(500).json({ error: "Internal server error" });
+
+    // Clean cloudinary image if needed
     if (cloudinaryID) {
-      deleteFromCloudinary(cloudinaryID).catch((error)=>{
-        console.error("Error deleting from cloudinary:", error);
-        console.warn("Cloudinary deletion failed. CloudinaryID:", cloudinaryID);
-      });
+      deleteFromCloudinary(cloudinaryID).catch((err) =>
+        console.error("Error deleting from Cloudinary:", err.message)
+      );
+    }
+
+  } finally {
+    //Deleting temp image if needed
+    if (mainImgPath) {
+      await deleteTempImg(mainImgPath).catch((err) =>
+        console.error("Error deleting temp image:", err.message)
+      );
     }
   }
 };
