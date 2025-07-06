@@ -22,6 +22,31 @@ export const validID = (num) => {
 }
 
 
+// This allows even negative decimals like -1, -0.346 etc
+// If there is a decimal digits should be there before and after (.5)(435.)(-.34) these get rejected  
+// This also rounds the decimal to 2 decimal places. 
+// Can be used for price, discount with external checks
+export const validDecimal = (num) => {
+  if(typeof num !== 'string' && typeof num !== 'number'){
+    return null;
+  }
+
+  if(typeof num === 'string'){
+    num = num.trim();
+
+    // This can be negative, if it has a . then digits should be there before and after
+    if(!/^-?\d+(\.\d+)?$/.test(num)){
+      return null
+    }
+  }
+
+  num = Number(num);
+  num = Math.round(num * 100) / 100;
+
+  return num;
+}
+
+
 // This can be used for size, review, promotion code
 // Allow letters, numbers, spaces, and basic punctuation
 export const validString = (str, minLen, maxLen) => {
