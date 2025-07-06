@@ -4,6 +4,7 @@ import { app } from './app.js';
 
 let db;
 let redis;
+
 const startServer = async () => {
     // Store the connection
     db = await connectDB(); 
