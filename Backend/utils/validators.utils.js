@@ -1,3 +1,4 @@
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
 
 // This allows positive integer like 1, 2, 3, 4 ....... and so on
 export const validID = (num) => {
@@ -124,6 +125,7 @@ export const validStringNum = (str, minLen, maxLen) => {
   return str;
 }
 
+
 // Allow letters (a-z, A-Z), spaces, hyphens, apostrophes
 // Can be used for name, color
 export const validStringChar = (str, minLen, maxLen) => {
@@ -150,6 +152,7 @@ export const validStringChar = (str, minLen, maxLen) => {
   return str;
 }
 
+
 export const validEmail = (str)=>{
   if(typeof str !=="string"){
     return null;
@@ -160,48 +163,62 @@ export const validEmail = (str)=>{
   if(str.length < 6 || str.length > 100){
     return null;
   }
+
   //basic regex for email validation
   const regex= /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  
   //if it doesnot match the pattern ,it is invalid
   if(!regex.test(str)){
     return null;
   }
   return str;
 }
+
+
+// validate passwords min 8 len, 1 lowercase, 1 uppercase, 1 digit and 1 special char
 export const validPassword= (str)=>{
   if(typeof str!=="string"){
     return null;
   }
   str =str.trim();
+
   //check for empty or too short/long
   if(str.length < 8 || str.length > 255 ){
     return null;
   }
+
+  // disallow spaces in between
+  if (/\s/.test(str)) return null;
+
   //regex check
+  const hasLowerCase = /[a-z]/.test(str);
   const hasUpperCase = /[A-Z]/.test(str);
   const hasDigit= /\d/.test(str);
   const hasSpecialChar= /[!@#$%^&*(),.?":{}|<>]/.test(str);
 
-  if(hasUpperCase && hasDigit && hasSpecialChar){
+  if(hasLowerCase && hasUpperCase && hasDigit && hasSpecialChar){
     return str; //valid password
   }
   return null; //invalid password
 }
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
+
+
+// This currently only validates indian phone numbers 
 export const validPhoneNumber= (str)=>{
   if(typeof str!=="string"){
     return null;
   }
+
   str= str.trim();
   const phoneNumber = parsePhoneNumberFromString(str);
-  // console.log(phoneNumber.country);
-  if(phoneNumber.country!=='IN'){
+  
+  if(!phoneNumber || phoneNumber.country !== 'IN'){
     return null;
   }
-  // console.log(phoneNumber.number);
-  // console.log(phoneNumber.nationalNumber);
-  if(phoneNumber?.isValid()){
+
+  if(phoneNumber.isValid()){
     return phoneNumber.number;
   }
+
   return null;
 }
