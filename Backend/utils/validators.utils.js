@@ -73,7 +73,28 @@ export const validDecimal = (num) => {
 }
 
 
-// This can be used for size, review, promotion code
+// Allows broader range of strings alphabets, numbers, space, . , ! ? ' " "" - : / ()
+export const validReview = (str, minLen, maxLen) => {
+  if (typeof str !== 'string'){
+    return null;
+  }
+
+  str = str.trim();
+
+  // Check for empty or too short/long
+  if (str.length < minLen || str.length > maxLen){
+    return null;
+  }
+
+  // Allow letters, numbers, spaces, and basic punctuation
+  if (!/^[a-zA-Z0-9\s.,!?'"“”\-:/()]+$/.test(str)){
+    return null
+  }
+  return str;
+}
+
+
+// This can be used for size, promotion code
 // Allow letters, numbers, spaces, and basic punctuation
 export const validString = (str, minLen, maxLen) => {
   if (typeof str !== 'string'){
@@ -87,13 +108,8 @@ export const validString = (str, minLen, maxLen) => {
     return null;
   }
 
-  // Reject strings with HTML tags
-  if (/<[^>]*>/.test(str)){
-    return null
-  }
-
   // Allow letters, numbers, spaces, and basic punctuation
-  if (!/^[a-zA-Z0-9\s\-_'.,()]+$/.test(str)){
+  if (!/^[a-zA-Z0-9\s\-_'.,/()]+$/.test(str)){
     return null
   }
   return str;
@@ -111,11 +127,6 @@ export const validStringNum = (str, minLen, maxLen) => {
   // Check for empty or too short/long
   if (str.length < minLen || str.length > maxLen){
     return null;
-  }
-
-  // Reject strings with HTML tags
-  if (/<[^>]*>/.test(str)){
-    return null
   }
 
   // Only digits No decimals, no letters, no empty string, no whitespace
@@ -138,11 +149,6 @@ export const validStringChar = (str, minLen, maxLen) => {
   // Check for empty or too short/long
   if (str.length < minLen || str.length > maxLen){
     return null;
-  }
-
-  // Reject strings with HTML tags
-  if (/<[^>]*>/.test(str)){
-    return null
   }
 
   // Allow letters (a-z, A-Z), spaces, hyphens, apostrophes

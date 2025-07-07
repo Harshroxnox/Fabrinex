@@ -2,18 +2,18 @@ import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode } from '../utils/generateBarcode.js';
-import { validID, validStringChar, validString, validDecimal, validWholeNo } from '../utils/validators.utils.js';
+import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
-
+import logger from '../utils/logger.js';
 
 // product controller 
 
 export const createProduct = async (req, res) => {
-
   const name = validStringChar(req.body.name, 3, 100);
   const { description, category } = req.body;
 
-  if(name===null){
+  // check if name is valid
+  if(name === null){
     return res.status(400).json({error :" Name must be a valid string between 3 to 100 chars"})
   }
 
@@ -23,6 +23,7 @@ export const createProduct = async (req, res) => {
       error: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`
     });
   }
+
   // check if description is valid JSON object
   if (!(typeof description === 'object' && description !== null && !Array.isArray(description))) {
     return res.status(400).json({
@@ -38,57 +39,79 @@ export const createProduct = async (req, res) => {
     res.status(201).json({ message: "Product created", productID: result.insertId });
 
   } catch (error) {
-    console.error('Error creating product:', error);
+    logger.error('Error creating product:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
 export const updateProduct = async (req, res) => {
-
-  const name = validStringChar(req.body.name, 3, 100);
-  const productID=validID(req.params.productID);
+  const productID = validID(req.params.productID);
+  const rawName = req.body.name
   const { description, category } = req.body;
+  const fields = {};
 
+  // check if productID is valid
   if (productID === null) {
     return res.status(400).json({ error: "Invalid productID" });
   }
 
-  if(name===null){
-    return res.status(400).json({error :" Name must be a valid string between 3 to 100 chars"})
+  // If name exists check if it is valid
+  if(rawName){
+    const name = validStringChar(rawName);
+    if(name === null){
+      return res.status(400).json({error :" Name must be a valid string between 3 to 100 chars"})
+    }
+    fields.name = name;
   }
 
-  // check if category is valid
-  if (!constants.PRODUCT_CATEGORIES.includes(category)) {
-    return res.status(400).json({
-      error: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`
-    });
+  // If category exists check if it is valid
+  if(category){
+    if (!constants.PRODUCT_CATEGORIES.includes(category)) {
+      return res.status(400).json({
+        error: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`
+      });
+    }
+    fields.category = category;
   }
-  // check if description is valid JSON object
-  if (!(typeof description === 'object' && description !== null && !Array.isArray(description))) {
-    return res.status(400).json({
-      error: "Description must be a valid JSON Object"
-    });
+
+  // If description exists check if it is valid
+  if(description){
+    if (!(typeof description === 'object' && description !== null && !Array.isArray(description))) {
+      return res.status(400).json({
+        error: "Description must be a valid JSON Object"
+      });
+    }
+    fields.description = description;
+  }
+
+  // If nothing to update return
+  if (Object.keys(fields).length === 0) {
+    return res.status(400).json({ error: "No valid fields provided for update" });
   }
 
   try {
+    // Construct update
+    const setClause = Object.keys(fields).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(fields);
+    values.push(productID);
 
+    // Update product
     const [result] = await db.execute(
-      "UPDATE Products SET name=?, description=?, category=? WHERE productID=?",
-      [name, description, category,productID ]
+      `UPDATE Products SET ${setClause} WHERE productID = ? AND is_active = TRUE`,
+      values
     );
-    if (result.affectedRows=== 0) return res.status(404).json({ error: "Product not found" });
-    res.status(200).json({ message: "Product updated", productID:result.productID });
+    if (result.affectedRows === 0) return res.status(404).json({ error: "Product not found" });
+    res.status(200).json({ message: "Product updated", productID });
 
   } catch (error) {
-    console.error('Error updating product:', error.message);
+    logger.error(`Error updating productID:${productID} `, error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
 export const getProductById = async (req, res) => {
-
   const productID = validID(req.params.productID);
 
   if (productID === null) {
@@ -106,7 +129,7 @@ export const getProductById = async (req, res) => {
       FROM 
         Products 
       WHERE 
-        productID = ?
+        productID = ? AND is_active = TRUE
     `, [productID]);
 
     // return if product not found
@@ -127,7 +150,7 @@ export const getProductById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching product:', error);
+    logger.error(`Error fetching productID:${productID} `, error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -137,7 +160,12 @@ export const getAllProducts = async (req, res) => {
   try {
     const [products] = await db.execute(`
       SELECT 
-        p.*, 
+        p.productID, 
+        p.name,
+        p.description,
+        p.category,
+        p.people_rated,
+        (p.cumulative_rating / NULLIF(p.people_rated, 0)) AS average_rating,
         pv.main_image, 
         pv.price, 
         pv.discount
@@ -147,36 +175,80 @@ export const getAllProducts = async (req, res) => {
         ProductVariants pv 
         ON pv.variantID = (
           SELECT variantID FROM ProductVariants 
-          WHERE productID = p.productID
+          WHERE productID = p.productID AND is_active = TRUE
           ORDER BY variantID ASC LIMIT 1
         )
+      WHERE p.is_active = TRUE
     `);
     res.status(200).json({
       message: "All products fetched successfully",
       products
     });
   } catch (error) {
-    console.error('Error fetching all products:', error);
+    logger.error('Error fetching all products:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
-// To DISCUSS: I (Ak) think that product variant will get deleted from table but we will need to have deletion of cloudinary images of variants ? 
+
 export const deleteProduct = async (req, res) => {
   const productID = validID(req.params.productID);
+  let conn;
 
   if (productID === null) {
     return res.status(400).json({ error: "Invalid productID" })
   }
 
   try {
-    const [result] = await db.execute("DELETE FROM Products WHERE productID=?", [productID]);
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Product not found" });
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+    
+    // Delete the product i.e set inactive
+    const [result] = await conn.execute("UPDATE Products SET is_active = FALSE WHERE productID = ? AND is_active = TRUE", [productID]);
+    if (result.affectedRows === 0){
+      await conn.rollback();
+      return res.status(404).json({ error: "Product not found" });
+    } 
+
+    // Fetch the cloudinary_id of secondary imgs of all active variants of given product
+    const [secondaryImgs] = await conn.execute(`
+      SELECT 
+        vi.cloudinary_id 
+      FROM 
+        VariantImages vi 
+      JOIN  
+        ProductVariants pv 
+      ON pv.variantID = vi.variantID
+      WHERE pv.productID = ? AND pv.is_active = TRUE
+    `, [productID]);
+
+    // Delete the secondary images of all active variants of given product
+    await conn.execute(`
+      DELETE vi FROM VariantImages vi
+      JOIN ProductVariants pv ON pv.variantID = vi.variantID
+      WHERE pv.productID = ? AND pv.is_active = TRUE
+    `, [productID]);
+
+    // Delete the variants i.e set inactive
+    await conn.execute("UPDATE ProductVariants SET is_active = FALSE WHERE productID = ? AND is_active = TRUE", [productID]);
+
+    await conn.commit();
     res.status(200).json({ message: "Product deleted" });
+    
+    // Fire and forget for deleting cloudinary images
+    secondaryImgs.forEach((secondaryImg)=>{
+      let cloudinaryID = secondaryImg.cloudinary_id;
+      deleteFromCloudinary(cloudinaryID).catch((error) => {
+        logger.warn(`Cloudinary deletion failed. CloudinaryID:${cloudinaryID} ${error.message}`);
+      });
+    })
 
   } catch (error) {
-    console.error('Error deleting product:', error);
+    await conn.rollback();
+    logger.error(`Error deleting productID:${productID}`, error);
     res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    if (conn) conn.release();
   }
 };
 

@@ -82,7 +82,8 @@ CREATE TABLE Products (
     description JSON,
     category VARCHAR(50) NOT NULL,
     cumulative_rating DECIMAL(10,2) DEFAULT 0.00,
-    people_rated INT DEFAULT 0
+    people_rated INT DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE ProductVariants (
@@ -96,6 +97,7 @@ CREATE TABLE ProductVariants (
     barcode CHAR(13) UNIQUE, -- EAN-13 format
     discount DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     stock INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
 );
 
@@ -133,7 +135,6 @@ CREATE TABLE Orders (
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
 );
-
 
 CREATE TABLE OrderItems (
     orderItemID INT AUTO_INCREMENT PRIMARY KEY,
