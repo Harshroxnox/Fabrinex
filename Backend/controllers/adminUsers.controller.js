@@ -3,11 +3,22 @@ import bcrypt from "bcrypt"
 import { db } from '../index.js'; 
 import { generateTokens } from "../utils/jwt.utils.js";
 import { constants } from "../config/constants.js";
+import { validEmail, validID, validPassword } from "../utils/validators.utils.js";
+import { error } from "console";
 
 
 export const registerAdmin = async (req, res) => {
   const { email, password, roles } = req.body;
 
+    //validate email
+    if(validEmail(email)===null){
+      return res.status(422).json({error:'Invalid Email provided'});
+    }
+  
+    //password validation
+    if(validPassword(password)===null){
+      return res.status(422).json({error:' Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit'});
+    }
   // Here roles is an array like: roles = ['admin', 'web-editor']
   // Roles validation
   const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
@@ -53,7 +64,10 @@ export const registerAdmin = async (req, res) => {
 
 export const loginAdmin = async (req, res) => {
   const { email, password } = req.body;
-
+  //validate email
+  if(validEmail(email)===null){
+    return res.status(422).json({error:'Invalid Email provided'});
+  } //invalidating here so that we dnt need to search in the database for wrong email 
   try {
     // Check if user exists
     const [admins] = await db.execute("SELECT * FROM AdminUsers WHERE email = ?", [email]);
@@ -211,7 +225,14 @@ export const getRoleAdmin = async (req, res) => {
 export const updateAdmin = async (req, res) => {
   const { adminID } = req.params;
   const { password, roles } = req.body; // `roles` is expected to be an array of strings
-
+  //admin id validation
+  if(validID(adminID)===null){
+    return res.status(422).json({error:'Invalid admin id'});
+  }
+  //password validation
+  if(validPassword(password)===null){
+    return res.status(422).json({error:'Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit'})
+  }
   // Roles validation
   const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
   if (invalidRoles) {
@@ -260,7 +281,10 @@ export const updateAdmin = async (req, res) => {
 
 export const deleteAdmin = async (req, res) => {
   const { adminID } = req.params;
-
+  //admin id validation
+  if(validID(adminID)===null){
+    return res.status(422).json({error:'Invalid admin id'});
+  }
   try {
     // 1. Check if the admin exists
     const [adminRows] = await db.execute(

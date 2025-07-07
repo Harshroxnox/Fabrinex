@@ -5,6 +5,7 @@ import { generateUniqueBarcode } from '../utils/generateBarcode.js';
 import { validID, validStringChar, validString, validDecimal, validWholeNo } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
 
+
 // product controller 
 
 export const createProduct = async (req, res) => {

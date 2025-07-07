@@ -8,10 +8,16 @@ import {
   deleteStoredOTP,
   markOTPVerified,
 } from '../utils/otp.helper.js';
+import { validEmail, validPhoneNumber, validWholeNo } from '../utils/validators.utils.js';
 
 export const sendOtpEmail = async (req, res) => {
   const { email } = req.body;
-
+  
+  //validate email
+  if(validEmail(email)===null){
+    return res.status(422).json({error:'Invalid Email provided'});
+  }
+    
   try {
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
     if (existingUser.length > 0)
@@ -48,6 +54,16 @@ export const verifyOtpEmail = async (req, res) => {
 
 export const sendOtpPhone = async (req, res) => {
   const { phone_number } = req.body;
+  //phone number validation
+  const validatedPhoneNumber= validPhoneNumber(phone_number);
+
+  if(!validatedPhoneNumber){
+    return res.status(422).json({error:'Invalid phone number'});
+  }
+  console.log("valid :",validatedPhoneNumber);
+  req.body.phone_number= validatedPhoneNumber;
+
+
   try {
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE phone_number = ?", [phone_number]);
     if (existingUser.length > 0)
