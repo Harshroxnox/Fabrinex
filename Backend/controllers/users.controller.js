@@ -6,12 +6,44 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
 import { razorpay } from "../utils/razorpay.utils.js";
 import { generateTokens } from "../utils/jwt.utils.js";
+import { validEmail, validID, validPassword, validPhoneNumber, validString, validStringChar, validWholeNo } from "../utils/validators.utils.js";
 
 // User Routes ------------------------------------------------------------------------------------
 
 export const registerUser = async (req, res) => {
   const { name, phone_number, whatsapp_number, email, password } = req.body;
   const profilePicPath = req.file ? req.file.path : null;
+  //name validation
+  if(validStringChar(name,2,100)===null){
+    return res.status(422).json({error:'Invalid User name '});
+  }
+ 
+  //email validation
+  if(validEmail(email)===null){
+    return res.status(422).json({error:'Invalid Email provided'});
+  }
+
+  //password validation
+  if(validPassword(password)===null){
+    return res.status(422).json({error:' Invalid Password. Password must contain atleast 1 capital letter,1 special Character, I numeric digit'});
+  }
+
+  //phone number validation
+  const validatedPhoneNumber= validPhoneNumber(phone_number);
+
+  if(!validatedPhoneNumber){
+    return res.status(422).json({error:'Invalid phone number'});
+  }
+  req.body.phone_number= validatedPhoneNumber;
+  //whatsapp number validation
+  const validatedWhatsappNumber = validPhoneNumber(whatsapp_number);
+
+  if(!validatedWhatsappNumber){
+    return res.staus(422).json({error:'Invalid whatsapp number'})
+  }
+  req.body.whatsapp_number= validatedWhatsappNumber;
+
+
 
   try {
     const verified = await isOTPVerified(email, phone_number);
@@ -48,7 +80,12 @@ export const registerUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   const { email, password } = req.body;
-
+  if(validEmail(email)===null){
+    return res.status(422).json({error:'Invalid Email provided'});
+  }
+  if(validPassword(password)===null){
+    return res.status(422).json({error:' Invalid Password. Password must contain atleast 1 capital letter,1 special Character, I numeric digit'});
+  }
   try {
     // Check if user exists
     const [users] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
@@ -187,6 +224,7 @@ export const getAllUsers = async (req, res) => {
 
 export const getProfile = async (req, res) => {
   const userID = req.userID;
+
   try {
     const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE userID = ?", [userID]);
     if (users.length === 0) return res.status(404).json({ error: "User not found" });
@@ -243,6 +281,10 @@ export const updateAddress = async (req, res) => {
   const { addressID } = req.params;
   const { city, pincode, state, address_line } = req.body;
 
+  //validate address id
+  if(validID(addressID)===null){
+    return res.status(422).json({error:'Invalid address id'});
+  }
   try {
     await db.execute(
       `UPDATE Addresses 
@@ -261,7 +303,10 @@ export const updateAddress = async (req, res) => {
 export const deleteAddress = async (req, res) => {
   const userID = req.userID;
   const { addressID } = req.params;
-
+  //validate address id
+  if(validID(addressID)===null){
+    return res.status(422).json({error:'Invalid address id'});
+  }
   try {
     await db.execute(
       "DELETE FROM Addresses WHERE addressID = ? AND userID = ?",
@@ -281,7 +326,10 @@ export const addItem = async (req, res) => {
   const variantID = req.params.variantID;
   const { quantity = 1 } = req.body;
   const userID = req.userID;
-
+  //validate address id
+  if(validID(variantID)===null){
+    return res.status(422).json({error:'Invalid variant id'});
+  }
   if (!variantID || quantity <= 0) {
     return res.status(400).json({ error: "Invalid variantID or quantity" });
   }
@@ -314,10 +362,13 @@ export const addItem = async (req, res) => {
 export const deleteItem = async (req, res) => {
   const variantID = req.params.variantID;
   const userID = req.userID;
-
-  if (!variantID) {
-    return res.status(400).json({ error: "Invalid variantID" });
+  //validate address id
+  if(validID(variantID)===null){
+    return res.status(422).json({error:'Invalid variant id'});
   }
+  // if (!variantID) {
+  //   return res.status(400).json({ error: "Invalid variantID" });
+  // }
 
   try {
     await db.execute("DELETE FROM CartItems WHERE userID = ? AND variantID = ?",
@@ -335,6 +386,14 @@ export const deleteItem = async (req, res) => {
 export const updateQuantity = async (req, res) => {
   const variantID = req.params.variantID;
   const { quantity } = req.body;
+  //validate variant ID
+  if(validID(variantID)===null){
+    return res.status(422).json({error:"Invalid variant ID type"})
+  }
+  //validate quantity
+  if(validWholeNo(quantity)===null){
+    return res.status(422).json({error:"Invalid variant quantity provided"});
+  }
   const userID = req.userID;
 
   if (!variantID || quantity <= 0) {

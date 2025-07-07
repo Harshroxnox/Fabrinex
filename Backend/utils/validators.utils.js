@@ -149,3 +149,59 @@ export const validStringChar = (str, minLen, maxLen) => {
   }
   return str;
 }
+
+export const validEmail = (str)=>{
+  if(typeof str !=="string"){
+    return null;
+  }
+  str=str.trim();
+
+  //check for empty or too short/long
+  if(str.length < 6 || str.length > 100){
+    return null;
+  }
+  //basic regex for email validation
+  const regex= /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  //if it doesnot match the pattern ,it is invalid
+  if(!regex.test(str)){
+    return null;
+  }
+  return str;
+}
+export const validPassword= (str)=>{
+  if(typeof str!=="string"){
+    return null;
+  }
+  str =str.trim();
+  //check for empty or too short/long
+  if(str.length < 8 || str.length > 255 ){
+    return null;
+  }
+  //regex check
+  const hasUpperCase = /[A-Z]/.test(str);
+  const hasDigit= /\d/.test(str);
+  const hasSpecialChar= /[!@#$%^&*(),.?":{}|<>]/.test(str);
+
+  if(hasUpperCase && hasDigit && hasSpecialChar){
+    return str; //valid password
+  }
+  return null; //invalid password
+}
+import { parsePhoneNumberFromString } from 'libphonenumber-js'
+export const validPhoneNumber= (str)=>{
+  if(typeof str!=="string"){
+    return null;
+  }
+  str= str.trim();
+  const phoneNumber = parsePhoneNumberFromString(str);
+  // console.log(phoneNumber.country);
+  if(phoneNumber.country!=='IN'){
+    return null;
+  }
+  // console.log(phoneNumber.number);
+  // console.log(phoneNumber.nationalNumber);
+  if(phoneNumber?.isValid()){
+    return phoneNumber.number;
+  }
+  return null;
+}

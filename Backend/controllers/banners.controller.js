@@ -1,5 +1,6 @@
 import { db } from '../index.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js";
+import { validString } from '../utils/validators.utils.js';
 
 
 export const addBanner = async (req, res) => {

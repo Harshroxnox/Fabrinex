@@ -1,10 +1,15 @@
 import { db } from '../index.js';
 import { constants } from '../config/constants.js';
+import { validID, validString, validWholeNo } from '../utils/validators.utils.js';
 
 
 export const createOrder = async (req, res) => {
   const { addressID, payment_method } = req.body;
   const userID = req.userID;
+  //validate address Id
+  if(validID(addressID)===null){
+    return res.status(422).json({error:'Invalid Address ID'});
+  }
   let conn;
 
   try {
@@ -99,7 +104,9 @@ export const createOrder = async (req, res) => {
 
 export const getOrder = async (req, res) => {
   const { orderID } = req.params;
-
+  if(validID(orderID)===null){
+    return res.status(422).json({error:'Invalid Order ID'});
+  }
   try {
     const [orderRows] = await db.execute(
       `SELECT o.*, a.city, a.state, a.pincode, a.address_line, u.name AS customer_name

@@ -2,12 +2,19 @@ import { razorpay } from "../utils/razorpay.utils.js";
 import { db } from '../index.js';
 import * as crypto from 'crypto';
 import { constants } from "../config/constants.js";
+import { validDecimal, validID, validStringChar } from "../utils/validators.utils.js";
 
 
 export const createOrder = async (req, res) => {
   // This amount is in rupee
   const { amount, orderID } = req.body;
-
+  //validate amount
+  if(validDecimal(amount)===null || Number(amount)<=0 ){
+    return res.status(422).json({error:'Invalid amount entered'})
+  }
+  if(validID(orderID)===null){
+    return res.status(422).json({error:'Invalid orderid'});
+  }
   try {
     const options = {
       amount: amount * 100, // amount in paise
@@ -36,6 +43,10 @@ export const verifyPayment = async (req, res) => {
   } = req.body;
   let conn;
 
+  //VALIDATE ORDER ID
+  if(validID(orderID)===null){
+    return res.status(422).json({error:'Invalid order id'})
+  }
   // verify the signature, it guarantees top three fields are untampered
   const generatedSignature = crypto
     .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
@@ -95,7 +106,7 @@ export const saveCard = async (req, res) => {
   const userID = req.userID;
   const {
     card_token,
-    last4,
+    last4, //last4 valid
     expiry,
     network
   } = req.body;
@@ -127,7 +138,11 @@ export const saveCard = async (req, res) => {
 export const chargeSavedCard = async (req, res) => {
   // This amount is in rupee
   const { amount, razorpay_token, razorpay_customer_id } = req.body;
-
+  
+  //validate amount
+  if(validDecimal(amount)===null || Number(amount)<=0 ){
+    return res.status(422).json({error:'Invalid amount entered'})
+  }
   try {
     const payment = await razorpay.payments.create({
       amount: amount * 100,
@@ -153,6 +168,11 @@ export const verifySavedCardPayment = async (req, res) => {
     razorpay_payment_id,
     orderID
   } = req.body;
+
+  //validate order ID
+  if(validID(orderID)===null){
+    return res.status(422).json({error:'Invalid order id'})
+  }
   let conn;
 
   try {
@@ -222,6 +242,10 @@ export const getCards = async (req, res) => {
 export const deleteCard = async (req, res) => {
   const { cardID } = req.params;
   const userID = req.userID;
+  //validate cardID
+  if(validID(cardID)===null){
+    return res.status(422).json({error:'Invalid card ID provided'});
+  }
 
   if (!userID || !cardID) {
     return res.status(400).json({ error: "Missing userID or cardID" });
