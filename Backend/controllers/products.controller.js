@@ -3,12 +3,18 @@ import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode } from '../utils/generateBarcode.js';
 import { validID, validStringChar, validString, validDecimal, validWholeNo } from '../utils/validators.utils.js';
-import {deleteTempImg} from '../utils/deleteTempImg.js';
+import { deleteTempImg } from '../utils/deleteTempImg.js';
 
 // product controller 
 
 export const createProduct = async (req, res) => {
-  const { name, description, category } = req.body;
+
+  const name = validStringChar(req.body.name, 3, 100);
+  const { description, category } = req.body;
+
+  if(name===null){
+    return res.status(400).json({error :" Name must be a valid string between 3 to 100 chars"})
+  }
 
   // check if category is valid
   if (!constants.PRODUCT_CATEGORIES.includes(category)) {
@@ -38,7 +44,18 @@ export const createProduct = async (req, res) => {
 
 
 export const updateProduct = async (req, res) => {
-  const { name, description, category } = req.body;
+
+  const name = validStringChar(req.body.name, 3, 100);
+  const productID=validID(req.params.productID);
+  const { description, category } = req.body;
+
+  if (productID === null) {
+    return res.status(400).json({ error: "Invalid productID" });
+  }
+
+  if(name===null){
+    return res.status(400).json({error :" Name must be a valid string between 3 to 100 chars"})
+  }
 
   // check if category is valid
   if (!constants.PRODUCT_CATEGORIES.includes(category)) {
@@ -54,22 +71,28 @@ export const updateProduct = async (req, res) => {
   }
 
   try {
+
     const [result] = await db.execute(
       "UPDATE Products SET name=?, description=?, category=? WHERE productID=?",
-      [name, description, category, req.params.productID]
+      [name, description, category,productID ]
     );
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Product not found" });
-    res.status(200).json({ message: "Product updated" });
+    if (result.affectedRows=== 0) return res.status(404).json({ error: "Product not found" });
+    res.status(200).json({ message: "Product updated", productID:result.productID });
 
   } catch (error) {
-    console.error('Error updating product:', error);
+    console.error('Error updating product:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
 
 
 export const getProductById = async (req, res) => {
-  const productID = req.params.productID;
+
+  const productID = validID(req.params.productID);
+
+  if (productID === null) {
+    return res.status(400).json({ error: "Invalid productID" });
+  }
 
   try {
     const [products] = await db.execute(`
@@ -141,7 +164,7 @@ export const getAllProducts = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   const productID = validID(req.params.productID);
 
-  if(productID === null){
+  if (productID === null) {
     return res.status(400).json({ error: "Invalid productID" })
   }
 
@@ -158,16 +181,34 @@ export const deleteProduct = async (req, res) => {
 
 
 export const reviewProduct = async (req, res) => {
-  const { rating, review } = req.body;
+
+  const rating = validDecimal(req.body.rating);
+  const productID = validID(req.params.productID);
+  const review = req.body.review;
   const userID = req.userID;
-  const productID = req.params.productID;
   let conn;
-  let parsedRating = parseFloat(rating);
+
+  if (productID === null) {
+    return res.status(400).json({ error: "Invalid productID" });
+  }
 
   // Validate rating (must be a number between 1 and 5 with up to 2 decimal places)
-  if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+  if (rating === null || rating < 1 || rating > 5) {
     return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
   }
+
+  let validReview;
+  if (review) {
+    validReview = validString(req.body.review, 0, 750);
+
+    if (validReview === null) {
+      return res.status(400).json({ error: "Review must be a valid string" });
+    }
+  }
+  else {
+    validReview = review;
+  }
+
 
   try {
     // Make connection for transaction
@@ -205,13 +246,13 @@ export const reviewProduct = async (req, res) => {
     // Insert the new review
     await conn.execute(
       "INSERT INTO Reviews (userID, productID, rating, review) VALUES (?, ?, ?, ?)",
-      [userID, productID, parsedRating, review || null] // Allow null for review text
+      [userID, productID, rating, validReview || null] // Allow null for review text
     );
 
     // Update cumulative rating and people rated in Products table
     await conn.execute(
       "UPDATE Products SET cumulative_rating = cumulative_rating + ?, people_rated = people_rated + 1 WHERE productID = ?",
-      [parsedRating, productID]
+      [rating, productID]
     );
 
     await conn.commit();
@@ -231,16 +272,34 @@ export const reviewProduct = async (req, res) => {
 
 export const updateReview = async (req, res) => {
   // rating is required; review is optional (only updated if non-empty)
-  const { rating, review } = req.body;
+
+  const rating = validDecimal(req.body.rating);
+  const productID = validID(req.params.productID);
+  const review = req.body.review;
   const userID = req.userID;
-  const productID = req.params.productID;
   let conn;
-  let parsedRating = parseFloat(rating);
+
+  if (productID === null) {
+    return res.status(400).json({ error: "Invalid productID" });
+  }
 
   // Validate rating (must be a number between 1 and 5 with up to 2 decimal places)
-  if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+  if (rating === null || rating < 1 || rating > 5) {
     return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
   }
+
+  let validReview;
+  if (review) {
+    validReview = validString(req.body.review, 0, 750);
+
+    if (validReview === null) {
+      return res.status(400).json({ error: "Review must be a valid string" });
+    }
+  }
+  else {
+    validReview = review;
+  }
+
 
   try {
     // Make connection for transaction
@@ -260,18 +319,18 @@ export const updateReview = async (req, res) => {
 
     // Get old rating to adjust cumulative rating in Products table
     const oldRating = existingReview[0].rating;
-    const updatedReview = (typeof review === "string" && review.trim() !== "")
-      ? review.trim()
+    const updatedReview = (validReview != null)
+      ? validReview
       : existingReview[0].review;
 
     // Update review and rating
     await conn.execute(
       "UPDATE Reviews SET rating = ?, review = ? WHERE userID = ? AND productID = ?",
-      [parsedRating, updatedReview, userID, productID]
+      [rating, updatedReview, userID, productID]
     );
 
     //  Update cumulative rating in Products table        
-    const ratingDifference = parsedRating - oldRating;
+    const ratingDifference = rating - oldRating;
     await conn.execute(
       "UPDATE Products SET cumulative_rating = cumulative_rating + ? WHERE productID = ?",
       [ratingDifference, productID]
@@ -294,8 +353,12 @@ export const updateReview = async (req, res) => {
 
 export const deleteReview = async (req, res) => {
   const userID = req.userID;
-  const productID = req.params.productID;
+  const productID = validID(req.params.productID);
   let conn;
+
+  if (productID === null) {
+    return res.status(400).json({ error: "Invalid productID" });
+  }
 
   try {
     // Make connection for transaction
@@ -355,7 +418,6 @@ export const createVariant = async (req, res) => {
   try {
     // VALIDATIONS 
     if (productID === null) {
-      // why throw just do return res.status(400).json({ error : "your message"})
       return res.status(400).json({ error: "Invalid productID" });
     }
 
@@ -430,7 +492,7 @@ export const createVariant = async (req, res) => {
     if (mainImgPath) {
       // I don't think we need await here
       deleteTempImg(mainImgPath).catch((error) => {
-        console.warn(`Failed to delete file ${localFilePath}: ${error.message}`);
+        console.warn(`Failed to delete file ${mainImgPath}: ${error.message}`);
       });
     }
   }
@@ -438,38 +500,40 @@ export const createVariant = async (req, res) => {
 
 
 export const updateVariant = async (req, res) => {
-  const { price, discount, stock } = req.body;
+
+  const variantID = validID(req.params.variantID);
+  const price = validDecimal(req.body.price);
+  const discount = validDecimal(req.body.discount);
+  const stock = validWholeNo(req.body.stock);
   const mainImgPath = req.file ? req.file.path : null;
-  const variantID = req.params.variantID;
+  let cloudinaryID;
   const fields = {};
-  let cloudinaryID; // this is to be deleted later
-
-  // Validate price, discount and stock if they are given and add to fields
-  if (price != null) {
-    const parsedPrice = parseFloat(price);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
-      return res.status(400).json({ error: "Price must be a non-negative number." });
-    }
-    fields.price = parsedPrice;
-  }
-
-  if (discount != null) {
-    const parsedDiscount = parseFloat(discount)
-    if (isNaN(parsedDiscount) || parsedDiscount < 0 || parsedDiscount > 100) {
-      return res.status(400).json({ error: "Discount must be a number between 0 and 100." });
-    }
-    fields.discount = parsedDiscount;
-  }
-
-  if (stock != null) {
-    const parsedStock = Number(stock);
-    if (!Number.isInteger(parsedStock) || parsedStock < 0) {
-      return res.status(400).json({ error: "Stock must be a non-negative integer." });
-    }
-    fields.stock = parsedStock;
-  }
 
   try {
+
+    if (variantID === null) {
+      return res.status(400).json({ error: "Invalid variantID" });
+    }
+
+    // Validate price, discount and stock 
+
+    // validDecimal allows negative values. We need to check for price <= 0
+    if (price === null || price <= 0) {
+      return res.status(400).json({ error: "Invalid price" });
+    }
+
+    if (discount === null || discount < 0 || discount > 100) {
+      return res.status(400).json({ error: "Invalid discount must be between 0 and 100" });
+    }
+
+    if (stock === null) {
+      return res.status(400).json({ error: "Invalid stock" });
+    }
+
+    fields.price = price;
+    fields.stock = stock;
+    fields.discount = discount;
+
     const [variants] = await db.execute(
       `SELECT cloudinary_id FROM ProductVariants WHERE variantID = ?`,
       [variantID]
@@ -511,7 +575,7 @@ export const updateVariant = async (req, res) => {
 
     // Delete previous image from Cloudinary
     if (cloudinaryID) {
-      deleteFromCloudinary(cloudinaryID).catch((error)=>{
+      deleteFromCloudinary(cloudinaryID).catch((error) => {
         console.warn(`Cloudinary deletion failed. ${error.message} CloudinaryID:${cloudinaryID}`);
       });
     }
@@ -521,10 +585,17 @@ export const updateVariant = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
 
     // Cleanup new uploaded image if need be
-    if(fields.cloudinary_id){
-      deleteFromCloudinary(fields.cloudinary_id).catch((error)=>{
+    if (fields.cloudinary_id) {
+      deleteFromCloudinary(fields.cloudinary_id).catch((error) => {
         console.error("Error deleting from cloudinary:", error);
         console.warn("Cloudinary deletion failed. CloudinaryID:", fields.cloudinary_id);
+      });
+    }
+  } finally {
+    //Deleting temp image if needed
+    if (mainImgPath) {
+      deleteTempImg(mainImgPath).catch((error) => {
+        console.warn(`Failed to delete file ${mainImgPath}: ${error.message}`);
       });
     }
   }
@@ -532,7 +603,12 @@ export const updateVariant = async (req, res) => {
 
 
 export const getVariantsByProduct = async (req, res) => {
-  const productID = req.params.productID;
+  const productID = validID(req.params.productID);
+
+  if (productID === null) {
+    return res.status(400).json({ error: "Invalid productID" });
+  }
+
   try {
     const [variants] = await db.execute("SELECT * FROM ProductVariants WHERE productID = ?", [productID]);
     res.status(200).json({
@@ -565,7 +641,11 @@ export const getAllVariants = async (req, res) => {
 
 
 export const getVariantById = async (req, res) => {
-  const variantID = req.params.variantID;
+  const variantID = validID(req.params.variantID);
+
+  if (variantID === null) {
+    return res.status(400).json({ error: "Invalid variantID" });
+  }
 
   try {
     // Get variant + product info
@@ -605,7 +685,12 @@ export const getVariantById = async (req, res) => {
 
 
 export const deleteVariant = async (req, res) => {
-  const variantID = req.params.variantID;
+  const variantID = validID(req.params.variantID);
+
+  if (variantID === null) {
+    return res.status(400).json({ error: "Invalid variantID" });
+  }
+
   try {
     const [variants] = await db.execute(
       `SELECT cloudinary_id FROM ProductVariants WHERE variantID = ?`,
@@ -633,12 +718,12 @@ export const deleteVariant = async (req, res) => {
 
     // Delete main image and secondary images from Cloudinary
     // Fire and forget, non blocking, does not affect response, does not use await
-    deleteFromCloudinary(cloudinaryID).catch((error)=>{
+    deleteFromCloudinary(cloudinaryID).catch((error) => {
       console.error("Error deleting from cloudinary:", error);
       console.warn("Cloudinary deletion failed. CloudinaryID:", cloudinaryID);
     });
     secondaryImgs.forEach((image) => {
-      deleteFromCloudinary(image.cloudinary_id).catch((error)=>{
+      deleteFromCloudinary(image.cloudinary_id).catch((error) => {
         console.error("Error deleting from cloudinary:", error);
         console.warn("Cloudinary deletion failed. CloudinaryID:", image.cloudinary_id);
       });
@@ -653,31 +738,32 @@ export const deleteVariant = async (req, res) => {
 
 export const uploadSecondaryImages = async (req, res) => {
   const files = req.files;
-  const variantID = req.params.variantID;
+  const variantID = validID(req.params.variantID);
   let conn;
 
-  if (!variantID || isNaN(variantID)) {
-    return res.status(400).json({ error: "Invalid or missing variant ID." });
-  }
-
-  if (!files || files.length === 0) {
-    return res.status(400).json({ error: "No files were provided." });
-  }
-
-  // Check if variant exists
-  const [variants] = await db.execute(
-    `SELECT cloudinary_id FROM ProductVariants WHERE variantID = ?`,
-    [variantID]
-  );
-
-  if (variants.length === 0) {
-    return res.status(404).json({ error: 'Variant not found' });
-  }
-
-  // To store {url, public_id} for possible rollback
-  const uploadedImages = []; 
-
   try {
+
+    if (variantID === null) {
+      return res.status(400).json({ error: "Invalid variantID" });
+    }
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: "No files were provided." });
+    }
+
+    // Check if variant exists
+    const [variants] = await db.execute(
+      `SELECT cloudinary_id FROM ProductVariants WHERE variantID = ?`,
+      [variantID]
+    );
+
+    if (variants.length === 0) {
+      return res.status(404).json({ error: 'Variant not found' });
+    }
+
+    // To store public_id for possible rollback
+    const uploadedImages = [];
+
     conn = await db.getConnection();
     await conn.beginTransaction();
 
@@ -687,7 +773,7 @@ export const uploadSecondaryImages = async (req, res) => {
       const result = await uploadOnCloudinary(file.path);
 
       // Save public_id for rollback if needed
-      uploadedImages.push(result.public_id); 
+      uploadedImages.push(result.public_id);
 
       const [output] = await conn.execute(
         "INSERT INTO VariantImages (variantID, image_url, cloudinary_id) VALUES (?, ?, ?)",
@@ -723,15 +809,21 @@ export const uploadSecondaryImages = async (req, res) => {
 
   } finally {
     if (conn) conn.release();
+
+    for (const file of files) {
+      deleteTempImg(file.path).catch((error) => {
+        console.warn(`Failed to delete file ${file.path}: ${error.message}`);
+      })
+    }
   }
 };
 
 
 export const deleteSecondaryImage = async (req, res) => {
-  const { variantImageID } = req.params;
+  const variantImageID = validID(req.params.variantImageID);
 
-  if (!variantImageID || isNaN(variantImageID)) {
-    return res.status(400).json({ error: "Invalid or missing image ID." });
+  if (variantImageID === null) {
+    return res.status(400).json({ error: "Invalid variantImageID" });
   }
 
   try {
