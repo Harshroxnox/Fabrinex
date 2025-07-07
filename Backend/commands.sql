@@ -51,7 +51,7 @@ CREATE TABLE Users (
     name VARCHAR(100) NOT NULL,
     phone_number VARCHAR(15) NOT NULL UNIQUE,
     whatsapp_number VARCHAR(15) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(254) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     profile_img VARCHAR(500),
     razorpay_customer_id VARCHAR(255) NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE Users (
 
 CREATE TABLE AdminUsers (
     adminID INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(254) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     refresh_token TEXT
