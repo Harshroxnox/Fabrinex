@@ -1,5 +1,6 @@
 import { Router} from "express";
-import { addPromotion, updatePromotion, deletePromotion, getAllPromotions } from "../controllers/promotions.controller.js";
+import { addPromotion, updatePromotion, deletePromotion, getAllPromotions ,applyPromotions} from "../controllers/promotions.controller.js";
+import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = Router();
 
@@ -8,5 +9,6 @@ router.route("/add-promotion").post(addPromotion);
 router.route("/update-promotion/:promotionID").put(updatePromotion);
 router.route("/delete-promotion/:promotionID").delete(deletePromotion);
 router.route("/get-all-promotions").get(getAllPromotions);
+router.route("/apply-promotion/:orderID").post(authMiddleware('user'),applyPromotions);
 
 export default router;
