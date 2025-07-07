@@ -20,7 +20,7 @@ export const authMiddleware = (allowedUser) => (req, res, next) => {
 
     // Validate userType is allowed 
     if (userType !== allowedUser) {
-      return res.status(403).json({ error: 'Invalid token' });
+      return res.status(403).json({ error: 'Access denied' });
     }
 
     // Validate that id is a positive integer
@@ -38,8 +38,7 @@ export const authMiddleware = (allowedUser) => (req, res, next) => {
     
     next(); // Proceed to the next middleware or route handler
   } catch (error) {
-    console.error("Error auth middleware:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
 };
 
