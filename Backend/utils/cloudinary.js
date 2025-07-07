@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from 'cloudinary';
-import fs from 'fs';
 import crypto from 'crypto';
 
 
@@ -16,7 +15,6 @@ const uploadOnCloudinary = async (localFilePath) => {
         return null;
     }
 
-    try {
         if(process.env.NODE_ENV === 'production'){
             // Upload the file to Cloudinary
             const response = await cloudinary.uploader.upload(localFilePath, {
@@ -36,16 +34,10 @@ const uploadOnCloudinary = async (localFilePath) => {
 
         return response;
 
-    } catch (error) {
-        console.error('Upload failed:', error);
-
-        return null;
-    }
 };
 
 
 const deleteFromCloudinary = async (publicId) => {
-  try{
     if(process.env.NODE_ENV === 'production'){
         const response = await cloudinary.uploader.destroy(publicId);
         if (response.result !== "ok") {
@@ -59,11 +51,6 @@ const deleteFromCloudinary = async (publicId) => {
         result: "ok"
     }
     return response;
-  } catch (error) {
-    console.error("Error deleting from cloudinary:", error);
-    console.warn("Cloudinary deletion failed. CloudinaryID:", publicId);
-    return { result: "error"};
-  }
 };
 
 export { uploadOnCloudinary, deleteFromCloudinary };

@@ -1,4 +1,5 @@
 
+// This allows positive integer like 1, 2, 3, 4 ....... and so on
 export const validID = (num) => {
   if(typeof num !== 'string' && typeof num !== 'number'){
     return null;
@@ -15,6 +16,30 @@ export const validID = (num) => {
 
   num = Number(num);
   if (!Number.isInteger(num) || num <= 0) {
+    return null;
+  }
+
+  return num;
+}
+
+
+// This allows whole numbers like 0, 1, 2, 3, 4 .............. and so on
+export const validWholeNo = (num) => {
+  if(typeof num !== 'string' && typeof num !== 'number'){
+    return null;
+  }
+
+  if(typeof num === 'string'){
+    num = num.trim();
+
+    // Only digits No decimals, no letters, no empty string, no whitespace
+    if (!/^\d+$/.test(num)) {
+      return null;
+    }
+  }
+
+  num = Number(num);
+  if (!Number.isInteger(num) || num < 0) {
     return null;
   }
 

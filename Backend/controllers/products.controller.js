@@ -2,7 +2,7 @@ import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode } from '../utils/generateBarcode.js';
-import { validID,validStringChar,validString,validDecimal } from '../utils/validators.utils.js';
+import { validID, validStringChar, validString, validDecimal, validWholeNo } from '../utils/validators.utils.js';
 import {deleteTempImg} from '../utils/deleteTempImg.js';
 
 // product controller 
@@ -343,51 +343,47 @@ export const deleteReview = async (req, res) => {
 // Variant Controller 
 
 export const createVariant = async (req, res) => {
-  const productID = req.params.productID;
-  const { color, size, price, discount, stock } = req.body;
+  const productID = validID(req.params.productID);
+  const color = validStringChar(req.body.color, 3, 50);
+  const size = validString(req.body.size, 1, 20);
+  const price = validDecimal(req.body.price);
+  const discount = validDecimal(req.body.discount);
+  const stock = validWholeNo(req.body.stock);
   const mainImgPath = req.file ? req.file.path : null;
   let cloudinaryID;
 
   try {
-
     // VALIDATIONS 
-    const validatedProductID = validID(productID);
-    if (!validatedProductID) {
-      throw { status: 400, message: "Invalid product ID" };
+    if (productID === null) {
+      // why throw just do return res.status(400).json({ error : "your message"})
+      return res.status(400).json({ error: "Invalid productID" });
     }
 
-    const validatedColor = validStringChar(color, 1, 50); 
-    if (!validatedColor) {
-      throw { status: 400, message: "Invalid color" };
+    if (color === null) {
+      return res.status(400).json({ error: "Invalid color" });
     }
 
-    const validatedSize = validString(size, 1, 10); 
-    if (!validatedSize) {
-      throw { status: 400, message: "Invalid size" };
+    if (size === null) {
+      return res.status(400).json({ error: "Invalid size" });
     }
 
-    const validatedPrice = validDecimal(price);
-    if (validatedPrice === null || validatedPrice < 0) {
-      throw { status: 400, message: "Invalid price" };
+    // validDecimal allows negative values. We need to check for price <= 0
+    if (price === null || price <= 0) {
+      return res.status(400).json({ error: "Invalid price" });
     }
 
-    const validatedDiscount = validDecimal(discount);
-    if (
-      validatedDiscount === null ||
-      validatedDiscount < 0 ||
-      validatedDiscount > 100
-    ) {
-      throw { status: 400, message: "Invalid discount" };
+    if (discount === null || discount < 0 || discount > 100) {
+      return res.status(400).json({ error: "Invalid discount must be between 0 and 100" });
     }
 
     //Is it ok to reuse validID for integer check ?  can use isInteger()
-    const parsedStock = validID(stock); 
-    if (parsedStock === null) {
-      throw { status: 400, message: "Invalid stock value" };
+    //No because validID doesn't allow 0 but stock can be 0. I have made a seperate func for this
+    if (stock === null) {
+      return res.status(400).json({ error: "Invalid stock" });
     }
 
     if (!mainImgPath) {
-      throw { status: 400, message: "Main image not provided!" };
+      return res.status(400).json({ error: "Main image not provided" });
     }
 
     // UPLOAD IMAGE 
@@ -401,15 +397,15 @@ export const createVariant = async (req, res) => {
        (productID, color, size, price, discount, stock, main_image, cloudinary_id, barcode) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        validatedProductID,
-        validatedColor,
-        validatedSize,
-        validatedPrice,
-        validatedDiscount,
-        parsedStock,
+        productID,
+        color,
+        size,
+        price,
+        discount,
+        stock,
         mainImgCloudinary.url,
         cloudinaryID,
-        barcode,
+        barcode
       ]
     );
 
@@ -419,27 +415,23 @@ export const createVariant = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error creating variant:", error.message);
-
-    if (error.status) {
-      return res.status(error.status).json({ error: error.message });
-    }
-
+    console.error("Error creating variant:", error);
     res.status(500).json({ error: "Internal server error" });
 
     // Clean cloudinary image if needed
     if (cloudinaryID) {
-      deleteFromCloudinary(cloudinaryID).catch((err) =>
-        console.error("Error deleting from Cloudinary:", err.message)
-      );
+      deleteFromCloudinary(cloudinaryID).catch((error) => {
+        console.warn(`Cloudinary deletion failed. CloudinaryID:${cloudinaryID} ${error.message}`);
+      });
     }
 
   } finally {
     //Deleting temp image if needed
     if (mainImgPath) {
-      await deleteTempImg(mainImgPath).catch((err) =>
-        console.error("Error deleting temp image:", err.message)
-      );
+      // I don't think we need await here
+      deleteTempImg(mainImgPath).catch((error) => {
+        console.warn(`Failed to delete file ${localFilePath}: ${error.message}`);
+      });
     }
   }
 };
@@ -520,8 +512,7 @@ export const updateVariant = async (req, res) => {
     // Delete previous image from Cloudinary
     if (cloudinaryID) {
       deleteFromCloudinary(cloudinaryID).catch((error)=>{
-        console.error("Error deleting from cloudinary:", error);
-        console.warn("Cloudinary deletion failed. CloudinaryID:", cloudinaryID);
+        console.warn(`Cloudinary deletion failed. ${error.message} CloudinaryID:${cloudinaryID}`);
       });
     }
 
