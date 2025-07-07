@@ -501,70 +501,75 @@ export const createVariant = async (req, res) => {
 
 
 export const updateVariant = async (req, res) => {
-
   const variantID = validID(req.params.variantID);
-  const price = validDecimal(req.body.price);
-  const discount = validDecimal(req.body.discount);
-  const stock = validWholeNo(req.body.stock);
+  const priceRaw = req.body.price;
+  const discountRaw = req.body.discount;
+  const stockRaw = req.body.stock;
   const mainImgPath = req.file ? req.file.path : null;
+
   let cloudinaryID;
   const fields = {};
 
   try {
-
     if (variantID === null) {
       return res.status(400).json({ error: "Invalid variantID" });
     }
 
-    // Validate price, discount and stock 
-
-    // validDecimal allows negative values. We need to check for price <= 0
-    if (price === null || price <= 0) {
-      return res.status(400).json({ error: "Invalid price" });
+    // Process and validate only if values are provided
+    if (priceRaw !== undefined) {
+      const price = validDecimal(priceRaw);
+      if (price === null || price <= 0) {
+        return res.status(400).json({ error: "Invalid price" });
+      }
+      fields.price = price;
     }
 
-    if (discount === null || discount < 0 || discount > 100) {
-      return res.status(400).json({ error: "Invalid discount must be between 0 and 100" });
+    if (discountRaw !== undefined) {
+      const discount = validDecimal(discountRaw);
+      if (discount === null || discount < 0 || discount > 100) {
+        return res.status(400).json({ error: "Invalid discount. Must be between 0 and 100." });
+      }
+      fields.discount = discount;
     }
 
-    if (stock === null) {
-      return res.status(400).json({ error: "Invalid stock" });
+    if (stockRaw !== undefined) {
+      const stock = validWholeNo(stockRaw);
+      if (stock === null) {
+        return res.status(400).json({ error: "Invalid stock" });
+      }
+      fields.stock = stock;
     }
 
-    fields.price = price;
-    fields.stock = stock;
-    fields.discount = discount;
-
+    // Check if variant exists
     const [variants] = await db.execute(
       `SELECT cloudinary_id FROM ProductVariants WHERE variantID = ?`,
       [variantID]
     );
 
-    // If variant not found return 
     if (variants.length === 0) {
       return res.status(404).json({ error: 'Variant not found' });
     }
 
-    // If image is provided, upload to Cloudinary
+    // Handle image upload
     if (mainImgPath) {
       cloudinaryID = variants[0].cloudinary_id;
 
-      // Upload this image to Cloudinary
       const uploadedImage = await uploadOnCloudinary(mainImgPath);
+      
+      if (!uploadedImage?.url || !uploadedImage?.public_id) {
+        return res.status(500).json({ error: "Failed to upload image." });
+      }      
       fields.main_image = uploadedImage.url;
       fields.cloudinary_id = uploadedImage.public_id;
     }
 
-    const keys = Object.keys(fields);
-    if (keys.length === 0) {
-      return res.status(400).json({ error: "No fields to update" });
+    if (Object.keys(fields).length === 0) {
+      return res.status(400).json({ error: "No valid fields provided for update" });
     }
 
-    // Construct the SET clause dynamically
-    const setClause = keys.map(key => `${key} = ?`).join(', ');
-    const values = keys.map(key => fields[key]);
-
-    // Add variantID for the WHERE clause
+    // Construct update
+    const setClause = Object.keys(fields).map(key => `${key} = ?`).join(', ');
+    const values = Object.values(fields);
     values.push(variantID);
 
     await db.execute(
@@ -574,7 +579,7 @@ export const updateVariant = async (req, res) => {
 
     res.status(200).json({ message: "Variant updated successfully", updatedFields: fields });
 
-    // Delete previous image from Cloudinary
+    // Delete old cloudinary image
     if (cloudinaryID) {
       deleteFromCloudinary(cloudinaryID).catch((error) => {
         console.warn(`Cloudinary deletion failed. ${error.message} CloudinaryID:${cloudinaryID}`);
@@ -585,15 +590,13 @@ export const updateVariant = async (req, res) => {
     console.error('Error updating variant:', error);
     res.status(500).json({ error: 'Internal server error' });
 
-    // Cleanup new uploaded image if need be
     if (fields.cloudinary_id) {
-      deleteFromCloudinary(fields.cloudinary_id).catch((error) => {
-        console.error("Error deleting from cloudinary:", error);
-        console.warn("Cloudinary deletion failed. CloudinaryID:", fields.cloudinary_id);
+      deleteFromCloudinary(fields.cloudinary_id).catch((err) => {
+        console.error("Error deleting uploaded Cloudinary image:", err);
       });
     }
+
   } finally {
-    //Deleting temp image if needed
     if (mainImgPath) {
       deleteTempImg(mainImgPath).catch((error) => {
         console.warn(`Failed to delete file ${mainImgPath}: ${error.message}`);
@@ -601,6 +604,7 @@ export const updateVariant = async (req, res) => {
     }
   }
 };
+
 
 
 export const getVariantsByProduct = async (req, res) => {
