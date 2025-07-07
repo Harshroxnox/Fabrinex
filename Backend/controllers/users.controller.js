@@ -13,6 +13,8 @@ import { validEmail, validID, validPassword, validPhoneNumber, validString, vali
 export const registerUser = async (req, res) => {
   const { name, phone_number, whatsapp_number, email, password } = req.body;
   const profilePicPath = req.file ? req.file.path : null;
+
+  try {
   //name validation
   if(validStringChar(name,2,100)===null){
     return res.status(422).json({error:'Invalid User name '});
@@ -25,27 +27,25 @@ export const registerUser = async (req, res) => {
 
   //password validation
   if(validPassword(password)===null){
-    return res.status(422).json({error:' Invalid Password. Password must contain atleast 1 capital letter,1 special Character, I numeric digit'});
+    return res.status(422).json({error:'Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit and should be between 9 to 255 characters'});
   }
 
-  //phone number validation
-  const validatedPhoneNumber= validPhoneNumber(phone_number);
+  // //phone number validation
+  // const validatedPhoneNumber= validPhoneNumber(phone_number);
 
-  if(!validatedPhoneNumber){
-    return res.status(422).json({error:'Invalid phone number'});
-  }
-  req.body.phone_number= validatedPhoneNumber;
-  //whatsapp number validation
-  const validatedWhatsappNumber = validPhoneNumber(whatsapp_number);
+  // if(!validatedPhoneNumber){
+  //   return res.status(422).json({error:'Invalid phone number'});
+  // }
+  // req.body.phone_number= validatedPhoneNumber;
+  // //whatsapp number validation
+  // const validatedWhatsappNumber = validPhoneNumber(whatsapp_number);
 
-  if(!validatedWhatsappNumber){
-    return res.staus(422).json({error:'Invalid whatsapp number'})
-  }
-  req.body.whatsapp_number= validatedWhatsappNumber;
+  // if(!validatedWhatsappNumber){
+  //   return res.staus(422).json({error:'Invalid whatsapp number'})
+  // }
+  // req.body.whatsapp_number= validatedWhatsappNumber;
 
 
-
-  try {
     const verified = await isOTPVerified(email, phone_number);
     if (!verified) return res.status(403).json({ error: "Please verify OTP before registering" });
 
