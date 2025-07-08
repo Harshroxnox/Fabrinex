@@ -94,7 +94,7 @@ CREATE TABLE ProductVariants (
     price DECIMAL(10,2) NOT NULL CHECK (price > 0),
     main_image VARCHAR(255) NOT NULL,
     cloudinary_id VARCHAR(255) NOT NULL,
-    barcode CHAR(13) UNIQUE, -- EAN-13 format
+    barcode CHAR(13) UNIQUE NOT NULL, -- EAN-13 format
     discount DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (discount >= 0 AND discount < 100),
     stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
