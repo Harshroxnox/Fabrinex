@@ -1,127 +1,141 @@
-import React, { createContext,useState } from "react";
-import axios from "axios";
+import React, { createContext, useState } from "react";
 import Cookies from "js-cookie";
-//step1: create context
-export const LoginContext= createContext();
-//step2: create provider
-export const LoginProvider=({children})=>{
-    const [loading , setLoading]=useState(false);
-    const [error,setError]= useState('');
-    axios.defaults.withCredentials=true;
-    const register = async (formData)=>{
-        try {
-            setLoading(true);
-            const res= await axios.post('http://localhost:5000/api/v1/admins/register',formData);
-            console.log(res.data.message);
-        } catch (error) {
-            setError(error.response?.data?.message || 'Registration failed');
-        }
-    };
-    const GetRole = async () => {
-        try {
-            const accessToken= Cookies.get('accessToken');
-            // console.log("acccess token:",accessToken);
-            const res = await axios.get('http://localhost:5000/api/v1/admins/get-roles', {
-                headers:{
-                    "Authorization":`Bearer ${accessToken}`
-                }
-            });
-            const roles= res.data;
-            // setRole(roles[0]);
-            localStorage.setItem("role",roles);
-            // console.log(res.data);
-            return res.data;
-        } 
-        catch (error) {
-            console.log("Error fetching the user role:", error.response?.data || error.message);
-            throw error;
-        }
-    };
+import axiosInstance from "../utils/axiosInstance"; // ✅ Your axiosInstance with interceptors
 
-    const login = async (formData)=>{
-        try {
-            setLoading(true);
-            const res=await axios.post('http://localhost:5000/api/v1/admins/login',formData);
-            console.log(res.data.message);
+// Step 1: Create context
+export const LoginContext = createContext();
 
-            localStorage.setItem("admin",formData.email);
-            // console.log(admin,role);
-            GetRole();
-            console.log(`User with email ${localStorage.getItem("admin")} and role ${localStorage.getItem("role")} logged in successfully`)
-            return {message:"success"};
-        } catch (error) {
-            setError(error.response?.data?.message || 'Login failed');
-        }
-    }
+// Step 2: Create provider
+export const LoginProvider = ({ children }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    const logout=async ()=>{
-        try {
-            setLoading(true);
-            const res= await axios.post('http://localhost:5000/api/v1/admins/logout');
-            console.log(res.data.message);
-            // setEmail('');
-            // setAdmin('');
-            localStorage.removeItem("admin");
-        } catch (error) {
-            setError(error.response?.data?.message || 'Logout failed');
-        }
-    }
-
-    const deleteAdmin = async (adminID)=>{
-        try {
-            const accessToken= Cookies.get('accessToken');
-            const res = await axios.delete(`http://localhost:5000/api/v1/admins/delete/${adminID}`,{
-                headers:{
-                    "Authorization":`Bearer ${accessToken}`
-                }
-            });
-            console.log(res.data.message);
-        } catch (error) {
-            console.error("deleting admin error: ",error);
-        }
-    }
-    const getAllAdmins= async ()=>{
-        try {
-            const accessToken= Cookies.get('accessToken');
-            const res= await axios.get("http://localhost:5000/api/v1/admins/get-all-admins",{
-                headers:{
-                "Authorization":`Bearer ${accessToken}`
-            }});
-            console.log(res.data);
-            return res.data;
-        } catch (error) {
-            console.log("error fetching all admins",error);
-        }
-    }
-    const updateAdmin = async (adminID, formData) => {
+  // ✅ Register (public)
+  const register = async (formData) => {
     try {
-        const accessToken = Cookies.get('accessToken');
-        console.log("password:",formData.password);
-        const res = await axios.put(`http://localhost:5000/api/v1/admins/update/${adminID}`,formData, {
-        headers: {
-            "Authorization": `Bearer ${accessToken}`
-        }
-        });
-        return res.data;
-    } catch (error) {
-        console.error("Error updating admin:", error); // ✅ For debugging
-        return { success: false, message: error.message }; // ✅ Return clean object
+      setLoading(true);
+      setError("");
+      const res = await axiosInstance.post("/admins/register", formData, { noAuth: true });
+      console.log("Registration successful:", res.data.message);
+    } catch (err) {
+      setError(err.response?.data?.message || "Registration failed");
+    } finally {
+      setLoading(false);
     }
-    };
+  };
 
-    const getAllUsers = async ()=>{
-        try {
-            const res= await axios.get("http://localhost:5000/api/v1/users/get-all-users");
-            console.log(res.data.users);
-            return res.data.users;
-        } catch (error) {
-            console.log("error while fetching all customers",error);   
-        }
+  // ✅ Login (public)
+  const login = async (formData) => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await axiosInstance.post("/admins/login", formData, { noAuth: true });
+
+      localStorage.setItem("admin", formData.email);
+      // 🔒 Fetch role (protected)
+      await GetRole();
+
+      console.log(
+        `User with email ${localStorage.getItem("admin")} and role ${localStorage.getItem("role")} logged in.`
+      );
+
+      return { message: "success" };
+    } catch (err) {
+      setError(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
-    return(
-        <LoginContext.Provider value={{loading,error,register,login,logout,GetRole,deleteAdmin,getAllAdmins,updateAdmin,getAllUsers}}>
-            {children}
-        </LoginContext.Provider>
-    )
-    
-}
+  };
+
+  // ✅ Logout (public)
+  const logout = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const res = await axiosInstance.post("/admins/logout");
+
+      console.log("Logout successful:", res.data.message);
+      localStorage.removeItem("admin");
+      localStorage.removeItem("role");
+      Cookies.remove("accessToken");
+    } catch (err) {
+      setError(err.response?.data?.message || "Logout failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔒 Get current role
+  const GetRole = async () => {
+    try {
+      const res = await axiosInstance.get("/admins/get-roles");
+      const roles = res.data;
+      localStorage.setItem("role", roles);
+    //   console.log(roles);
+      return roles;
+    } catch (err) {
+      console.log("Error getting roles:", err.response?.data || err.message);
+      throw err;
+    }
+  };
+
+  // 🔒 Delete admin
+  const deleteAdmin = async (adminID) => {
+    try {
+      const res = await axiosInstance.delete(`/admins/delete/${adminID}`);
+      console.log("Admin deleted:", res.data.message);
+    } catch (err) {
+      console.error("Delete admin error:", err.response?.data || err.message);
+    }
+  };
+
+  // 🔒 Get all admins
+  const getAllAdmins = async () => {
+    try {
+      const res = await axiosInstance.get("/admins/get-all-admins");
+      return res.data;
+    } catch (err) {
+      console.error("Error fetching admins:", err.response?.data || err.message);
+    }
+  };
+
+  // 🔒 Update admin
+  const updateAdmin = async (adminID, formData) => {
+    try {
+      const res = await axiosInstance.put(`/admins/update/${adminID}`, formData);
+      return res.data;
+    } catch (err) {
+      console.error("Update admin error:", err.response?.data || err.message);
+      return { success: false, message: err.message };
+    }
+  };
+
+  // 🔒 Get all users (customers)
+  const getAllUsers = async () => {
+    try {
+      const res = await axiosInstance.get("/users/get-all-users");
+      return res.data.users;
+    } catch (err) {
+      console.error("Error fetching users:", err.response?.data || err.message);
+    }
+  };
+
+  return (
+    <LoginContext.Provider
+      value={{
+        loading,
+        error,
+        register,
+        login,
+        logout,
+        GetRole,
+        deleteAdmin,
+        getAllAdmins,
+        updateAdmin,
+        getAllUsers,
+      }}
+    >
+      {children}
+    </LoginContext.Provider>
+  );
+};

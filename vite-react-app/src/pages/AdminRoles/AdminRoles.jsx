@@ -34,7 +34,6 @@ const {getAllAdmins}=useContext(LoginContext);
         setIsLoading(false);
       }
     };
-
     fetchAdmins();
   }, []);
   const handleDelete = (admin) => {

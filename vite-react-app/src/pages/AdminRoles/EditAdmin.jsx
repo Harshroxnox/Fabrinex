@@ -4,14 +4,12 @@ import { LoginContext } from '../../contexts/LoginContext';
 
 const EditAdmin = ({ admin, onClose, onSave }) => {
   const [editedAdmin, setEditedAdmin] = useState({ 
-    ...admin,
-    roles: Array.isArray(admin.roles) ? [...admin.roles] : [admin.role || 'Content Admin']
+      ...admin,
+      roles: Array.isArray(admin.roles) ? [...admin.roles] : [admin.role || 'Content Admin']
   });
-
   const {updateAdmin}= useContext(LoginContext);
   const [password,setPassword]= useState('');
   const [confirmpassword,setConfirmPassword]= useState('');
-
   const [availableRoles] = useState([
     'superadmin',
     'admin',
@@ -24,7 +22,6 @@ const EditAdmin = ({ admin, onClose, onSave }) => {
       const newRoles = prev.roles.includes(role)
         ? prev.roles.filter(r => r !== role) // Remove role if already selected
         : [...prev.roles, role]; // Add role if not selected
-      
       return {
         ...prev,
         roles: newRoles
@@ -35,44 +32,40 @@ const EditAdmin = ({ admin, onClose, onSave }) => {
  const handleSubmit = async (e) => {
   e.preventDefault();
 
-  if (editedAdmin.roles.length === 0) {
+  if(editedAdmin.roles.length === 0){
     alert('Please select at least one role');
     return;
   }
   console.log(password);
   console.log(confirmpassword);
-  if (password !== confirmpassword) {
+  if(password!==confirmpassword){
     alert('Passwords do not match');
     return;
   }
-
   const updatedFormData = {
     password,
     roles: editedAdmin.roles
   };
   console.log("Submitted form data:", updatedFormData);
-  const res= await updateAdmin(admin.adminID, updatedFormData);
-  onSave(editedAdmin); // if you intend to submit editedAdmin separately
+  await updateAdmin(admin.adminID, updatedFormData);
+  onSave(editedAdmin);//if you intend to submit editedAdmin separately
 };
-
-
-  return (
+return(
     <div className="modal-overlay">
       <div className="edit-modal">
         <h2>Edit Admin</h2>
-        
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Admin ID</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={editedAdmin.adminID} 
-              disabled 
+              disabled
             />
-          </div>   
+          </div>
           <div className="form-group">
             <label>Password</label>
-            <input 
+            <input
               type="password" 
               name="password"
               value={password} 
@@ -82,7 +75,7 @@ const EditAdmin = ({ admin, onClose, onSave }) => {
           </div>
           <div className='form-group'>
             <label>Confirm Password</label>
-            <input 
+            <input
               type="password" 
               name="password"
               value={confirmpassword} 
