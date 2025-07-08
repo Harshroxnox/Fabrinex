@@ -8,7 +8,7 @@ export const addPromotion = async (req, res) => {
   if (validString(code) === null) {
     return res.status(400).json({ error: 'Code is not a valid string' })
   }
-  if (validDecimal(discount) === null || discount < 0 || discount > 100) {
+  if (validWholeNo(discount) === null || discount <= 0 || discount > 100) {
     return res.status(400).json({ error: 'Invalid discount' })
   }
   if (validWholeNo(usage_per_user) === null || usage_per_user === 0) {
@@ -68,8 +68,8 @@ export const updatePromotion = async (req, res) => {
 
   // Validate and push only if present
   if (discount !== undefined) {
-    const valid = validDecimal(discount);
-    if (valid === null || valid <= 0 || valid >= 100) {
+    const valid = validWholeNo(discount);
+    if (valid === null || valid <= 0 || valid > 100) {
       return res.status(400).json({ error: 'Invalid discount (must be between 0 and 100).' });
     }
     fields.push("discount = ?");
@@ -135,7 +135,8 @@ export const updatePromotion = async (req, res) => {
   }
 };
 
-export const deletePromotion = async (req, res) => {
+//As Such no need of this controller 
+export const deactivatePromotion = async (req, res) => {
   const promotionID = validID(req.params.promotionID);
   if (promotionID === null) {
     return res.status(400).json({ error: "Invalid promotionID." });
@@ -161,7 +162,7 @@ export const deletePromotion = async (req, res) => {
 export const getAllPromotions = async (req, res) => {
   try {
     const [promotions] = await db.execute(
-      "SELECT * FROM Promotions WHERE is_active = true ORDER BY created_at DESC"
+      "SELECT * FROM Promotions  ORDER BY created_at DESC"
     );
 
     return res.status(200).json({

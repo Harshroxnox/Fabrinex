@@ -219,8 +219,8 @@ export const validPhoneNumber = (str) => {
     return null;
   }
 
-  console.log("Parsed:", phoneNumber);
-  console.log("Country:", phoneNumber.country);
+  // console.log("Parsed:", phoneNumber);
+  // console.log("Country:", phoneNumber.country);
 
   if (phoneNumber.country !== 'IN') {
     return null;
@@ -231,4 +231,14 @@ export const validPhoneNumber = (str) => {
   }
 
   return null;
+};
+
+export const validBoolean = (value) => {
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase();
+    if (lower === 'true') return true;
+    if (lower === 'false') return false;
+  }
+  return null; // Invalid boolean
 };
