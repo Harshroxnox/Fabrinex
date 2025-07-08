@@ -160,7 +160,11 @@ export const getOrdersByUser = async (req, res) => {
       message: 'User orders fetched successfully',
       orders 
     });
-
+    if (profilePicPath) {
+      deleteTempImg(profilePicPath).catch((error) => {
+        console.warn(`Failed to delete file ${profilePicPath}: ${error.message}`);
+      });
+    }
   } catch (error) {
     console.error('Error fetching user orders:', error);
     return res.status(500).json({ error: "Internal server error" });

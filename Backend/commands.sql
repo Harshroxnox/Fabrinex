@@ -131,7 +131,7 @@ CREATE TABLE Orders (
     payment_status VARCHAR(40) NOT NULL DEFAULT 'pending',
     order_location VARCHAR(255) NOT NULL,
     order_status VARCHAR(40) NOT NULL DEFAULT 'pending',
-    promo_discount DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (promo_discount >= 0 AND promo_discount <= 100),
+    promo_discount DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (promo_discount >= 0 AND promo_discount < 100),
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
 );
@@ -149,7 +149,7 @@ CREATE TABLE OrderItems (
 CREATE TABLE Promotions (
     promotionID INT AUTO_INCREMENT PRIMARY KEY,
     promotion_code VARCHAR(50) UNIQUE NOT NULL,
-    discount INT NOT NULL CHECK (discount > 0 AND discount < 100),
+    discount INT NOT NULL CHECK (discount > 0 AND discount <= 100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     usage_per_user INT NOT NULL DEFAULT 1,
     min_order_price DECIMAL(10, 2) DEFAULT 0.00,
@@ -210,7 +210,8 @@ CREATE TABLE Banners (
     image_url VARCHAR(500) NOT NULL,
     cloudinary_id VARCHAR(255) NOT NULL,
     title VARCHAR(100),
+    redirect_url VARCHAR(700),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    is_side BOOLEAN NOT NULL DEFAULT FALSE
+    is_side BOOLEAN NOT NULL
 );

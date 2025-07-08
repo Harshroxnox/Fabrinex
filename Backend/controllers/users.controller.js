@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { db } from '../index.js';
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
+import { deleteTempImg } from "../utils/deleteTempImg.js";
 import { razorpay } from "../utils/razorpay.utils.js";
 import { generateTokens } from "../utils/jwt.utils.js";
 import { validEmail, validID, validPassword, validPhoneNumber, validString, validStringChar, validWholeNo } from "../utils/validators.utils.js";
@@ -30,20 +31,19 @@ export const registerUser = async (req, res) => {
     return res.status(422).json({error:'Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit and should be between 9 to 255 characters'});
   }
 
-  // //phone number validation
-  // const validatedPhoneNumber= validPhoneNumber(phone_number);
+  //phone number validation
+  const validatedPhoneNumber= validPhoneNumber(phone_number);
 
-  // if(!validatedPhoneNumber){
-  //   return res.status(422).json({error:'Invalid phone number'});
-  // }
-  // req.body.phone_number= validatedPhoneNumber;
-  // //whatsapp number validation
-  // const validatedWhatsappNumber = validPhoneNumber(whatsapp_number);
+  if(!validatedPhoneNumber){
+    return res.status(422).json({error:'Invalid phone number'});
+  }
 
-  // if(!validatedWhatsappNumber){
-  //   return res.staus(422).json({error:'Invalid whatsapp number'})
-  // }
-  // req.body.whatsapp_number= validatedWhatsappNumber;
+  //whatsapp number validation
+  const validatedWhatsappNumber = validPhoneNumber(whatsapp_number);
+
+  if(!validatedWhatsappNumber){
+    return res.staus(422).json({error:'Invalid whatsapp number'})
+  }
 
 
     const verified = await isOTPVerified(email, phone_number);
@@ -55,9 +55,11 @@ export const registerUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let profileImgUrl = null;
+    let cloudinaryID;
     if (profilePicPath) {
       const uploadedImage = await uploadOnCloudinary(profilePicPath);
       profileImgUrl = uploadedImage?.url || null;
+      cloudinaryID=uploadedImage.public_id;
     }
 
     let razorpay_customer_id = crypto.randomBytes(6).toString('hex');
@@ -68,13 +70,27 @@ export const registerUser = async (req, res) => {
 
     await db.execute(
       "INSERT INTO Users (name, phone_number, whatsapp_number, email, password, profile_img, razorpay_customer_id) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [name, phone_number, whatsapp_number, email, hashedPassword, profileImgUrl, razorpay_customer_id]
+      [name, validatedPhoneNumber, validatedWhatsappNumber, email, hashedPassword, profileImgUrl, razorpay_customer_id]
     );
 
     res.status(201).json({ message: "User registered successfully", profileImg: profileImgUrl });
   } catch (error) {
     console.error('Error registering user:', error);
     res.status(500).json({ error: 'Internal server error' });
+
+    if (cloudinaryID) {
+      deleteFromCloudinary(cloudinaryID).catch((error) => {
+        console.warn(`Cloudinary deletion failed. CloudinaryID:${cloudinaryID} ${error.message}`);
+      });
+    }
+
+  }finally {
+    //Deleting temp image if needed
+    if (profilePicPath) {
+      deleteTempImg(profilePicPath).catch((error) => {
+        console.warn(`Failed to delete file ${profilePicPath}: ${error.message}`);
+      });
+    }
   }
 };
 
