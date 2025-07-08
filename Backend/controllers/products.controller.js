@@ -9,7 +9,7 @@ import logger from '../utils/logger.js';
 // product controller 
 
 export const createProduct = async (req, res) => {
-  const name = validStringChar(req.body.name, 3, 100);
+  const name = validString(req.body.name, 3, 100);
   const { description, category } = req.body;
 
   // check if name is valid
@@ -58,7 +58,7 @@ export const updateProduct = async (req, res) => {
 
   // If name exists check if it is valid
   if(rawName){
-    const name = validStringChar(rawName);
+    const name = validString(rawName);
     if(name === null){
       return res.status(400).json({error :" Name must be a valid string between 3 to 100 chars"})
     }
@@ -254,10 +254,9 @@ export const deleteProduct = async (req, res) => {
 
 
 export const reviewProduct = async (req, res) => {
-
   const rating = validDecimal(req.body.rating);
   const productID = validID(req.params.productID);
-  const review = req.body.review;
+  const rawReview = req.body.review; // review may be null also
   const userID = req.userID;
   let conn;
 
@@ -270,18 +269,16 @@ export const reviewProduct = async (req, res) => {
     return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
   }
 
-  let validReview;
-  if (review) {
-    validReview = validString(req.body.review, 0, 750);
+  let review;
+  if (rawReview) {
+    review = validReview(rawReview, 4, 750);
 
-    if (validReview === null) {
-      return res.status(400).json({ error: "Review must be a valid string" });
+    if (review === null) {
+      return res.status(400).json({ error: "Review must be a valid string between 4 and 750 chars" });
     }
+  } else {
+    review = null;
   }
-  else {
-    validReview = review;
-  }
-
 
   try {
     // Make connection for transaction

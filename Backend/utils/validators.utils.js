@@ -86,8 +86,8 @@ export const validReview = (str, minLen, maxLen) => {
     return null;
   }
 
-  // Allow letters, numbers, spaces, and basic punctuation
-  if (!/^[a-zA-Z0-9\s.,!?'"“”\-:/()]+$/.test(str)){
+  // Allow letters(any language), all numbers, spaces, sepecific punctuation and all emojis.
+  if (!/^[\p{L}\p{N}\s.,!?'"“”\-:/()%₹\p{Emoji}]+$/u.test(str)){
     return null
   }
   return str;
@@ -109,7 +109,7 @@ export const validString = (str, minLen, maxLen) => {
   }
 
   // Allow letters, numbers, spaces, and basic punctuation
-  if (!/^[a-zA-Z0-9\s\-_'.,/()]+$/.test(str)){
+  if (!/^[a-zA-Z0-9\s\-_'".,/|()]+$/.test(str)){
     return null
   }
   return str;
