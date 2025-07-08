@@ -82,7 +82,7 @@ CREATE TABLE Products (
     description JSON,
     category VARCHAR(50) NOT NULL,
     cumulative_rating DECIMAL(10,2) DEFAULT 0.00,
-    people_rated INT DEFAULT 0,
+    people_rated INT DEFAULT 0 CHECK (people_rated >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
@@ -91,12 +91,12 @@ CREATE TABLE ProductVariants (
     productID INT NOT NULL,
     color VARCHAR(50) NOT NULL,
     size VARCHAR(50) NOT NULL,
-    price DECIMAL(10,2) NOT NULL,
+    price DECIMAL(10,2) NOT NULL CHECK (price > 0),
     main_image VARCHAR(255) NOT NULL,
     cloudinary_id VARCHAR(255) NOT NULL,
     barcode CHAR(13) UNIQUE, -- EAN-13 format
-    discount DECIMAL(5,2) NOT NULL DEFAULT 0.00,
-    stock INT NOT NULL DEFAULT 0,
+    discount DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (discount >= 0 AND discount < 100),
+    stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
 );
@@ -105,7 +105,7 @@ CREATE TABLE Reviews (
     reviewID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
     productID INT NOT NULL,
-    rating DECIMAL(3,2) NOT NULL,
+    rating DECIMAL(3,2) NOT NULL CHECK (rating >= 1 AND rating <= 5),
     review VARCHAR(750) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE,
@@ -140,8 +140,8 @@ CREATE TABLE OrderItems (
     orderItemID INT AUTO_INCREMENT PRIMARY KEY,
     orderID INT NOT NULL,
     variantID INT NOT NULL,
-    quantity INT NOT NULL DEFAULT 1,
-    price_at_purchase DECIMAL(10, 2) NOT NULL,
+    quantity INT NOT NULL DEFAULT 1 CHECK (quantity >= 1),
+    price_at_purchase DECIMAL(10, 2) NOT NULL CHECK (price_at_purchase > 0),
     FOREIGN KEY (orderID) REFERENCES Orders(orderID) ON DELETE CASCADE,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE RESTRICT
 );
@@ -151,16 +151,16 @@ CREATE TABLE Promotions (
     promotion_code VARCHAR(50) UNIQUE NOT NULL,
     discount INT NOT NULL CHECK (discount > 0 AND discount <= 100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    usage_per_user INT NOT NULL DEFAULT 1,
-    min_order_price DECIMAL(10, 2) DEFAULT 0.00,
-    max_discount DECIMAL(10, 2) DEFAULT 0.00,
+    usage_per_user INT NOT NULL DEFAULT 1 CHECK (usage_per_user >= 1),
+    min_order_price DECIMAL(10, 2) DEFAULT 0.00 CHECK (min_order_price >= 0),
+    max_discount DECIMAL(10, 2) DEFAULT 0.00 CHECK (max_discount >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE PromotionUsage (
     userID INT NOT NULL,
     promotionID INT NOT NULL,
-    times_used INT NOT NULL DEFAULT 0,
+    times_used INT NOT NULL DEFAULT 1 CHECK (times_used >= 1),
     PRIMARY KEY (userID, promotionID),
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (promotionID) REFERENCES Promotions(promotionID)
@@ -173,7 +173,7 @@ CREATE TABLE Transactions (
     razorpay_order_id VARCHAR(100),
     razorpay_payment_id VARCHAR(100) UNIQUE NOT NULL,
     razorpay_signature VARCHAR(255),
-    amount DECIMAL(10,2) NOT NULL,
+    amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (orderID) REFERENCES Orders(orderID)
 );
@@ -192,7 +192,7 @@ CREATE TABLE CartItems (
     cartItemID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
     variantID INT NOT NULL,
-    quantity INT NOT NULL DEFAULT 1,
+    quantity INT NOT NULL DEFAULT 1 CHECK (quantity >= 1),
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
