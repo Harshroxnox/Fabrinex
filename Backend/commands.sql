@@ -205,13 +205,25 @@ CREATE TABLE VariantImages (
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
 
-CREATE TABLE Banners (
-    bannerID INT AUTO_INCREMENT PRIMARY KEY,
-    image_url VARCHAR(500) NOT NULL,
-    cloudinary_id VARCHAR(255) NOT NULL,
-    title VARCHAR(100),
-    redirect_url VARCHAR(700),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    is_side BOOLEAN NOT NULL
+
+CREATE TABLE MainBanners (
+  bannerID INT AUTO_INCREMENT PRIMARY KEY,
+  image_url VARCHAR(500) NOT NULL,
+  cloudinary_id VARCHAR(255) NOT NULL,
+  title VARCHAR(100),
+  redirect_url VARCHAR(700),
+  priority INT NOT NULL UNIQUE CHECK (priority > 0),  
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE SideBanners (
+  bannerID INT AUTO_INCREMENT PRIMARY KEY,
+  image_url VARCHAR(500) NOT NULL,
+  cloudinary_id VARCHAR(255) NOT NULL,
+  title VARCHAR(100),
+  redirect_url VARCHAR(700),
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
