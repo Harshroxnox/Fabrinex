@@ -14,7 +14,12 @@ function Register() {
       {/* <input placeholder="Name" onChange={e => setForm({ ...form, name: e.target.value })} /> */}
       <input placeholder="Email" onChange={e => setForm({ ...form, email: e.target.value })} />
       <input type="password" placeholder="Password" onChange={e => setForm({ ...form, password: e.target.value })} />
-      <button type="submit">Register</button>
+       <input
+  type="text"
+  placeholder="admin"
+  onChange={e => setForm({ ...form, roles: [e.target.value] })}
+/>
+       <button type="submit">Register</button>
       {error && <p>{error}</p>}
     </form>
   )

@@ -6,16 +6,24 @@ import styles from './Login.module.css'; // Importing CSS Module
 
 function Login() {
     const [form, setForm] = useState({ email: '', password: '' });
-    const { login, error ,GetRole} = useContext(LoginContext);
+    const { login,error ,GetRole} = useContext(LoginContext);
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        login(form);
-        if(error==''){
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+        const res = await login(form);  // wait for the promise to resolve
+        if (res.message === "success") {
             navigate('/admin');
+        } else {
+            alert("Wrong credentials - User not found");
         }
-    };
+    } catch (error) {
+        console.error("Login error:", error);
+        alert("Something went wrong. Please try again.");
+    }
+};
+
 
     return (
         <div className={styles.loginContainer}>

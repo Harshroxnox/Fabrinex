@@ -1,0 +1,137 @@
+.admin-roles-container {
+  padding: 40px;
+  width: 84vw;
+  margin: 0 auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  border: 1px solid black;
+  background-color: white;
+  border-radius: 50px;
+  min-height:86vh;
+}
+
+.admin-roles-container h1 {
+  color: #333;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.admin-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.search-box {
+  position: relative;
+  flex-grow: 1;
+  max-width: 400px;
+  
+}
+
+.search-box input {
+  width: 100%;
+  padding: 10px 15px 10px 40px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 20px;
+  border:1px solid black;
+  border-radius: 30px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 63%;
+  transform: translateY(-50%);
+  color: #666;
+
+}
+
+.add-admin-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.add-admin-btn:hover {
+  background-color: #45a049;
+}
+
+.admins-table {
+  margin-top: 90px;
+  overflow-x: auto;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 2rem;
+  background-color: #FDFDFD;
+  margin-bottom: 1rem
+}
+
+.admins-table table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size:large;
+}
+ 
+.admins-table td {
+  padding: 12px 20px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.admins-table th {
+  font-weight:500;
+  padding: 0.75rem 1rem;
+  padding-top: 1rem;
+  text-align: left;
+  border-bottom: 0.1rem solid #a2a2a2;
+  font-size:0.875rem;
+  white-space: nowrap
+}
+
+.admins-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.actions {
+  /* display: flex; */
+  gap: 10px;
+}
+
+@media (max-width: 768px) {
+  .admin-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-box {
+    max-width: 100%;
+  }
+  
+  .add-admin-btn {
+    width: 100%;
+  }
+}
+
+.roles-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.role-pill {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}

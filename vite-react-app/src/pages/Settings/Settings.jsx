@@ -1,15 +1,16 @@
 import React from 'react'
 import { useState } from 'react'
 import "./Settings.css"
-import UserRolesPage from '../UserRoles/UserRoles'
+// import UserRolesPage from '../UserRoles/UserRoles'
 import IntegrationsPage from '../Integrations/Integrations'
+import AdminRoles from '../AdminRoles/AdminRoles'
 
 const Settings = () => {
   const [activeBtn, setActiveBtn] = useState("User Roles");
 
   const renderMain = ()=>{
-    if(activeBtn == "User Roles"){
-      return (<UserRolesPage />);
+    if(activeBtn == "Admin Roles"){
+      return (<AdminRoles />);
     }else if(activeBtn == "Integrations"){
       return (<IntegrationsPage />);
     }
@@ -30,10 +31,10 @@ const Settings = () => {
       <div className="admin-box">
         <div className="admin-sidebar">
           <button
-            onClick={()=>setActiveBtn("User Roles")} 
-            className={`home-btn ${(activeBtn=="User Roles")?"active-btn":""}`}
+            onClick={()=>setActiveBtn("Admin Roles")} 
+            className={`home-btn ${(activeBtn=="Admin Roles")?"active-btn":""}`}
           >
-            User Roles
+            Admin Roles
           </button>
 
           <button 
