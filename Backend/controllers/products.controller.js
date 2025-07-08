@@ -2,7 +2,7 @@ import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode } from '../utils/generateBarcode.js';
-import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview } from '../utils/validators.utils.js';
+import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview, validBoolean } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
 import logger from '../utils/logger.js';
 
@@ -137,11 +137,12 @@ export const getProductById = async (req, res) => {
 
     const product = products[0];
 
-    // Attach variants of the product
-    const [variants] = await db.execute(
-      "SELECT variantID, color, size, price, main_image, discount FROM ProductVariants WHERE productID = ?",
-      [productID]
-    );
+    // Attach active variants of the product
+    const [variants] = await db.execute(`
+      SELECT variantID, color, size, price, main_image, discount 
+      FROM ProductVariants 
+      WHERE productID = ? AND is_active = TRUE
+    `,[productID]);
 
     product.variants = variants;
     res.status(200).json({
@@ -247,6 +248,7 @@ export const deleteProduct = async (req, res) => {
     await conn.rollback();
     logger.error(`Error deleting productID:${productID}`, error);
     res.status(500).json({ error: 'Internal server error' });
+
   } finally {
     if (conn) conn.release();
   }
@@ -269,15 +271,13 @@ export const reviewProduct = async (req, res) => {
     return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
   }
 
-  let review;
+  // If review exists check if valid
+  let review = null;
   if (rawReview) {
     review = validReview(rawReview, 4, 750);
-
     if (review === null) {
       return res.status(400).json({ error: "Review must be a valid string between 4 and 750 chars" });
     }
-  } else {
-    review = null;
   }
 
   try {
@@ -285,19 +285,24 @@ export const reviewProduct = async (req, res) => {
     conn = await db.getConnection();
     await conn.beginTransaction();
 
-    //  Check if user has purchased any variant of the product
+    // Check if user has purchased any variant of the product and the product must be active
     const [rows] = await conn.execute(`
-      SELECT COUNT(*) AS bought
+      SELECT 1
       FROM Orders o
       JOIN OrderItems oi ON o.orderID = oi.orderID
       JOIN ProductVariants pv ON oi.variantID = pv.variantID
+      JOIN Products p ON pv.productID = p.productID
       WHERE o.userID = ?
-      AND pv.productID = ?
+        AND p.productID = ?
+        AND p.is_active = TRUE
+      LIMIT 1
     `, [userID, productID]);
 
-    if (rows[0].bought == 0) {
+    if (rows.length === 0) {
       await conn.rollback();
-      return res.status(403).json({ error: "You can only review products you have purchased" });
+      return res.status(403).json({ 
+        error: "You can only review for products you purchased and are still active." 
+      });
     }
 
     // Check if the user has already reviewed this product for this order
@@ -316,7 +321,7 @@ export const reviewProduct = async (req, res) => {
     // Insert the new review
     await conn.execute(
       "INSERT INTO Reviews (userID, productID, rating, review) VALUES (?, ?, ?, ?)",
-      [userID, productID, rating, validReview || null] // Allow null for review text
+      [userID, productID, rating, review] // Allow null for review text
     );
 
     // Update cumulative rating and people rated in Products table
@@ -331,7 +336,7 @@ export const reviewProduct = async (req, res) => {
   } catch (error) {
     // rollback database changes
     if (conn) await conn.rollback();
-    console.error('Error reviewing product:', error);
+    logger.error(`Error reviewing productID:${productID} userID:${userID} `, error);
     res.status(500).json({ error: 'Internal server error' });
 
   } finally {
@@ -342,10 +347,9 @@ export const reviewProduct = async (req, res) => {
 
 export const updateReview = async (req, res) => {
   // rating is required; review is optional (only updated if non-empty)
-
   const rating = validDecimal(req.body.rating);
   const productID = validID(req.params.productID);
-  const review = req.body.review;
+  const rawReview = req.body.review;
   const userID = req.userID;
   let conn;
 
@@ -358,39 +362,44 @@ export const updateReview = async (req, res) => {
     return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
   }
 
-  let validReview;
-  if (review) {
-    validReview = validString(req.body.review, 0, 750);
-
-    if (validReview === null) {
-      return res.status(400).json({ error: "Review must be a valid string" });
+  // If review exists check if valid
+  let review = null;
+  if (rawReview) {
+    review = validReview(rawReview, 4, 750);
+    if (review === null) {
+      return res.status(400).json({ error: "Review must be a valid string between 4 and 750 chars" });
     }
   }
-  else {
-    validReview = review;
-  }
-
 
   try {
-    // Make connection for transaction
-    conn = await db.getConnection();
-    await conn.beginTransaction();
-
+    // Check if product exists
+    const [activeProduct] = await db.execute(
+      "SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE",
+      [productID]
+    );
+    
+    if (activeProduct.length === 0){
+      return res.status(404).json({ error: "No product found." });
+    }
+    
     // Check if the user has already reviewed this product
-    const [existingReview] = await conn.execute(
+    const [existingReview] = await db.execute(
       "SELECT * FROM Reviews WHERE userID = ? AND productID = ?",
       [userID, productID]
     );
 
     if (existingReview.length === 0) {
-      await conn.rollback();
       return res.status(404).json({ error: "No review found for this product." });
     }
 
+    // Make connection for transaction
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
     // Get old rating to adjust cumulative rating in Products table
     const oldRating = existingReview[0].rating;
-    const updatedReview = (validReview != null)
-      ? validReview
+    const updatedReview = (review !== null)
+      ? review
       : existingReview[0].review;
 
     // Update review and rating
@@ -399,7 +408,7 @@ export const updateReview = async (req, res) => {
       [rating, updatedReview, userID, productID]
     );
 
-    //  Update cumulative rating in Products table        
+    // Update cumulative rating in Products table        
     const ratingDifference = rating - oldRating;
     await conn.execute(
       "UPDATE Products SET cumulative_rating = cumulative_rating + ? WHERE productID = ?",
@@ -412,7 +421,7 @@ export const updateReview = async (req, res) => {
   } catch (error) {
     // rollback database changes
     if (conn) await conn.rollback();
-    console.error('Error updating review:', error);
+    logger.error(`Error updating review productID:${productID} userID:${userID}`, error);
     res.status(500).json({ error: 'Internal server error' });
 
   } finally {
@@ -431,20 +440,29 @@ export const deleteReview = async (req, res) => {
   }
 
   try {
-    // Make connection for transaction
-    conn = await db.getConnection();
-    await conn.beginTransaction();
+    // Check if product exists
+    const [activeProduct] = await db.execute(
+      "SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE",
+      [productID]
+    );
+    
+    if (activeProduct.length === 0){
+      return res.status(404).json({ error: "No product found." });
+    }
 
     // Check if the user has reviewed this product
-    const [existingReview] = await conn.execute(
+    const [existingReview] = await db.execute(
       "SELECT * FROM Reviews WHERE userID = ? AND productID = ?",
       [userID, productID]
     );
 
     if (existingReview.length === 0) {
-      await conn.rollback();
       return res.status(404).json({ error: "No review found for this product." });
     }
+
+    // Make connection for transaction
+    conn = await db.getConnection();
+    await conn.beginTransaction();
 
     // Get old rating to adjust cumulative rating in Products table
     const ratingToSubtract = existingReview[0].rating;
@@ -465,7 +483,7 @@ export const deleteReview = async (req, res) => {
   } catch (error) {
     // rollback database changes
     if (conn) await conn.rollback();
-    console.error('Error deleting review:', error);
+    logger.error(`Error deleting review productID:${productID} userID:${userID}`, error);
     res.status(500).json({ error: 'Internal server error' });
 
   } finally {

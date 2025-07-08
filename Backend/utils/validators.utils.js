@@ -239,6 +239,7 @@ export const validPhoneNumber = (str) => {
 export const validBoolean = (value) => {
   if (typeof value === 'boolean') return value;
   if (typeof value === 'string') {
+    value = value.trim();
     const lower = value.toLowerCase();
     if (lower === 'true') return true;
     if (lower === 'false') return false;
