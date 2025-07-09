@@ -246,3 +246,22 @@ export const validBoolean = (value) => {
   }
   return null; // Invalid boolean
 };
+
+
+export const validURL = (url) => {
+  try {
+    if(typeof url !== 'string'){
+      return null;
+    }
+    url = url.trim();
+
+    const parsed = new URL(url);
+    if(parsed.protocol === "http:" || parsed.protocol === "https:"){
+      return url;
+    };
+
+    return null;
+  } catch (error) {
+    return null;
+  }
+}

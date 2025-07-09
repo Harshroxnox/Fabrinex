@@ -212,7 +212,7 @@ CREATE TABLE MainBanners (
   cloudinary_id VARCHAR(255) NOT NULL,
   title VARCHAR(100),
   redirect_url VARCHAR(700),
-  priority INT NOT NULL UNIQUE CHECK (priority > 0),  
+  priority INT NOT NULL UNIQUE CHECK (priority >= 0),  
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
