@@ -16,7 +16,7 @@ const fileFilter = (req,file,cb)=>{
     cb(null,true);
   }
   else{
-    cb(new Error('only image files with extensions .jpg, .jpeg, .png, .webp are allowed!'),false);
+    cb(new Error('Invalid file type'),false);
   }
 };
   

@@ -27,6 +27,7 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 
+
 // routes imports
 import userRouter from './routes/users.routes.js'
 import adminRouter from './routes/adminUsers.routes.js'
@@ -37,6 +38,7 @@ import marketingRouter from "./routes/marketing.routes.js"
 import promotionRouter from "./routes/promotions.routes.js"
 import orderRouter from "./routes/orders.routes.js"
 import bannerRouter from "./routes/banners.routes.js"
+import ErrorHandler from "./middleware/error.middleware.js";
 
 // routes declaration
 app.use("/api/v1/users", userRouter)
@@ -49,4 +51,6 @@ app.use("/api/v1/promotions", promotionRouter)
 app.use("/api/v1/orders",orderRouter)
 app.use("/api/v1/banners",bannerRouter)
 
+
+app.use(ErrorHandler);
 export { app }
