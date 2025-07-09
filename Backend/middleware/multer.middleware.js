@@ -8,6 +8,20 @@ const storage = multer.diskStorage({
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
       cb(null, file.fieldname + '-' + uniqueSuffix)
     }
-  })
+})
+
+const fileFilter = (req,file,cb)=>{
+  const allowedTypes=['image/jpeg','image/png','image/webp'];
+  if(allowedTypes.includes(file.mimetype)){
+    cb(null,true);
+  }
+  else{
+    cb(new Error('only image files with extensions .jpg, .jpeg, .png, .webp are allowed!'),false);
+  }
+};
   
- export  const upload = multer({ storage: storage })
+export  const upload = multer({ 
+  storage: storage,
+  limits:{fileSize: 5* 1024*1024}, // image size limit is 5 MB
+  fileFilter 
+})
