@@ -1,5 +1,7 @@
 import multer from "multer";
 
+// NOTE: We need to handle multer file too large and too many files error 
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
       cb(null, "./Public/temp")
@@ -10,18 +12,18 @@ const storage = multer.diskStorage({
     }
 })
 
-const fileFilter = (req,file,cb)=>{
+const fileFilter = (req, file, cb)=>{
   const allowedTypes=['image/jpeg','image/png','image/webp'];
   if(allowedTypes.includes(file.mimetype)){
-    cb(null,true);
+    cb(null, true);
   }
   else{
-    cb(new Error('only image files with extensions .jpg, .jpeg, .png, .webp are allowed!'),false);
+    cb(new Error('Only image files with extensions .jpg, .jpeg, .png, .webp are allowed!'), false);
   }
 };
   
-export  const upload = multer({ 
+export const upload = multer({ 
   storage: storage,
-  limits:{fileSize: 5* 1024*1024}, // image size limit is 5 MB
+  limits:{ fileSize: 5 * 1024 * 1024 }, // image size limit is 5 MB
   fileFilter 
-})
+});

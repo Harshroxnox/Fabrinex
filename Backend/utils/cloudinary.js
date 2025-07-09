@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import crypto from 'crypto';
+import logger from './logger.js';
 
 
 // Configuration
@@ -11,7 +12,7 @@ cloudinary.config({
 
 const uploadOnCloudinary = async (localFilePath) => {
     if (!localFilePath) {
-        console.warn('No file path provided.');
+        logger.warn('No file path provided.');
         return null;
     }
 
@@ -21,7 +22,7 @@ const uploadOnCloudinary = async (localFilePath) => {
                 resource_type: 'auto',
                 timeout: 60000,
             });
-            console.log('Upload successful:', response);
+            logger.debug(`Upload successful CloudinaryID:${response.public_id}`);
 
             return response;
         }
@@ -40,8 +41,8 @@ const uploadOnCloudinary = async (localFilePath) => {
 const deleteFromCloudinary = async (publicId) => {
     if(process.env.NODE_ENV === 'production'){
         const response = await cloudinary.uploader.destroy(publicId);
-        if (response.result !== "ok") {
-            console.warn("Failed to delete Cloudinary image:", publicId);
+        if (response.result === "ok") {
+            logger.debug(`Deleted cloudinary image CloudinaryID:${publicId}`)
         }
         return response;
     }

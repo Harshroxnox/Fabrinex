@@ -1,5 +1,6 @@
 import mysql from 'mysql2/promise'; // Use the promise-based version
 import Redis from 'ioredis';
+import logger from '../utils/logger.js';
 
 
 // Connect to MySQL
@@ -14,10 +15,10 @@ export const connectDB = async () => {
       connectionLimit: process.env.MYSQL_CONNECTION_LIMIT, // or more depending on expected load
     });
 
-    console.log(`✅ MySQL connected successfully!`);
+    logger.info(`MySQL connected successfully!`);
     return db; // Return the connection object
   } catch (error) {
-    console.log("❌ MySQL connection FAILED:", error);
+    logger.error("MySQL connection FAILED:", error);
     process.exit(1);
   }
 };
@@ -31,10 +32,10 @@ export const connectRedis = async () => {
       // password: process.env.REDIS_PASSWORD, // if needed
     });
 
-    console.log(`✅ Redis connected successfully!`);
+    logger.info(`Redis connected successfully!`);
     return redis; // Return the connection object
   } catch (error) {
-    console.log("❌ Redis connection FAILED:", error);
+    logger.error("Redis connection FAILED:", error);
     process.exit(1);
   }
 };

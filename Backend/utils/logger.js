@@ -20,7 +20,7 @@ const myFormat = format.printf(({ level, message, timestamp }) => {
 });
 
 const logger = createLogger({
-  level: 'info',
+  level: 'debug',
   transports: [
     new DailyRotateFile({
       filename: 'logs/app-%DATE%.log',
