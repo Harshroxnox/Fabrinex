@@ -16,11 +16,16 @@ export const authMiddleware = (allowedUser) => async (req, res, next) => {
   const token = parts[1];
 
   // Checking if token is blacklisted in Redis
-  const isBlacklisted = await redis.get(`bl_${token}`);
-  if (isBlacklisted) {
-    return res.status(403).json({ error: 'Token has been blacklisted' });
+  try{
+    const isBlacklisted = await redis.get(`bl_${token}`);
+    if (isBlacklisted) {
+      return res.status(403).json({ error: 'Token has been blacklisted' });
+    }
+  } catch (error){
+    logger.error(`Error checking for blacklist token:${token} `, error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
-
+  
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     const { id, userType } = decoded;
@@ -39,7 +44,6 @@ export const authMiddleware = (allowedUser) => async (req, res, next) => {
     } else if (userType === 'admin') {
       req.adminID = id;
       req.userType = userType;
-
     }
 
     next();

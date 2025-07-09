@@ -1,13 +1,12 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import crypto from 'crypto';
-import { db} from '../index.js';
+import { db } from '../index.js';
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
 import { deleteTempImg } from "../utils/deleteTempImg.js";
-import { blacklistToken } from "../utils/blacklistToken.js";
 import { razorpay } from "../utils/razorpay.utils.js";
-import { generateTokens } from "../utils/jwt.utils.js";
+import { generateTokens, blacklistToken } from "../utils/jwt.utils.js";
 import { validEmail, validID, validPassword, validPhoneNumber, validString, validStringChar, validWholeNo } from "../utils/validators.utils.js";
 import logger from "../utils/logger.js";
 
@@ -204,7 +203,6 @@ export const logoutUser = async (req, res) => {
   try {
 
     await blacklistToken(accessToken); 
-
     await db.execute("UPDATE Users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
 
     res.clearCookie('accessToken', {
