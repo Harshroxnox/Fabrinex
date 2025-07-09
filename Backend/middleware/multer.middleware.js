@@ -1,6 +1,5 @@
 import multer from "multer";
-
-// NOTE: We need to handle multer file too large and too many files error 
+const { MulterError } = multer;
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -18,7 +17,7 @@ const fileFilter = (req, file, cb)=>{
     cb(null, true);
   }
   else{
-    cb(new Error('Only image files with extensions .jpg, .jpeg, .png, .webp are allowed!'), false);
+    cb(new MulterError('LIMIT_UNEXPECTED_FILE', file.fieldname), false);
   }
 };
   

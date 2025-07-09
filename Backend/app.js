@@ -1,6 +1,7 @@
 import express from "express"
 import cors from "cors"
-import { requestLogger } from "./middleware/logMiddleware.js"
+import errorHandler from "./middleware/error.middleware.js";
+import requestLogger from "./middleware/logMiddleware.js"
 import cookieParser from "cookie-parser"
 import dotenv from "dotenv";
 
@@ -27,6 +28,7 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 
+
 // routes imports
 import userRouter from './routes/users.routes.js'
 import adminRouter from './routes/adminUsers.routes.js'
@@ -38,6 +40,7 @@ import promotionRouter from "./routes/promotions.routes.js"
 import orderRouter from "./routes/orders.routes.js"
 import bannerRouter from "./routes/banners.routes.js"
 
+
 // routes declaration
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/admins", adminRouter)
@@ -48,5 +51,9 @@ app.use("/api/v1/marketing", marketingRouter)
 app.use("/api/v1/promotions", promotionRouter)
 app.use("/api/v1/orders",orderRouter)
 app.use("/api/v1/banners",bannerRouter)
+
+
+// for error handling
+app.use(errorHandler);
 
 export { app }
