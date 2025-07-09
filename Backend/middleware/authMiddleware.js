@@ -1,8 +1,8 @@
 import jwt from 'jsonwebtoken';
-import { db } from '../index.js'; 
+import { db, redis } from '../index.js';
 import logger from '../utils/logger.js';
 
-export const authMiddleware = (allowedUser) => (req, res, next) => {
+export const authMiddleware = (allowedUser) => async (req, res, next) => {
   const authHeader = req.header("Authorization");
   if (!authHeader) {
     return res.status(401).json({ error: "Authorization header missing" });
@@ -15,36 +15,41 @@ export const authMiddleware = (allowedUser) => (req, res, next) => {
 
   const token = parts[1];
 
+  // Checking if token is blacklisted in Redis
+  const isBlacklisted = await redis.get(`bl_${token}`);
+  if (isBlacklisted) {
+    return res.status(403).json({ error: 'Token has been blacklisted' });
+  }
+
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     const { id, userType } = decoded;
 
-    // Validate userType is allowed 
     if (userType !== allowedUser) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    // Validate that id is a positive integer
     if (!Number.isInteger(id) || id <= 0) {
       return res.status(401).json({ error: 'Invalid token' });
     }
 
-    if(userType === 'user'){
-      req.userID = id; // Attach user ID to request object
+    if (userType === 'user') {
+      req.userID = id;
       req.userType = userType;
-    }else if(userType === 'admin'){
-      req.adminID = id; // Attach admin ID to request object
+    } else if (userType === 'admin') {
+      req.adminID = id;
       req.userType = userType;
+
     }
-    
-    next(); // Proceed to the next middleware or route handler
+
+    next();
   } catch (error) {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 };
 
 
-export const authUserAdmin = (allowedRoles = []) =>async (req, res, next) => {
+export const authUserAdmin = (allowedRoles = []) => async (req, res, next) => {
   const authHeader = req.header("Authorization");
   if (!authHeader) {
     return res.status(401).json({ error: "Authorization header missing" });
@@ -71,7 +76,7 @@ export const authUserAdmin = (allowedRoles = []) =>async (req, res, next) => {
     // If admin
     if (userType === 'admin') {
       // if no roles required allow any admin
-      if(allowedRoles.length === 0){
+      if (allowedRoles.length === 0) {
         req.adminID = id; // Attach admin ID to request object
         req.userType = userType;
         return next();
@@ -82,14 +87,14 @@ export const authUserAdmin = (allowedRoles = []) =>async (req, res, next) => {
       try {
         [roles] = await db.execute(
           'SELECT role_name FROM AdminRoles WHERE adminID = ?',
-          [id]  
+          [id]
         );
-      } catch (error){
+      } catch (error) {
         logger.error(`Error checking roles adminID:${id}`, error);
         return res.status(500).json({ error: "Internal server error" });
       }
       const roleNames = roles.map(r => r.role_name);
-  
+
       const hasAccess = roleNames.some(role => allowedRoles.includes(role));
       if (!hasAccess) {
         return res.status(403).json({ error: 'Access denied' });
@@ -101,21 +106,21 @@ export const authUserAdmin = (allowedRoles = []) =>async (req, res, next) => {
     }
 
     return res.status(403).json({ error: 'Access denied' });
-    
+
   } catch (error) {
     return res.status(401).json({ error: "Invalid or expired token" });
   }
 };
 
 
-export const checkAdminRoles = (allowedRoles=[]) => async (req, res, next) => {
+export const checkAdminRoles = (allowedRoles = []) => async (req, res, next) => {
   // check if admin from userType
-  if (req.userType !== 'admin'){
+  if (req.userType !== 'admin') {
     return res.status(403).json({ error: 'Access denied' });
   }
 
   // Nothing to check
-  if(allowedRoles.length === 0){
+  if (allowedRoles.length === 0) {
     return next();
   }
 
@@ -124,7 +129,7 @@ export const checkAdminRoles = (allowedRoles=[]) => async (req, res, next) => {
   try {
     const [roles] = await db.execute(
       'SELECT role_name FROM AdminRoles WHERE adminID = ?',
-      [adminID]  
+      [adminID]
     );
     const roleNames = roles.map(r => r.role_name);
 
@@ -134,7 +139,7 @@ export const checkAdminRoles = (allowedRoles=[]) => async (req, res, next) => {
     }
 
     next();
-    
+
   } catch (error) {
     logger.error(`Error checking roles adminID:${adminID}`, error);
     return res.status(500).json({ error: "Internal server error" });

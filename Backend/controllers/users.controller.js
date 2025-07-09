@@ -1,13 +1,15 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import crypto from 'crypto';
-import { db } from '../index.js';
+import { db} from '../index.js';
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
 import { deleteTempImg } from "../utils/deleteTempImg.js";
+import { blacklistToken } from "../utils/blacklistToken.js";
 import { razorpay } from "../utils/razorpay.utils.js";
 import { generateTokens } from "../utils/jwt.utils.js";
 import { validEmail, validID, validPassword, validPhoneNumber, validString, validStringChar, validWholeNo } from "../utils/validators.utils.js";
+import logger from "../utils/logger.js";
 
 // User Routes ------------------------------------------------------------------------------------
 
@@ -186,13 +188,23 @@ export const refreshUser = async (req, res) => {
   }
 };
 
+
+
+
 export const logoutUser = async (req, res) => {
   const refreshToken = req.cookies.refreshToken;
+  const authHeader = req.header("Authorization");
 
-  if (!refreshToken) return res.status(401).json({ error: "No refresh token provided" });
+  if (!refreshToken || !authHeader) {
+    return res.status(401).json({ error: "Tokens missing" });
+  }
+
+  const accessToken = authHeader.split(' ')[1];
 
   try {
-    // Remove refresh token from DB
+
+    await blacklistToken(accessToken); 
+
     await db.execute("UPDATE Users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
 
     res.clearCookie('accessToken', {
@@ -207,11 +219,14 @@ export const logoutUser = async (req, res) => {
     });
 
     res.status(200).json({ message: "Logged out successfully" });
+
   } catch (error) {
-    console.error('Error logout user:', error);
+    logger.error('Error logging out user:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
+};
+
+
 
 export const getAllUsers = async (req, res) => {
   try {
