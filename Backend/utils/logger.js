@@ -15,8 +15,20 @@ import DailyRotateFile from "winston-daily-rotate-file";
 // logger.warn("this is a warning");
 // logger.error("an error message");
 
-const myFormat = format.printf(({ level, message, timestamp }) => {
-  return `[${timestamp}] [${level}]: ${message}`;
+const myFormat = format.printf(({ level, message, timestamp, stack, ...meta }) => {
+  const context = meta.context ? JSON.stringify(meta.context, null, 2) : '';
+  const stackTrace = stack || meta.stack || '';
+
+  // Construct log 
+  let log = `[${timestamp}] [${level}]: ${message}`;
+  if(context){
+    log = log + `\nContext:\n${context}`;
+  }
+  if(stackTrace){
+    log = log + `\nStack:\n${stackTrace}`
+  }
+
+  return log;
 });
 
 const logger = createLogger({

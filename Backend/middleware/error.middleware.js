@@ -17,16 +17,21 @@ const errorHandler = (error, req, res, next) => {
     if(error.status === 'fail'){
       return res.status(error.statusCode).json({ error: error.message })
     }
-
-    // 500 internal server errors of AppError
-    logger.error(error);
-    return res.status(500).json({ error: 'Internal server error' });
   }
+
+  const context = {
+    method: req.method,
+    url: req.originalUrl,
+    ...(error.context || {})
+  };
 
   // Fallback for other errors
   // First log the error using our logger so that we can see it in the logs
-  logger.error(error);
-  res.status(500).json({ error: 'Internal server error'});
+  logger.error(error.message, {
+    context,
+    stack: error.stack
+  });
+  res.status(500).json({ error: 'Internal server error' });
 };
 
 export default errorHandler;

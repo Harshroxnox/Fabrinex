@@ -5,33 +5,34 @@ import { generateUniqueBarcode } from '../utils/generateBarcode.js';
 import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview, validBoolean } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
 import logger from '../utils/logger.js';
+import AppError from '../errors/appError.js';
 
 // product controller 
 
-export const createProduct = async (req, res) => {
+export const createProduct = async (req, res, next) => {
   const name = validString(req.body.name, 3, 100);
   const { description, category } = req.body;
 
-  // check if name is valid
-  if(name === null){
-    return res.status(400).json({error :" Name must be a valid string between 3 to 100 chars"})
-  }
-
-  // check if category is valid
-  if (!constants.PRODUCT_CATEGORIES.includes(category)) {
-    return res.status(400).json({
-      error: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`
-    });
-  }
-
-  // check if description is valid JSON object
-  if (!(typeof description === 'object' && description !== null && !Array.isArray(description))) {
-    return res.status(400).json({
-      error: "Description must be a valid JSON Object"
-    });
-  }
-
   try {
+    // check if name is valid
+    if(name === null){
+      throw new AppError(400, "Name must be a valid string between 3 to 100 chars");
+    }
+
+    // check if category is valid
+    if (!constants.PRODUCT_CATEGORIES.includes(category)) {
+      return res.status(400).json({
+        error: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`
+      });
+    }
+
+    // check if description is valid JSON object
+    if (!(typeof description === 'object' && description !== null && !Array.isArray(description))) {
+      return res.status(400).json({
+        error: "Description must be a valid JSON Object"
+      });
+    }
+
     const [result] = await db.execute(
       "INSERT INTO Products (name, description, category) VALUES (?, ?, ?)",
       [name, description, category]
@@ -39,8 +40,7 @@ export const createProduct = async (req, res) => {
     res.status(201).json({ message: "Product created", productID: result.insertId });
 
   } catch (error) {
-    logger.error('Error creating product:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
