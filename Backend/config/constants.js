@@ -41,5 +41,7 @@ export const constants = {
     'marketing'
   ],
 
-  SHOP_LOCATION: "Noor Store, Jammu"
+  SHOP_LOCATION: "Noor Store, Jammu",
+
+  MAX_LIMIT: 50
 };

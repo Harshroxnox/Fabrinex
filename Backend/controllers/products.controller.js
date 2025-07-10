@@ -2,7 +2,7 @@ import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode } from '../utils/generateBarcode.js';
-import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview, validBoolean } from '../utils/validators.utils.js';
+import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
 import logger from '../utils/logger.js';
 import AppError from '../errors/appError.js';
@@ -142,6 +142,10 @@ export const getProductById = async (req, res, next) => {
       WHERE productID = ? AND is_active = TRUE
     `,[productID]);
 
+    if (variants.length === 0){
+      throw new AppError(400, "Product has no variants");
+    }
+
     product.variants = variants;
     res.status(200).json({
       message: "Fetched product successfully",
@@ -156,7 +160,19 @@ export const getProductById = async (req, res, next) => {
 
 
 export const getAllProducts = async (req, res, next) => {
+  const limit = validID(req.query.limit);
+  const page = validID(req.query.page);
+
   try {
+    if (limit === null || limit > constants.MAX_LIMIT){
+      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
+    }
+
+    if(page === null){
+      throw new AppError(400, "Page must be a valid number");
+    }
+
+    const offset = (page - 1) * limit;
     const [products] = await db.execute(`
       SELECT 
         p.productID, 
@@ -178,9 +194,25 @@ export const getAllProducts = async (req, res, next) => {
           ORDER BY variantID ASC LIMIT 1
         )
       WHERE p.is_active = TRUE
+      ORDER BY p.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [`${limit}`, `${offset}`]);
+
+    // Get the count of total no of products
+    const [count] = await db.execute(`
+      SELECT COUNT(*) AS count
+      FROM Products p
+      JOIN ProductVariants pv ON pv.variantID = (
+        SELECT variantID FROM ProductVariants 
+        WHERE productID = p.productID AND is_active = TRUE
+        LIMIT 1
+      )
+      WHERE p.is_active = TRUE
     `);
+
     res.status(200).json({
       message: "All products fetched successfully",
+      total: count[0].count,
       products
     });
   } catch (error) {
@@ -204,18 +236,17 @@ export const deleteProduct = async (req, res, next) => {
     // Delete the product i.e set inactive
     const [result] = await conn.execute("UPDATE Products SET is_active = FALSE WHERE productID = ? AND is_active = TRUE", [productID]);
     if (result.affectedRows === 0){
-      await conn.rollback();
-      throw new AppError(400, "Product not found");
+      throw new AppError(404, "Product not found");
     } 
 
     // Fetch the cloudinary_id of secondary imgs of all active variants of given product
     const [secondaryImgs] = await conn.execute(`
-      SELECT 
-        vi.cloudinary_id 
-      FROM 
-        VariantImages vi 
-      JOIN  
-        ProductVariants pv 
+      SELECT
+        vi.cloudinary_id
+      FROM
+        VariantImages vi
+      JOIN
+        ProductVariants pv
       ON pv.variantID = vi.variantID
       WHERE pv.productID = ? AND pv.is_active = TRUE
     `, [productID]);
@@ -227,7 +258,7 @@ export const deleteProduct = async (req, res, next) => {
       WHERE pv.productID = ? AND pv.is_active = TRUE
     `, [productID]);
 
-    // Delete the variants i.e set inactive
+    // Delete all the active variants i.e set inactive
     await conn.execute("UPDATE ProductVariants SET is_active = FALSE WHERE productID = ? AND is_active = TRUE", [productID]);
 
     await conn.commit();
@@ -242,7 +273,7 @@ export const deleteProduct = async (req, res, next) => {
     })
 
   } catch (error) {
-    await conn.rollback();
+    if (conn) await conn.rollback();
     error.context = { productID };
     next(error);
 
@@ -278,25 +309,35 @@ export const reviewProduct = async (req, res, next) => {
       }
     }
 
-    // Make connection for transaction
-    conn = await db.getConnection();
-    await conn.beginTransaction();
+    // Check if product is active and has at least one active variant
+    const [validProduct] = await db.execute(`
+      SELECT 1
+      FROM Products p
+      WHERE p.productID = ?
+        AND p.is_active = TRUE
+        AND EXISTS (
+          SELECT 1 FROM ProductVariants pv
+          WHERE pv.productID = p.productID
+            AND pv.is_active = TRUE
+        )
+      LIMIT 1
+    `, [productID]);
 
-    // Check if user has purchased any variant of the product and the product must be active
-    const [rows] = await conn.execute(`
+    if (validProduct.length === 0){
+      throw new AppError(400, "Product is not active or has no active variants");
+    }
+
+    // Check if user has purchased any variant of the product in the past
+    const [rows] = await db.execute(`
       SELECT 1
       FROM Orders o
       JOIN OrderItems oi ON o.orderID = oi.orderID
       JOIN ProductVariants pv ON oi.variantID = pv.variantID
-      JOIN Products p ON pv.productID = p.productID
-      WHERE o.userID = ?
-        AND p.productID = ?
-        AND p.is_active = TRUE
+      WHERE o.userID = ? AND pv.productID = ?
       LIMIT 1
     `, [userID, productID]);
 
     if (rows.length === 0) {
-      await conn.rollback();
       throw new AppError(
         403, 
         "You can only review for products you purchased and are still active." 
@@ -304,18 +345,21 @@ export const reviewProduct = async (req, res, next) => {
     }
 
     // Check if the user has already reviewed this product for this order
-    const [existingReview] = await conn.execute(
+    const [existingReview] = await db.execute(
       "SELECT reviewID FROM Reviews WHERE userID = ? AND productID = ?",
       [userID, productID]
     );
 
     if (existingReview.length > 0) {
-      await conn.rollback();
       throw new AppError(
         400, 
         "You have already reviewed this product. Go to edit review if you want to change review."
       );
     }
+
+    // Make connection for transaction
+    conn = await db.getConnection();
+    await conn.beginTransaction();
 
     // Insert the new review
     await conn.execute(
@@ -362,7 +406,7 @@ export const updateReview = async (req, res, next) => {
       throw new AppError(400, "Rating must be a number between 1 and 5");
     }
 
-    // If review exists check if valid
+    // If rawReview field exists check if valid
     let review = null;
     if (rawReview) {
       review = validReview(rawReview, 4, 750);
@@ -371,14 +415,22 @@ export const updateReview = async (req, res, next) => {
       }
     }
 
-    // Check if product exists
-    const [activeProduct] = await db.execute(
-      "SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE",
-      [productID]
-    );
-    
-    if (activeProduct.length === 0){
-      throw new AppError(404, "No product found.");
+    // Check if product is active and has at least one active variant
+    const [validProduct] = await db.execute(`
+      SELECT 1
+      FROM Products p
+      WHERE p.productID = ?
+        AND p.is_active = TRUE
+        AND EXISTS (
+          SELECT 1 FROM ProductVariants pv
+          WHERE pv.productID = p.productID
+            AND pv.is_active = TRUE
+        )
+      LIMIT 1
+    `, [productID]);
+
+    if (validProduct.length === 0){
+      throw new AppError(400, "Product is not active or has no active variants");
     }
     
     // Check if the user has already reviewed this product
@@ -439,14 +491,22 @@ export const deleteReview = async (req, res, next) => {
       throw new AppError(400, "Invalid productID");
     }
 
-    // Check if product exists
-    const [activeProduct] = await db.execute(
-      "SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE",
-      [productID]
-    );
-    
-    if (activeProduct.length === 0){
-      throw new AppError(404, "No product found.");
+    // Check if product is active and has at least one active variant
+    const [validProduct] = await db.execute(`
+      SELECT 1
+      FROM Products p
+      WHERE p.productID = ?
+        AND p.is_active = TRUE
+        AND EXISTS (
+          SELECT 1 FROM ProductVariants pv
+          WHERE pv.productID = p.productID
+            AND pv.is_active = TRUE
+        )
+      LIMIT 1
+    `, [productID]);
+
+    if (validProduct.length === 0){
+      throw new AppError(400, "Product is not active or has no active variants");
     }
 
     // Check if the user has reviewed this product
@@ -530,6 +590,15 @@ export const createVariant = async (req, res, next) => {
 
     if (!mainImgPath) {
       throw new AppError(400, "Main image not provided");
+    }
+
+    // Check if product is active
+    const [activeProduct] = await db.execute(`
+      SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE
+    `, [productID]);
+
+    if (activeProduct.length === 0){
+      throw new AppError(404, "No product found");
     }
 
     // UPLOAD IMAGE 
@@ -708,7 +777,12 @@ export const getVariantsByProduct = async (req, res, next) => {
     const [variants] = await db.execute(`
       SELECT variantID, color, size, price, main_image, discount 
       FROM ProductVariants WHERE productID = ? AND is_active = TRUE
+      ORDER BY created_at DESC
     `, [productID]);
+
+    if (variants.length === 0){
+      throw new AppError(404, "No variants found for this product");
+    }
 
     res.status(200).json({
       message: "Fetched all variants of given product successfully",
@@ -722,7 +796,19 @@ export const getVariantsByProduct = async (req, res, next) => {
 
 
 export const getAllVariants = async (req, res, next) => {
+  const limit = validID(req.query.limit);
+  const page = validID(req.query.page);
+
   try {
+    if (limit === null || limit > constants.MAX_LIMIT){
+      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
+    }
+
+    if(page === null){
+      throw new AppError(400, "Page must be a valid number");
+    }
+
+    const offset = (page - 1) * limit;
     const [variants] = await db.execute(`
       SELECT 
         pv.variantID, 
@@ -736,10 +822,19 @@ export const getAllVariants = async (req, res, next) => {
         p.category
       FROM ProductVariants pv
       JOIN Products p ON pv.productID = p.productID
-      WHERE p.is_active = TRUE AND pv.is_active = TRUE
+      WHERE pv.is_active = TRUE
+      ORDER BY pv.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [`${limit}`, `${offset}`]);
+
+    // Get the total count of variants
+    const [count] = await db.execute(`
+      SELECT COUNT(*) AS count FROM ProductVariants WHERE is_active = TRUE
     `);
+
     res.status(200).json({
       message: "Fetched all variants successfully",
+      total: count[0].count,
       variants
     });
   } catch (error) {
@@ -759,7 +854,13 @@ export const getVariantById = async (req, res, next) => {
     // Get variant + product info
     const [variants] = await db.execute(`
       SELECT 
-        pv.*, 
+        pv.variantID, 
+        pv.productID, 
+        pv.color, 
+        pv.size, 
+        pv.price, 
+        pv.main_image, 
+        pv.discount, 
         p.name AS product_name, 
         p.category
       FROM ProductVariants pv

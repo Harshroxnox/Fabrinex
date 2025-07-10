@@ -83,7 +83,8 @@ CREATE TABLE Products (
     category VARCHAR(50) NOT NULL,
     cumulative_rating DECIMAL(10,2) DEFAULT 0.00,
     people_rated INT DEFAULT 0 CHECK (people_rated >= 0),
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE ProductVariants (
@@ -98,6 +99,7 @@ CREATE TABLE ProductVariants (
     discount DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (discount >= 0 AND discount < 100),
     stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
 );
 
@@ -205,7 +207,6 @@ CREATE TABLE VariantImages (
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
 
-
 CREATE TABLE MainBanners (
   bannerID INT AUTO_INCREMENT PRIMARY KEY,
   image_url VARCHAR(500) NOT NULL,
@@ -216,7 +217,6 @@ CREATE TABLE MainBanners (
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
 
 CREATE TABLE SideBanners (
   bannerID INT AUTO_INCREMENT PRIMARY KEY,
