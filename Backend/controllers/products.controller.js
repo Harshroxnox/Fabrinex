@@ -21,16 +21,15 @@ export const createProduct = async (req, res, next) => {
 
     // check if category is valid
     if (!constants.PRODUCT_CATEGORIES.includes(category)) {
-      return res.status(400).json({
-        error: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`
-      });
+      throw new AppError(
+        400,
+        `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}` 
+      );
     }
 
     // check if description is valid JSON object
     if (!(typeof description === 'object' && description !== null && !Array.isArray(description))) {
-      return res.status(400).json({
-        error: "Description must be a valid JSON Object"
-      });
+      throw new AppError(400, "Description must be a valid JSON Object");
     }
 
     const [result] = await db.execute(
@@ -45,52 +44,51 @@ export const createProduct = async (req, res, next) => {
 };
 
 
-export const updateProduct = async (req, res) => {
+export const updateProduct = async (req, res, next) => {
   const productID = validID(req.params.productID);
   const rawName = req.body.name
   const { description, category } = req.body;
   const fields = {};
 
-  // check if productID is valid
-  if (productID === null) {
-    return res.status(400).json({ error: "Invalid productID" });
-  }
-
-  // If name exists check if it is valid
-  if(rawName){
-    const name = validString(rawName);
-    if(name === null){
-      return res.status(400).json({error :" Name must be a valid string between 3 to 100 chars"})
-    }
-    fields.name = name;
-  }
-
-  // If category exists check if it is valid
-  if(category){
-    if (!constants.PRODUCT_CATEGORIES.includes(category)) {
-      return res.status(400).json({
-        error: `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}`
-      });
-    }
-    fields.category = category;
-  }
-
-  // If description exists check if it is valid
-  if(description){
-    if (!(typeof description === 'object' && description !== null && !Array.isArray(description))) {
-      return res.status(400).json({
-        error: "Description must be a valid JSON Object"
-      });
-    }
-    fields.description = description;
-  }
-
-  // If nothing to update return
-  if (Object.keys(fields).length === 0) {
-    return res.status(400).json({ error: "No valid fields provided for update" });
-  }
-
   try {
+    // check if productID is valid
+    if (productID === null) {
+      throw new AppError(400, "Invalid productID");
+    }
+
+    // If name exists check if it is valid
+    if(rawName){
+      const name = validString(rawName, 3, 100);
+      if(name === null){
+        throw new AppError(400, "Name must be a valid string between 3 to 100 chars");
+      }
+      fields.name = name;
+    }
+
+    // If category exists check if it is valid
+    if(category){
+      if (!constants.PRODUCT_CATEGORIES.includes(category)) {
+        throw new AppError(
+          400,
+          `Invalid category. Must be one of: ${constants.PRODUCT_CATEGORIES.join(', ')}` 
+        );
+      }
+      fields.category = category;
+    }
+
+    // If description exists check if it is valid
+    if(description){
+      if (!(typeof description === 'object' && description !== null && !Array.isArray(description))) {
+        throw new AppError(400, "Description must be a valid JSON Object");
+      }
+      fields.description = description;
+    }
+
+    // If nothing to update return
+    if (Object.keys(fields).length === 0) {
+      throw new AppError(400, "No valid fields provided for update");
+    }
+ 
     // Construct update
     const setClause = Object.keys(fields).map(key => `${key} = ?`).join(', ');
     const values = Object.values(fields);
@@ -101,24 +99,24 @@ export const updateProduct = async (req, res) => {
       `UPDATE Products SET ${setClause} WHERE productID = ? AND is_active = TRUE`,
       values
     );
-    if (result.affectedRows === 0) return res.status(404).json({ error: "Product not found" });
+    if (result.affectedRows === 0) throw new AppError(404, "Product not found");
     res.status(200).json({ message: "Product updated", productID });
 
   } catch (error) {
-    logger.error(`Error updating productID:${productID} `, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { productID };
+    next(error);
   }
 };
 
 
-export const getProductById = async (req, res) => {
+export const getProductById = async (req, res, next) => {
   const productID = validID(req.params.productID);
-
-  if (productID === null) {
-    return res.status(400).json({ error: "Invalid productID" });
-  }
-
+  
   try {
+    if (productID === null) {
+      throw new AppError(400, "Invalid productID");
+    }
+  
     const [products] = await db.execute(`
       SELECT 
         name,
@@ -133,7 +131,7 @@ export const getProductById = async (req, res) => {
     `, [productID]);
 
     // return if product not found
-    if (products.length === 0) return res.status(404).json({ error: "Product not found" });
+    if (products.length === 0) throw new AppError(404, "Product not found");
 
     const product = products[0];
 
@@ -151,13 +149,13 @@ export const getProductById = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error(`Error fetching productID:${productID} `, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { productID };
+    next(error);
   }
 };
 
 
-export const getAllProducts = async (req, res) => {
+export const getAllProducts = async (req, res, next) => {
   try {
     const [products] = await db.execute(`
       SELECT 
@@ -186,21 +184,20 @@ export const getAllProducts = async (req, res) => {
       products
     });
   } catch (error) {
-    logger.error('Error fetching all products:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
 
-export const deleteProduct = async (req, res) => {
+export const deleteProduct = async (req, res, next) => {
   const productID = validID(req.params.productID);
   let conn;
 
-  if (productID === null) {
-    return res.status(400).json({ error: "Invalid productID" })
-  }
-
   try {
+    if (productID === null) {
+      throw new AppError(400, "Invalid productID");
+    }
+
     conn = await db.getConnection();
     await conn.beginTransaction();
     
@@ -208,7 +205,7 @@ export const deleteProduct = async (req, res) => {
     const [result] = await conn.execute("UPDATE Products SET is_active = FALSE WHERE productID = ? AND is_active = TRUE", [productID]);
     if (result.affectedRows === 0){
       await conn.rollback();
-      return res.status(404).json({ error: "Product not found" });
+      throw new AppError(400, "Product not found");
     } 
 
     // Fetch the cloudinary_id of secondary imgs of all active variants of given product
@@ -246,8 +243,8 @@ export const deleteProduct = async (req, res) => {
 
   } catch (error) {
     await conn.rollback();
-    logger.error(`Error deleting productID:${productID}`, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { productID };
+    next(error);
 
   } finally {
     if (conn) conn.release();
@@ -255,32 +252,32 @@ export const deleteProduct = async (req, res) => {
 };
 
 
-export const reviewProduct = async (req, res) => {
+export const reviewProduct = async (req, res, next) => {
   const rating = validDecimal(req.body.rating);
   const productID = validID(req.params.productID);
   const rawReview = req.body.review; // review may be null also
   const userID = req.userID;
   let conn;
 
-  if (productID === null) {
-    return res.status(400).json({ error: "Invalid productID" });
-  }
-
-  // Validate rating (must be a number between 1 and 5 with up to 2 decimal places)
-  if (rating === null || rating < 1 || rating > 5) {
-    return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
-  }
-
-  // If review exists check if valid
-  let review = null;
-  if (rawReview) {
-    review = validReview(rawReview, 4, 750);
-    if (review === null) {
-      return res.status(400).json({ error: "Review must be a valid string between 4 and 750 chars" });
-    }
-  }
-
   try {
+    if (productID === null) {
+      throw new AppError(400, "Invalid productID");
+    }
+
+    // Validate rating (must be a number between 1 and 5 with up to 2 decimal places)
+    if (rating === null || rating < 1 || rating > 5) {
+      throw new AppError(400, "Rating must be a number between 1 and 5");
+    }
+
+    // If review exists check if valid
+    let review = null;
+    if (rawReview) {
+      review = validReview(rawReview, 4, 750);
+      if (review === null) {
+        throw new AppError(400, "Review must be a valid string between 4 and 750 chars" );
+      }
+    }
+
     // Make connection for transaction
     conn = await db.getConnection();
     await conn.beginTransaction();
@@ -300,9 +297,10 @@ export const reviewProduct = async (req, res) => {
 
     if (rows.length === 0) {
       await conn.rollback();
-      return res.status(403).json({ 
-        error: "You can only review for products you purchased and are still active." 
-      });
+      throw new AppError(
+        403, 
+        "You can only review for products you purchased and are still active." 
+      );
     }
 
     // Check if the user has already reviewed this product for this order
@@ -313,9 +311,10 @@ export const reviewProduct = async (req, res) => {
 
     if (existingReview.length > 0) {
       await conn.rollback();
-      return res.status(400).json({
-        error: "You have already reviewed this product. Go to edit review if you want to change review."
-      });
+      throw new AppError(
+        400, 
+        "You have already reviewed this product. Go to edit review if you want to change review."
+      );
     }
 
     // Insert the new review
@@ -336,8 +335,8 @@ export const reviewProduct = async (req, res) => {
   } catch (error) {
     // rollback database changes
     if (conn) await conn.rollback();
-    logger.error(`Error reviewing productID:${productID} userID:${userID} `, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { productID, userID };
+    next(error);
 
   } finally {
     if (conn) conn.release(); // release connection
@@ -345,7 +344,7 @@ export const reviewProduct = async (req, res) => {
 };
 
 
-export const updateReview = async (req, res) => {
+export const updateReview = async (req, res, next) => {
   // rating is required; review is optional (only updated if non-empty)
   const rating = validDecimal(req.body.rating);
   const productID = validID(req.params.productID);
@@ -353,25 +352,25 @@ export const updateReview = async (req, res) => {
   const userID = req.userID;
   let conn;
 
-  if (productID === null) {
-    return res.status(400).json({ error: "Invalid productID" });
-  }
-
-  // Validate rating (must be a number between 1 and 5 with up to 2 decimal places)
-  if (rating === null || rating < 1 || rating > 5) {
-    return res.status(400).json({ error: "Rating must be a number between 1 and 5" });
-  }
-
-  // If review exists check if valid
-  let review = null;
-  if (rawReview) {
-    review = validReview(rawReview, 4, 750);
-    if (review === null) {
-      return res.status(400).json({ error: "Review must be a valid string between 4 and 750 chars" });
-    }
-  }
-
   try {
+    if (productID === null) {
+      throw new AppError(400, "Invalid productID");
+    }
+
+    // Validate rating (must be a number between 1 and 5 with up to 2 decimal places)
+    if (rating === null || rating < 1 || rating > 5) {
+      throw new AppError(400, "Rating must be a number between 1 and 5");
+    }
+
+    // If review exists check if valid
+    let review = null;
+    if (rawReview) {
+      review = validReview(rawReview, 4, 750);
+      if (review === null) {
+        throw new AppError(400, "Review must be a valid string between 4 and 750 chars");
+      }
+    }
+
     // Check if product exists
     const [activeProduct] = await db.execute(
       "SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE",
@@ -379,7 +378,7 @@ export const updateReview = async (req, res) => {
     );
     
     if (activeProduct.length === 0){
-      return res.status(404).json({ error: "No product found." });
+      throw new AppError(404, "No product found.");
     }
     
     // Check if the user has already reviewed this product
@@ -389,7 +388,7 @@ export const updateReview = async (req, res) => {
     );
 
     if (existingReview.length === 0) {
-      return res.status(404).json({ error: "No review found for this product." });
+      throw new AppError(404, "No review found for this product.");
     }
 
     // Make connection for transaction
@@ -421,8 +420,8 @@ export const updateReview = async (req, res) => {
   } catch (error) {
     // rollback database changes
     if (conn) await conn.rollback();
-    logger.error(`Error updating review productID:${productID} userID:${userID}`, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { productID, userID };
+    next(error);
 
   } finally {
     if (conn) conn.release(); // release connection
@@ -430,16 +429,16 @@ export const updateReview = async (req, res) => {
 };
 
 
-export const deleteReview = async (req, res) => {
+export const deleteReview = async (req, res, next) => {
   const userID = req.userID;
   const productID = validID(req.params.productID);
   let conn;
 
-  if (productID === null) {
-    return res.status(400).json({ error: "Invalid productID" });
-  }
-
   try {
+    if (productID === null) {
+      throw new AppError(400, "Invalid productID");
+    }
+
     // Check if product exists
     const [activeProduct] = await db.execute(
       "SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE",
@@ -447,7 +446,7 @@ export const deleteReview = async (req, res) => {
     );
     
     if (activeProduct.length === 0){
-      return res.status(404).json({ error: "No product found." });
+      throw new AppError(404, "No product found.");
     }
 
     // Check if the user has reviewed this product
@@ -457,7 +456,7 @@ export const deleteReview = async (req, res) => {
     );
 
     if (existingReview.length === 0) {
-      return res.status(404).json({ error: "No review found for this product." });
+      throw new AppError(404, "No review found for this product.");
     }
 
     // Make connection for transaction
@@ -483,8 +482,8 @@ export const deleteReview = async (req, res) => {
   } catch (error) {
     // rollback database changes
     if (conn) await conn.rollback();
-    logger.error(`Error deleting review productID:${productID} userID:${userID}`, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { productID, userID };
+    next(error);
 
   } finally {
     if (conn) conn.release(); // release connection
@@ -493,7 +492,7 @@ export const deleteReview = async (req, res) => {
 
 // Variant Controller 
 
-export const createVariant = async (req, res) => {
+export const createVariant = async (req, res, next) => {
   const productID = validID(req.params.productID);
   const color = validStringChar(req.body.color, 3, 50);
   const size = validString(req.body.size, 1, 20);
@@ -506,31 +505,31 @@ export const createVariant = async (req, res) => {
   try {
     // VALIDATIONS 
     if (productID === null) {
-      return res.status(400).json({ error: "Invalid productID" });
+      throw new AppError(400, "Invalid productID");
     }
 
     if (color === null) {
-      return res.status(400).json({ error: "Invalid color" });
+      throw new AppError(400, "Invalid color");
     }
 
     if (size === null) {
-      return res.status(400).json({ error: "Invalid size" });
+      throw new AppError(400, "Invalid size");
     }
 
     if (price === null || price <= 0) {
-      return res.status(400).json({ error: "Invalid price" });
+      throw new AppError(400, "Invalid price");
     }
 
     if (discount === null || discount < 0 || discount >= 100) {
-      return res.status(400).json({ error: "Invalid discount must be between 0 and 100" });
+      throw new AppError(400, "Invalid discount must be between 0 and 100");
     }
 
     if (stock === null) {
-      return res.status(400).json({ error: "Invalid stock" });
+      throw new AppError(400, "Invalid stock");
     }
 
     if (!mainImgPath) {
-      return res.status(400).json({ error: "Main image not provided" });
+      throw new AppError(400, "Main image not provided");
     }
 
     // UPLOAD IMAGE 
@@ -562,8 +561,8 @@ export const createVariant = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error(`Error creating variant productID:${productID} `, error);
-    res.status(500).json({ error: "Internal server error" });
+    error.context = { productID };
+    next(error);
 
     // Clean cloudinary image if needed
     if (cloudinaryID) {
@@ -583,7 +582,7 @@ export const createVariant = async (req, res) => {
 };
 
 
-export const updateVariant = async (req, res) => {
+export const updateVariant = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
   const priceRaw = req.body.price;
   const discountRaw = req.body.discount;
@@ -593,14 +592,14 @@ export const updateVariant = async (req, res) => {
 
   try {
     if (variantID === null) {
-      return res.status(400).json({ error: "Invalid variantID" });
+      throw new AppError(400, "Invalid variantID");
     }
 
     // Process and validate only if values are provided
     if (priceRaw) {
       const price = validDecimal(priceRaw);
       if (price === null || price <= 0) {
-        return res.status(400).json({ error: "Invalid price" });
+        throw new AppError(400, "Invalid price");
       }
       fields.price = price;
     }
@@ -608,7 +607,7 @@ export const updateVariant = async (req, res) => {
     if (discountRaw) {
       const discount = validDecimal(discountRaw);
       if (discount === null || discount < 0 || discount >= 100) {
-        return res.status(400).json({ error: "Invalid discount. Must be between 0 and 100." });
+        throw new AppError(400, "Invalid discount. Must be between 0 and 100.");
       }
       fields.discount = discount;
     }
@@ -616,7 +615,7 @@ export const updateVariant = async (req, res) => {
     if (stockRaw !== undefined) {
       const stock = validWholeNo(stockRaw);
       if (stock === null) {
-        return res.status(400).json({ error: "Invalid stock" });
+        throw new AppError(400, "Invalid stock");
       }
       fields.stock = stock;
     }
@@ -628,7 +627,7 @@ export const updateVariant = async (req, res) => {
     );
 
     if (variants.length === 0) {
-      return res.status(404).json({ error: 'Variant not found' });
+      throw new AppError(404, 'Variant not found');
     }
 
     // Handle image upload
@@ -638,14 +637,14 @@ export const updateVariant = async (req, res) => {
       const uploadedImage = await uploadOnCloudinary(mainImgPath);
       
       if (!uploadedImage?.url || !uploadedImage?.public_id) {
-        return res.status(500).json({ error: "Failed to upload image." });
+        throw new AppError(500, "Failed to upload image.");
       }      
       fields.main_image = uploadedImage.url;
       fields.cloudinary_id = uploadedImage.public_id;
     }
 
     if (Object.keys(fields).length === 0) {
-      return res.status(400).json({ error: "No valid fields provided for update" });
+      throw new AppError(400, "No valid fields provided for update");
     }
 
     // Construct update
@@ -668,8 +667,8 @@ export const updateVariant = async (req, res) => {
     }
 
   } catch (error) {
-    logger.error(`Error updating variantID:${variantID} `, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { variantID };
+    next(error);
 
     if (fields.cloudinary_id) {
       const cloudinaryID = fields.cloudinary_id;
@@ -688,21 +687,21 @@ export const updateVariant = async (req, res) => {
 };
 
 
-export const getVariantsByProduct = async (req, res) => {
+export const getVariantsByProduct = async (req, res, next) => {
   const productID = validID(req.params.productID);
 
-  if (productID === null) {
-    return res.status(400).json({ error: "Invalid productID" });
-  }
-
   try {
+    if (productID === null) {
+      throw new AppError(400, "Invalid productID");
+    }
+
     // Check if product exists
     const [activeProduct] = await db.execute(
       "SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE",
       [productID]
     );
     if (activeProduct.length === 0){
-      return res.status(404).json({ error: "No product found." });
+      throw new AppError(404, "No product found.");
     }
 
     // Fetch all active variants of the product 
@@ -716,13 +715,13 @@ export const getVariantsByProduct = async (req, res) => {
       variants
     });
   } catch (error) {
-    logger.error(`Error fetching variants of productID:${productID} `, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { productID };
+    next(error);
   }
 };
 
 
-export const getAllVariants = async (req, res) => {
+export const getAllVariants = async (req, res, next) => {
   try {
     const [variants] = await db.execute(`
       SELECT 
@@ -744,20 +743,19 @@ export const getAllVariants = async (req, res) => {
       variants
     });
   } catch (error) {
-    logger.error('Error fetching all variants:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
 
-export const getVariantById = async (req, res) => {
+export const getVariantById = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
 
-  if (variantID === null) {
-    return res.status(400).json({ error: "Invalid variantID" });
-  }
-
   try {
+    if (variantID === null) {
+      throw new AppError(400, "Invalid variantID");
+    }
+
     // Get variant + product info
     const [variants] = await db.execute(`
       SELECT 
@@ -771,7 +769,7 @@ export const getVariantById = async (req, res) => {
 
     // Return if variant not found
     if (variants.length === 0) {
-      return res.status(404).json({ error: "Variant not found." });
+      throw new AppError(404, "Variant not found.");
     }
     const variant = variants[0];
 
@@ -788,21 +786,21 @@ export const getVariantById = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error(`Error fetching variantID:${variantID} `, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { variantID };
+    next(error);
   }
 };
 
 
-export const deleteVariant = async (req, res) => {
+export const deleteVariant = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
   let conn;
 
-  if (variantID === null) {
-    return res.status(400).json({ error: "Invalid variantID" });
-  }
-
   try {
+    if (variantID === null) {
+      throw new AppError(400, "Invalid variantID");
+    }
+
     const [variant] = await db.execute(
       `SELECT 1 FROM ProductVariants WHERE variantID = ? AND is_active = TRUE`,
       [variantID]
@@ -810,7 +808,7 @@ export const deleteVariant = async (req, res) => {
 
     // If variant not found return 
     if (variant.length === 0) {
-      return res.status(404).json({ error: 'Variant not found' });
+      throw new AppError(404, 'Variant not found');
     }
 
     // Extracting secondary images cloudinaryIDs
@@ -843,27 +841,27 @@ export const deleteVariant = async (req, res) => {
 
   } catch (error) {
     if (conn) await conn.rollback();
-    logger.error(`Error deleting variantID:${variantID} `, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { variantID };
+    next(error);
+
   } finally {
     if (conn) conn.release(); // release connection
   }
 };
 
 
-export const uploadSecondaryImages = async (req, res) => {
+export const uploadSecondaryImages = async (req, res, next) => {
   const files = req.files;
   const variantID = validID(req.params.variantID);
   let conn;
 
   try {
-
     if (variantID === null) {
-      return res.status(400).json({ error: "Invalid variantID" });
+      throw new AppError(400, "Invalid variantID");
     }
 
     if (!files || files.length === 0) {
-      return res.status(400).json({ error: "No files were provided." });
+      throw new AppError(400, "No files were provided.");
     }
 
     // Check if variant exists
@@ -873,7 +871,7 @@ export const uploadSecondaryImages = async (req, res) => {
     );
 
     if (variants.length === 0) {
-      return res.status(404).json({ error: 'Variant not found' });
+      throw new AppError(404, 'Variant not found');
     }
 
     // To store public_id for possible rollback
@@ -909,9 +907,7 @@ export const uploadSecondaryImages = async (req, res) => {
   }
   catch (error) {
     if (conn) await conn.rollback();
-
-    console.error('Error uploading secondary images:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
 
     // Fire-and-forget Cloudinary cleanup
     uploadedImages.forEach((cloudinaryID) => {
@@ -933,14 +929,14 @@ export const uploadSecondaryImages = async (req, res) => {
 };
 
 
-export const deleteSecondaryImage = async (req, res) => {
+export const deleteSecondaryImage = async (req, res, next) => {
   const variantImageID = validID(req.params.variantImageID);
 
-  if (variantImageID === null) {
-    return res.status(400).json({ error: "Invalid variantImageID" });
-  }
-
   try {
+    if (variantImageID === null) {
+      throw new AppError(400, "Invalid variantImageID");
+    }
+
     // Get image info from DB
     const [rows] = await db.execute(
       "SELECT cloudinary_id FROM VariantImages WHERE variantImageID = ?",
@@ -948,7 +944,7 @@ export const deleteSecondaryImage = async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Image not found." });
+      throw new AppError(404, "Image not found.");
     }
 
     const cloudinaryID = rows[0].cloudinary_id;
@@ -967,7 +963,7 @@ export const deleteSecondaryImage = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error(`Error deleting variantImageID:${variantImageID} `, error);
-    res.status(500).json({ error: 'Internal server error' });
+    error.context = { variantImageID };
+    next(error);
   }
 };
