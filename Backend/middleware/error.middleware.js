@@ -1,5 +1,6 @@
 import { MulterError } from "multer";
-import logger from "../utils/logger";
+import AppError from "../errors/appError.js";
+import logger from "../utils/logger.js";
 
 const errorHandler = (error, req, res, next) => {
   // Error thrown by multer
@@ -8,6 +9,18 @@ const errorHandler = (error, req, res, next) => {
       return res.status(415).json({ error: "Only JPG, PNG, WEBP files are allowed" });
     }
     return res.status(413).json({ error: `File upload error: ${error.message}`});
+  }
+
+  // AppError
+  if (error instanceof AppError){
+    // 4XX status code errors
+    if(error.status === 'fail'){
+      return res.status(error.statusCode).json({ error: error.message })
+    }
+
+    // 500 internal server errors of AppError
+    logger.error(error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 
   // Fallback for other errors
