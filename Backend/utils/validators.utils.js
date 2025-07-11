@@ -1,4 +1,4 @@
-import { parsePhoneNumberFromString } from 'libphonenumber-js'
+import { isValidPhoneNumber } from 'libphonenumber-js'
 
 // This allows positive integer like 1, 2, 3, 4 ....... and so on
 export const validID = (num) => {
@@ -215,23 +215,11 @@ export const validPhoneNumber = (str) => {
   }
 
   str = str.trim();
-  if (!str.startsWith('+')) {
-    return null;
+  if(isValidPhoneNumber(str)){
+    if(str.startsWith("+91")){
+      return str;
+    }
   }
-
-  const phoneNumber = parsePhoneNumberFromString(str);
-  if (!phoneNumber) {
-    return null;
-  }
-
-  if (phoneNumber.country !== 'IN') {
-    return null;
-  }
-
-  if (phoneNumber.isValid()) {
-    return phoneNumber.number;
-  }
-
   return null;
 };
 
