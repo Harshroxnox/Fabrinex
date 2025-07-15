@@ -18,13 +18,19 @@
   </form>
 
   <form id="payment-form">
-    <label for="amount">Amount:</label>
-    <input type="number" id="amount" name="amount" required>
+    <label for="orderID">OrderID:</label>
+    <input type="number" id="orderID" name="orderID" required>
     <button type="button" onclick="payNow()">Pay Now</button>
   </form>
 
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
+    // function to read cookie
+    function getCookie(name) {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? match[2] : null;
+    }
+
     // login user
     async function loginUser(event) {
       event.preventDefault();
@@ -59,58 +65,70 @@
 
     // payment verification
     async function handleRazorpaySuccess(response) {
+      const razorpay_order_id = response.razorpay_order_id;
+      const razorpay_payment_id = response.razorpay_payment_id;
+      const razorpay_signature = response.razorpay_signature;
 
-      // Check if response.razorpay_token exists
-      if (response.razorpay_token) {
-        // Save the card for future use
-        // Fetch the card metadata using razorpay (last4, expiry, network) from Razorpay's /tokens/:token_id API
-        // Here we will call the backend route /save-card giving card metadata and token 
-        console.log("card-saved");
-      } else {
-        // Payment was done via UPI, netbanking, etc.
-        console.log("No card token;");
+      console.log('Razorpay Payment ID:', response.razorpay_payment_id);
+      console.log('Razorpay Order ID:', response.razorpay_order_id);
+      console.log('Razorpay Signature:', response.razorpay_signature);
 
-        console.log('Payment successful!');
-        console.log('Razorpay Payment ID:', response.razorpay_payment_id);
-        console.log('Razorpay Order ID:', response.razorpay_order_id);
-        console.log('Razorpay Signature:', response.razorpay_signature);
-      }
-      // and then you would call the /verfiy route of payments
+      // and then you would call the /verfiy route of payments giving
+      // razorpay_payment_id
+      // razorpay_order_id
+      // razorpay_signature
+
+      // Create order by calling the backend server endpoint
+      const token = getCookie('accessToken');
+      const verify = await fetch('http://localhost:5000/api/v1/payments/verify', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+        body: JSON.stringify({ razorpay_order_id, razorpay_payment_id, razorpay_signature })
+      });
+
+      const verify_res = await verify.json();
+      console.log(verify_res);
     }
 
+    // razorpay checkout function
     async function payNow() {
       // This amount is in rupees
-      const amount = document.getElementById('amount').value;
+      const token = getCookie('accessToken');
+      const orderID = document.getElementById('orderID').value;
 
       // Create order by calling the backend server endpoint
       const response = await fetch('http://localhost:5000/api/v1/payments/create-order', {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         credentials: 'include',
-        body: JSON.stringify({ amount: amount, orderID: '12' })
+        body: JSON.stringify({ orderID: orderID })
       });
 
-      const order = await response.json();
+      const res = await response.json();
+      console.log(res);
+      const order = res.order;
+      const user = res.user;
 
       // Open Razorpay Checkout
       const options = {
-        key: 'rzp_test_ZP4qBfHrurJwdM', // Replace with your Razorpay key_id
-        amount: order.amount, // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+        key: res.key, // Replace with your Razorpay key_id
+        amount: order.amount, // from backend. Hence, 50000 refers to 50000 paise
         currency: 'INR',
-        method: 'card,upi,netbanking,wallet', // ✅ Only instant methods
         name: 'Noor Shop',
         description: 'Test Transaction',
-        tokenization: {
-          enabled: true // ✅ Will work only if user selects Card
-        },
         order_id: order.id, // This is the order_id created in the backend
         handler: handleRazorpaySuccess,
-        prefill: {
-          name: 'Gaurav Kumar',
-          email: 'gaurav.kumar@example.com',
-          contact: '9999999999'
+        prefill: { // get name, email, contact from backend of user
+          name: user.name, 
+          email: user.email,
+          contact: user.contact
         },
         theme: {
           color: '#F37254'

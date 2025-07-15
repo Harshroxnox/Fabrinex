@@ -118,8 +118,12 @@ export const validString = (str, minLen, maxLen) => {
 
 // This can be used for numbers that are strings like phone_no, whatsapp_no, pincode etc
 export const validStringNum = (str, minLen, maxLen) => {
-  if (typeof str !== 'string') {
+  if (typeof str !== 'string' && typeof str !== 'number') {
     return null;
+  }
+
+  if(typeof str === 'number'){
+    str = String(str);
   }
 
   str = str.trim();

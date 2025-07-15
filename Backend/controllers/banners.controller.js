@@ -3,12 +3,13 @@ import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js
 import logger from '../utils/logger.js';
 import { validID, validBoolean, validWholeNo, validString, validURL } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
+import AppError from '../errors/appError.js';
 
 // Main Banner Route ----------------------------------------------------------------------------
 
-export const addMainBanner = async (req, res) => {
-  let title = req.body.title;
-  let redirect_url = req.body.redirect_url;
+export const addMainBanner = async (req, res, next) => {
+  let title = req.body.title; // optional
+  let redirect_url = req.body.redirect_url;  // optional
   const bannerPath = req.file ? req.file.path : null;
   const priority = validWholeNo(req.body.priority);
   const is_active = validBoolean(req.body.is_active);
@@ -18,23 +19,21 @@ export const addMainBanner = async (req, res) => {
   try {
     // Validations
     if (is_active === null) {
-      return res.status(400).json({
-        error: "Give a valid boolean to tell whether banner is active or not",
-      });
+      throw new AppError(400, "Give a valid boolean to tell whether banner is active or not");
     }
 
     if (priority === null) {
-      return res.status(400).json({ error: "Invalid priority" });
+      throw new AppError(400, "Invalid priority");
     }
 
     if (!bannerPath) {
-      return res.status(400).json({ error: "Banner image is required" });
+      throw new AppError(400, "Banner image is required");
     }
 
     if (title) {
       title = validString(title);
       if(title === null){
-        return res.status(400).json({ error: "Title must be a valid string" });
+        throw new AppError(400, "Title must be a valid string");
       }
     } else {
       title = null;
@@ -43,7 +42,7 @@ export const addMainBanner = async (req, res) => {
     if (redirect_url) {
       redirect_url = validURL(redirect_url);
       if(redirect_url === null){
-        return res.status(400).json({ error: "Redirect URL must be a valid URL" });
+        throw new AppError(400, "Redirect URL must be a valid URL");
       }
     } else {
       redirect_url = null;
@@ -59,17 +58,20 @@ export const addMainBanner = async (req, res) => {
 
     // Priority shift if necessary
     // 1. Check if conflict exists
-    const [result] = await conn.execute("SELECT priority FROM MainBanners WHERE priority = ?", [priority])
+    const [result] = await conn.execute(
+      "SELECT priority FROM MainBanners WHERE priority = ?"
+    , [priority]);
+
     if (result.length !== 0){
       // 2. Lock all rows that may be shifted
-      const [lockRows] = await conn.execute(`
+      await conn.execute(`
         SELECT priority FROM MainBanners WHERE priority >= ? FOR UPDATE
       `,[priority]);
       
       // 3. Shift conflicting rows
       await conn.execute(`
         UPDATE MainBanners SET priority = priority + 1
-        WHERE priority >= ?
+        WHERE priority >= ? ORDER BY priority DESC
       `,[priority]);
     }
 
@@ -102,8 +104,7 @@ export const addMainBanner = async (req, res) => {
   } catch (error) {
     // Rollback if in transaction
     if (conn) await conn.rollback();
-    res.status(500).json({ error: "Internal server error" });
-    logger.error("Error adding banner:", error);
+    next(error);
 
     // Cleanup Cloudinary if needed
     if (cloudinaryID) {
@@ -123,7 +124,7 @@ export const addMainBanner = async (req, res) => {
 };
 
 
-export const updateMainBanner = async (req, res) => {
+export const updateMainBanner = async (req, res, next) => {
   const bannerID = validID(req.params.bannerID);
   let { title, redirect_url, priority, is_active } = req.body;
   const fields = {};
@@ -132,19 +133,19 @@ export const updateMainBanner = async (req, res) => {
   try {
     // Validate inputs
     if (bannerID === null){
-      return res.status(400).json({ error: "Invalid bannerID" });
+      throw new AppError(400, "Invalid bannerID");
     }
 
     // check if banner exists
     const [checkBanner] = await db.execute("SELECT 1 FROM MainBanners WHERE bannerID = ?",[bannerID]);
     if(checkBanner.length === 0){
-      return res.status(400).json({ error: "No main banner found" });
+      throw new AppError(400, "No main banner found");
     }
 
     if (priority) {
       priority = validWholeNo(priority);
       if (priority === null) {
-        return res.status(400).json({ error: "Invalid priority" });
+        throw new AppError(400, "Invalid priority");
       }
       fields.priority = priority;
     }
@@ -152,7 +153,7 @@ export const updateMainBanner = async (req, res) => {
     if (is_active !== null && is_active !== undefined && is_active !== "") {
       is_active = validBoolean(is_active);
       if (is_active === null) {
-        return res.status(400).json({ error: "Invalid is_active boolean" });
+        throw new AppError(400, "Invalid is_active boolean");
       }
       fields.is_active = is_active;
 
@@ -163,7 +164,7 @@ export const updateMainBanner = async (req, res) => {
           WHERE is_active = TRUE AND bannerID != ?
         `, [bannerID]);
         if(otherActive[0].active_count === 0){
-          return res.status(400).json({ error: "Cannot disable the only active main banner" });
+          throw new AppError(400, "Cannot disable the only active main banner");
         }
       }
     }
@@ -171,7 +172,7 @@ export const updateMainBanner = async (req, res) => {
     if (title) {
       title = validString(title);
       if(title === null){
-        return res.status(400).json({ error: "Title must be a valid string" });
+        throw new AppError(400, "Title must be a valid string");
       }
       fields.title = title;
     }
@@ -179,13 +180,13 @@ export const updateMainBanner = async (req, res) => {
     if (redirect_url) {
       redirect_url = validURL(redirect_url);
       if(redirect_url === null){
-        return res.status(400).json({ error: "Redirect URL must be a valid URL" });
+        throw new AppError(400, "Redirect URL must be a valid URL");
       }
       fields.redirect_url = redirect_url;
     }
 
     if (Object.keys(fields).length === 0) {
-      return res.status(400).json({ error: "No valid fields provided for update" });
+      throw new AppError(400, "No valid fields provided for update");
     }
 
     // Begin transaction
@@ -212,7 +213,7 @@ export const updateMainBanner = async (req, res) => {
 
         await conn.execute(`
           UPDATE MainBanners SET priority = priority + 1
-          WHERE priority >= ?
+          WHERE priority >= ? ORDER BY priority DESC
         `,[fields.priority]);
       }
     }
@@ -232,8 +233,8 @@ export const updateMainBanner = async (req, res) => {
 
   } catch (error) {
     if (conn) await conn.rollback();
-    res.status(500).json({ error: "Internal server error" });
-    logger.error(`Error updating main banner bannerID:${bannerID} `, error);
+    error.context = { bannerID };
+    next(error);
     
   } finally {
     if (conn) conn.release();
@@ -243,7 +244,7 @@ export const updateMainBanner = async (req, res) => {
 
 // Side Banner Controllers --------------------------------------------------------------------------
 
-export const addSideBanner = async (req, res) => {
+export const addSideBanner = async (req, res, next) => {
   let title = req.body.title; // optional
   let redirect_url = req.body.redirect_url; // optional
   const bannerPath = req.file ? req.file.path : null; // required
@@ -254,18 +255,18 @@ export const addSideBanner = async (req, res) => {
   try {
     // Validations
     if (!bannerPath) {
-      return res.status(400).json({ error: "Banner image is required" });
+      throw new AppError(400, "Banner image is required");
     }
 
     // Validate is_active
     if (is_active === null) {
-      return res.status(400).json({ error: "is_active must be true or false" });
+      throw new AppError(400, "is_active must be true or false");
     }
 
     if (title) {
       title = validString(title);
       if(title === null){
-        return res.status(400).json({ error: "Title must be a valid string" });
+        throw new AppError(400, "Title must be a valid string");
       }
     } else {
       title = null;
@@ -274,7 +275,7 @@ export const addSideBanner = async (req, res) => {
     if (redirect_url) {
       redirect_url = validURL(redirect_url);
       if(redirect_url === null){
-        return res.status(400).json({ error: "Redirect URL must be a valid URL" });
+        throw new AppError(400, "Redirect URL must be a valid URL");
       }
     } else {
       redirect_url = null;
@@ -321,8 +322,7 @@ export const addSideBanner = async (req, res) => {
 
   } catch (error) {
     if (conn) await conn.rollback();
-    res.status(500).json({ error: "Internal server error" });
-    logger.error("Error adding side banner:", error);
+    next(error);
 
     if (cloudinaryID) {
       deleteFromCloudinary(cloudinaryID).catch((error) => {
@@ -341,48 +341,48 @@ export const addSideBanner = async (req, res) => {
 };
 
 
-export const updateSideBanner = async (req, res) => {
+export const updateSideBanner = async (req, res, next) => {
   const bannerID = validID(req.params.bannerID);
   let { title, redirect_url, is_active } = req.body;
   const fields = {};
   let conn;
 
-  if (bannerID === null) {
-    return res.status(400).json({ error: "Invalid bannerID" });
-  }
-
-  if (is_active !== null && is_active !== undefined && is_active !== "") {
-    is_active = validBoolean(is_active);
-    if (is_active === null) {
-      return res.status(400).json({ error: "Invalid is_active boolean" });
-    }
-    fields.is_active = is_active;
-  }
-
-  if (title) {
-    title = validString(title);
-    if(title === null){
-      return res.status(400).json({ error: "Title must be a valid string" });
-    }
-    fields.title = title;
-  }
-
-  if (redirect_url) {
-    redirect_url = validURL(redirect_url);
-    if(redirect_url === null){
-      return res.status(400).json({ error: "Redirect URL must be a valid URL" });
-    }
-    fields.redirect_url = redirect_url;
-  }
-
-  if (Object.keys(fields).length === 0) {
-    return res.status(400).json({ error: "No valid fields provided for update" });
-  }
-
   try {
+    if (bannerID === null) {
+      throw new AppError(400, "Invalid bannerID");
+    }
+
+    if (is_active !== null && is_active !== undefined && is_active !== "") {
+      is_active = validBoolean(is_active);
+      if (is_active === null) {
+        throw new AppError(400, "Invalid is_active boolean");
+      }
+      fields.is_active = is_active;
+    }
+
+    if (title) {
+      title = validString(title);
+      if(title === null){
+        throw new AppError(400, "Title must be a valid string");
+      }
+      fields.title = title;
+    }
+
+    if (redirect_url) {
+      redirect_url = validURL(redirect_url);
+      if(redirect_url === null){
+        throw new AppError(400, "Redirect URL must be a valid URL");
+      }
+      fields.redirect_url = redirect_url;
+    }
+
+    if (Object.keys(fields).length === 0) {
+      throw new AppError(400, "No valid fields provided for update");
+    }
+
     const [checkBanner] = await db.execute("SELECT 1 FROM SideBanners WHERE bannerID = ?",[bannerID]);
     if(checkBanner.length === 0){
-      return res.status(400).json({ error: "No side banner found" });
+      throw new AppError(404, "No side banner found");
     }
 
     conn = await db.getConnection();
@@ -401,23 +401,18 @@ export const updateSideBanner = async (req, res) => {
     const values = Object.values(fields);
     values.push(bannerID);
 
-    const [result] = await conn.execute(
+    await conn.execute(
       `UPDATE SideBanners SET ${setClause} WHERE bannerID = ?`,
       values
     );
-
-    if (result.affectedRows === 0) {
-      await conn.rollback();
-      return res.status(404).json({ error: "Banner not found or nothing updated" });
-    }
 
     await conn.commit();
     res.status(200).json({ message: "Side banner updated successfully" });
 
   } catch (error) {
     if (conn) await conn.rollback();
-    res.status(500).json({ error: "Internal server error" });
-    logger.error("Error updating side banner:", error.message);
+    error.context = { bannerID };
+    next(error);
 
   } finally {
     if (conn) conn.release();
@@ -426,26 +421,28 @@ export const updateSideBanner = async (req, res) => {
 
 
 // Common Controllers ------------------------------------------------------------------------------
-export const deleteBanner = async (req, res) => {
+
+export const deleteBanner = async (req, res, next) => {
   const bannerID  = validID(req.params.bannerID);
-  const type = req.query.type;
-
-  if (bannerID === null) {
-    return res.status(400).json({error:"Invalid BannerID"});
-  }
-
-  if (typeof type !== 'string'){
-    return res.status(400).json({ error: "Invalid type (main/side) required" });
-  }
-  type = type.trim();
-  type = type.toLowerCase();
-  if (type !== 'main' && type !== 'side') {
-    return res.status(400).json({ error: "Invalid type (main/side) required" });
-  }
-
-  const table = type === 'main' ? 'MainBanners' : 'SideBanners';
+  let type = req.query.type;
 
   try {
+    if (bannerID === null) {
+      throw new AppError(400, "Invalid BannerID");
+    }
+
+    // Type validation
+    if (typeof type !== 'string'){
+      throw new AppError(400, "Invalid type (main/side) required");
+    }
+    type = type.trim();
+    type = type.toLowerCase();
+    if (type !== 'main' && type !== 'side') {
+      throw new AppError(400, "Invalid type (main/side) required");
+    }
+
+    const table = type === 'main' ? 'MainBanners' : 'SideBanners';
+
     // Check if banner exists
     const [rows] = await db.execute(
       `SELECT cloudinary_id, is_active FROM ${table} WHERE bannerID = ?`,
@@ -453,7 +450,7 @@ export const deleteBanner = async (req, res) => {
     );
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Banner not found" });
+      throw new AppError(404, "Banner not found");
     }
 
     // Cannot delete the only active main banner
@@ -465,13 +462,13 @@ export const deleteBanner = async (req, res) => {
       `, [bannerID]);
 
       if (otherActive[0].active_count === 0) {
-        return res.status(400).json({ error: "Cannot delete the only active main banner" });
+        throw new AppError(400, "Cannot delete the only active main banner");
       }
     }
 
     // Cannot delete active side banner
-    if (type === 'side' && rows[0].is_active === true){
-      return res.status(400).json({ error: "Cannot delete the active side banner" });
+    if (type === 'side' && rows[0].is_active === 1){
+      throw new AppError(400, "Cannot delete the active side banner");
     }
 
     const cloudinaryID = rows[0].cloudinary_id;
@@ -485,36 +482,35 @@ export const deleteBanner = async (req, res) => {
       });
     }
   } catch (error) {
-    logger.error(`Error deleting bannerID:${bannerID} type:${type} `, error);
-    return res.status(500).json({ error: "Internal server error" });
+    error.context = { bannerID, type };
+    next(error);
   }
 };
 
 
-export const getBanner = async (req, res) => {
+export const getBanner = async (req, res, next) => {
   const bannerID = validID(req.params.bannerID);
-  const type = req.query.type;
-
-  if (bannerID === null) {
-    return res.status(400).json({error:"Invalid bannerID"})
-  }
-
-  if (typeof type !== 'string'){
-    return res.status(400).json({ error: "Invalid type (main/side) required" });
-  }
-  type = type.trim();
-  type = type.toLowerCase();
-  if (type !== 'main' && type !== 'side') {
-    return res.status(400).json({ error: "Invalid type (main/side) required" });
-  }
-
-  const table = type === 'main' ? 'MainBanners' : 'SideBanners';
+  let type = req.query.type;
 
   try {
+    if (bannerID === null) {
+      throw new AppError(400, "Invalid bannerID")
+    }
+
+    if (typeof type !== 'string'){
+      throw new AppError(400, "Invalid type (main/side) required");
+    }
+    type = type.trim();
+    type = type.toLowerCase();
+    if (type !== 'main' && type !== 'side') {
+      throw new AppError(400, "Invalid type (main/side) required");
+    }
+
+    const table = type === 'main' ? 'MainBanners' : 'SideBanners';
     const [rows] = await db.execute(`SELECT * FROM ${table} WHERE bannerID = ?`, [bannerID]);
 
     if (rows.length === 0) {
-      return res.status(404).json({ error: "Banner not found" });
+      throw new AppError(404, "Banner not found");
     }
 
     return res.status(200).json({
@@ -523,16 +519,16 @@ export const getBanner = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error("Error fetching banner:", error.message);
-    return res.status(500).json({ error: "Internal server error" });
+    error.context = { bannerID };
+    next(error);
   }
 };
 
 
-export const getAllBanners = async (req, res) => {
+export const getAllBanners = async (req, res, next) => {
   try {
     const [mainBanners] = await db.execute("SELECT * FROM MainBanners ORDER BY created_at DESC");
-    const [sideBanners] = await db.execute("SELECT * FROM SideBanners ORDER BY created_at DESC")
+    const [sideBanners] = await db.execute("SELECT * FROM SideBanners ORDER BY created_at DESC");
 
     return res.status(200).json({
       message: "Fetched all banners successfully", 
@@ -540,7 +536,6 @@ export const getAllBanners = async (req, res) => {
       sideBanners
     });
   } catch (error) {
-    logger.error("Error fetching all banners:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    next(error);
   }
 };
