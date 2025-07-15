@@ -4,32 +4,34 @@ import { db } from '../index.js';
 import { generateTokens } from "../utils/jwt.utils.js";
 import { constants } from "../config/constants.js";
 import { validEmail, validID, validPassword } from "../utils/validators.utils.js";
-import { error } from "console";
 import AppError from "../errors/appError.js";
-import logger from "../utils/logger.js";
 
 
-export const registerAdmin = async (req, res,next) => {
-  // const { email, password, roles } = req.body;
-  const email= validEmail(req.body.email);
-  const password=validPassword(req.body.password);
-  const roles=req.body.roles;
+export const registerAdmin = async (req, res, next) => {
+  const email = validEmail(req.body.email);
+  const password = validPassword(req.body.password);
+  const roles = req.body.roles;
+
   try {
     //validate email
-    if(email===null){
-      throw new AppError(422,"Invalid Email Provided");
+    if(email === null){
+      throw new AppError(422, "Invalid Email Provided");
     }
   
     //password validation
-    if(password===null){
-      throw new AppError(422,'Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit');
+    if(password === null){
+      throw new AppError(
+        422,
+        `Invalid Password. Password must contain atleast 1 capital letter, 1 lowercase ,
+        1 special Character, 1 numeric digit`
+      );
     }
 
     // Here roles is an array like: roles = ['admin', 'web-editor']
     // Roles validation
     const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
     if (invalidRoles) {
-      throw new AppError(400,'Invalid roles provided. Allowed roles are: '+ constants.ADMIN_ROLES.join(', '));
+      throw new AppError(400, 'Invalid roles provided. Allowed roles are: '+ constants.ADMIN_ROLES.join(', '));
     }
 
     const [existingUser] = await db.execute("SELECT * FROM AdminUsers WHERE email = ?", [email]);
@@ -59,32 +61,30 @@ export const registerAdmin = async (req, res,next) => {
     });
 
   } catch (error) {
-    logger.error("Error registering adminUser:", error);
     next(error);
   }
 };
 
 
-export const loginAdmin = async (req, res,next) => {
-  
-  const email=validEmail(req.body.email);
-  const password=validPassword(req.body.password);
-  try {
+export const loginAdmin = async (req, res, next) => {
+  const email = validEmail(req.body.email);
+  const password = validPassword(req.body.password);
 
-    //validate email
-    if(email===null){
-      throw new AppError(422,'Invalid Email Provided');
-    } //invalidating here so that we dnt need to search in the database for wrong email 
+  try {
+    // validate email
+    if(email === null){
+      throw new AppError(422, 'Invalid Email Provided');
+    } 
     
     // Check if user exists
     const [admins] = await db.execute("SELECT * FROM AdminUsers WHERE email = ?", [email]);
-    if (admins.length === 0) throw new AppError(400,"User not found");
+    if (admins.length === 0) throw new AppError(400, "User not found");
 
     const admin = admins[0];
 
     // Validate password
     const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) throw new AppError(400,"Invalid credentials");
+    if (!isMatch) throw new AppError(400, "Invalid credentials");
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(admin.adminID, 'admin');
@@ -109,27 +109,26 @@ export const loginAdmin = async (req, res,next) => {
     res.status(200).json({ message: 'Login successful' });
 
   } catch (error) {
-    logger.error("Error logging adminUser:", error);
     next(error);
   }
 };
 
 
-export const refreshAdmin = async (req, res,next) => {
+export const refreshAdmin = async (req, res, next) => {
   const refreshToken = req.cookies.refreshToken;
+
   try {
-  
-    if (!refreshToken) throw new AppError(401,"NO refresh token provided");
+    if (!refreshToken) throw new AppError(401, "NO refresh token provided");
 
     // Check if refresh token exists in DB
     const [admins] = await db.execute("SELECT * FROM AdminUsers WHERE refresh_token = ?", [refreshToken]);
-    if (admins.length === 0) throw new AppError(403,"Invalid refresh token");
+    if (admins.length === 0) throw new AppError(403, "Invalid refresh token");
 
     const admin = admins[0];
 
     // Verify refresh token
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
-      if (err) throw new AppError(403,"Invalid or expired refresh token");
+      if (err) throw new AppError(403, "Invalid or expired refresh token");
 
       // Generate new tokens
       const { accessToken, refreshToken: newRefreshToken } = generateTokens(admin.adminID, 'admin');
@@ -154,14 +153,14 @@ export const refreshAdmin = async (req, res,next) => {
 
       res.status(200).json({ message: "Tokens refreshed successfully" });
     });
+
   } catch (error) {
-    logger.error("Error refresh adminUser:", error);
     next(error);
   }
 };
 
 
-export const logoutAdmin= async (req, res,next) => {
+export const logoutAdmin = async (req, res, next) => {
   const adminID = req.adminID; // from auth middleware
 
   try {
@@ -180,14 +179,14 @@ export const logoutAdmin= async (req, res,next) => {
       });
     
       res.status(200).json({ message: "Logged out successfully" });
+
   } catch (error) {
-    logger.error("Error logout adminUser:", error);
     next(error);
   }
 };
 
 
-export const getAllAdmins = async (req, res,next) => {
+export const getAllAdmins = async (req, res, next) => {
   try {
     const [admins] = await db.execute(`
       SELECT 
@@ -203,13 +202,12 @@ export const getAllAdmins = async (req, res,next) => {
       admins 
     });
   } catch (error) {
-    logger.error("Error fetching all admins:", error);
     next(error);
   }
 };
 
 
-export const getRoleAdmin = async (req, res,next) => {
+export const getRoleAdmin = async (req, res, next) => {
   const adminID = req.adminID;
 
   try{
@@ -224,31 +222,29 @@ export const getRoleAdmin = async (req, res,next) => {
     });
     
   } catch (error) {
-    logger.error("Error fetching roles of admin:", error);
     next(error);
   }
 };
 
 
-export const updateAdmin = async (req, res) => {
- 
-  const adminID=validID(req.params.adminID);
-  const password=validPassword(req.body.password);
-  const roles=req.body.roles;
-  try {
+export const updateAdmin = async (req, res, next) => {
+  const adminID = validID(req.params.adminID);
+  const password = validPassword(req.body.password);
+  const roles = req.body.roles;
 
-    //admin id validation
-    if(adminID===null){
-      throw new AppError(422,"Invalid admin id");
+  try {
+    // admin id validation
+    if(adminID === null){
+      throw new AppError(422, "Invalid admin id");
     }
-    //password validation
-    if(password===null){
-      throw new AppError(422,"Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit");
+    // password validation
+    if(password === null){
+      throw new AppError(422, "Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit");
     }
     // Roles validation
     const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
     if (invalidRoles) {
-      throw new AppError(400,'Invalid roles provided. Allowed roles are: ' + constants.ADMIN_ROLES.join(', '));
+      throw new AppError(400, 'Invalid roles provided. Allowed roles are: ' + constants.ADMIN_ROLES.join(', '));
     }
 
     // 1. Check if admin exists
@@ -257,7 +253,7 @@ export const updateAdmin = async (req, res) => {
       [adminID]
     );
     if (adminRows.length === 0) {
-      throw new AppError(404,"Admin not found");
+      throw new AppError(404, "Admin not found");
     }
 
     // 2. Update password
@@ -282,19 +278,18 @@ export const updateAdmin = async (req, res) => {
 
     res.status(200).json({ message: 'Admin updated successfully.' });
   } catch (error) {
-    logger.error("Error updating admin:", error);
     next(error);
   }
 };
 
 
-export const deleteAdmin = async (req, res,next) => {
+export const deleteAdmin = async (req, res, next) => {
   const adminID  = validID(req.params.adminID);
-  //admin id validation
+
   try {
-  
-    if(adminID===null){
-      throw new AppError(422,'Invalid admin id');
+    // admin id validation
+    if(adminID === null){
+      throw new AppError(422, 'Invalid admin id');
     }
     // 1. Check if the admin exists
     const [adminRows] = await db.execute(
@@ -302,7 +297,7 @@ export const deleteAdmin = async (req, res,next) => {
       [adminID]
     );
     if (adminRows.length === 0) {
-      throw new AppError(404,"Admin not found");
+      throw new AppError(404, "Admin not found");
     }
 
     // 2. Delete the admin
@@ -311,8 +306,8 @@ export const deleteAdmin = async (req, res,next) => {
       [adminID]
     );
     res.status(200).json({ message: 'Admin deleted successfully.' });
+
   } catch (error) {
-    logger.error("Error deleting admin:", error);
     next(error);
   }
 };
