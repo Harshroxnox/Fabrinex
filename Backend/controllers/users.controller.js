@@ -2,61 +2,63 @@ import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
 import crypto from 'crypto';
 import { db } from '../index.js';
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { deleteFromCloudinary, uploadOnCloudinary } from "../utils/cloudinary.js";
 import { isOTPVerified } from "../utils/otp.helper.js";
 import { deleteTempImg } from "../utils/deleteTempImg.js";
 import { razorpay } from "../utils/razorpay.utils.js";
 import { generateTokens, blacklistToken } from "../utils/jwt.utils.js";
 import { validEmail, validID, validPassword, validPhoneNumber, validString, validStringChar, validWholeNo } from "../utils/validators.utils.js";
 import logger from "../utils/logger.js";
+import AppError from "../errors/appError.js";
 
 // User Routes ------------------------------------------------------------------------------------
 
-export const registerUser = async (req, res) => {
-  const { name, phone_number, whatsapp_number, email, password } = req.body;
+export const registerUser = async (req, res,next) => {
+  // const { name, phone_number, whatsapp_number, email, password } = req.body;
+  const name= validStringChar(req.body.name,2,100);
+  const email= validEmail(req.body.email);
+  const password= validPassword(req.body.password);
   const profilePicPath = req.file ? req.file.path : null;
+  const validatedPhoneNumber= validPhoneNumber(req.body.phone_number);
+  const validatedWhatsappNumber = validPhoneNumber(req.body.whatsapp_number);
+  let cloudinaryID;
 
   try {
-  //name validation
-  if(validStringChar(name,2,100)===null){
-    return res.status(422).json({error:'Invalid User name '});
-  }
- 
-  //email validation
-  if(validEmail(email)===null){
-    return res.status(422).json({error:'Invalid Email provided'});
-  }
+    //name validation
+    if(name===null){
+      throw new AppError(422, "Invalid User name");
+    }
+  
+    //email validation
+    if(email===null){
+      throw new AppError(422, "Invalid Email provided");
+    }
 
-  //password validation
-  if(validPassword(password)===null){
-    return res.status(422).json({error:'Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit and should be between 9 to 255 characters'});
-  }
+    //password validation
+    if(password===null){
+      throw new AppError(422,"Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit and should be between 9 to 255 characters");
+    }
 
-  //phone number validation
-  const validatedPhoneNumber= validPhoneNumber(phone_number);
+    //phone number validation
+    if(!validatedPhoneNumber){
+      throw new AppError(422,"Invalid phone number");
+    }
 
-  if(!validatedPhoneNumber){
-    return res.status(422).json({error:'Invalid phone number'});
-  }
-
-  //whatsapp number validation
-  const validatedWhatsappNumber = validPhoneNumber(whatsapp_number);
-
-  if(!validatedWhatsappNumber){
-    return res.staus(422).json({error:'Invalid whatsapp number'})
-  }
+    //whatsapp number validation
+    if(!validatedWhatsappNumber){
+      throw new AppError(422,"Invalid whatsapp number");
+    }
 
 
-    const verified = await isOTPVerified(email, phone_number);
-    if (!verified) return res.status(403).json({ error: "Please verify OTP before registering" });
+    const verified = await isOTPVerified(email,validatedPhoneNumber);
+    if (!verified) throw new AppError(403,"Please verify OTP before registering");
 
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-    if (existingUser.length > 0) return res.status(400).json({ error: "Email already exists" });
+    if (existingUser.length > 0) throw new AppError(400,"Email already exists");
 
     const hashedPassword = await bcrypt.hash(password, 10);
-
     let profileImgUrl = null;
-    let cloudinaryID;
+
     if (profilePicPath) {
       const uploadedImage = await uploadOnCloudinary(profilePicPath);
       profileImgUrl = uploadedImage?.url || null;
@@ -76,43 +78,46 @@ export const registerUser = async (req, res) => {
 
     res.status(201).json({ message: "User registered successfully", profileImg: profileImgUrl });
   } catch (error) {
-    console.error('Error registering user:', error);
-    res.status(500).json({ error: 'Internal server error' });
-
+    logger.error('Error registering user:', error);
     if (cloudinaryID) {
       deleteFromCloudinary(cloudinaryID).catch((error) => {
-        console.warn(`Cloudinary deletion failed. CloudinaryID:${cloudinaryID} ${error.message}`);
+        logger.warn(`Cloudinary deletion failed. CloudinaryID:${cloudinaryID} ${error.message}`);
       });
     }
-
+    next(error);
   }finally {
     //Deleting temp image if needed
     if (profilePicPath) {
       deleteTempImg(profilePicPath).catch((error) => {
-        console.warn(`Failed to delete file ${profilePicPath}: ${error.message}`);
+        logger.warn(`Failed to delete file ${profilePicPath}: ${error.message}`);
       });
     }
   }
 };
 
-export const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  if(validEmail(email)===null){
-    return res.status(422).json({error:'Invalid Email provided'});
-  }
-  if(validPassword(password)===null){
-    return res.status(422).json({error:' Invalid Password. Password must contain atleast 1 capital letter,1 special Character, I numeric digit'});
-  }
+export const loginUser = async (req, res,next) => {
+  // const { email, password } = req.body;
+  const email= validEmail(req.body.email);
+  const password= validPassword(req.body.password);
   try {
+
+    if(email===null){
+      throw new AppError(422,"Invalid Email Provided");
+    }
+    if(password===null){
+      throw new AppError(422,'Invalid Password. Password must contain atleast 1 capital letter, 1 special Character , 1 numeric Digit');
+    }
     // Check if user exists
     const [users] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-    if (users.length === 0) return res.status(400).json({ error: "User not found" });
+    if (users.length === 0){
+      throw new AppError(400,"User not found");
+    }
 
     const user = users[0];
 
     // Validate password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+    if (!isMatch) throw new AppError(400,"Invalid credentials");
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user.userID, 'user');
@@ -138,25 +143,24 @@ export const loginUser = async (req, res) => {
     res.status(200).json({ message: 'Login successful' });
 
   } catch (error) {
-    console.error('Error logging user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
-export const refreshUser = async (req, res) => {
+export const refreshUser = async (req, res,next) => {
   const refreshToken = req.cookies.refreshToken;
-  if (!refreshToken) return res.status(401).json({ error: "No refresh token provided" });
-
+ 
   try {
+    if (!refreshToken) throw new AppError(401,"No refresh token provided");
     // Check if refresh token exists in DB
     const [users] = await db.execute("SELECT * FROM Users WHERE refresh_token = ?", [refreshToken]);
-    if (users.length === 0) return res.status(403).json({ error: "Invalid refresh token" });
+    if (users.length === 0) throw new AppError(403,"Invalid refresh token");
 
     const user = users[0];
 
     // Verify refresh token
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
-      if (err) return res.status(403).json({ error: "Invalid or expired refresh token" });
+      if (err) throw new AppError(403,"Invalid or expired refresh token");
 
       // Generate new tokens
       const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.userID, 'user');
@@ -182,25 +186,23 @@ export const refreshUser = async (req, res) => {
       res.status(200).json({ message: "Tokens refreshed successfully" });
     });
   } catch (error) {
-    console.error('Error refresh token user:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error refresh token user:', error);
+    next(error);
   }
 };
 
 
 
 
-export const logoutUser = async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-  const authHeader = req.header("Authorization");
-
-  if (!refreshToken || !authHeader) {
-    return res.status(401).json({ error: "Tokens missing" });
-  }
-
-  const accessToken = authHeader.split(' ')[1];
-
+export const logoutUser = async (req, res,next) => {
+  
   try {
+    const refreshToken = req.cookies.refreshToken;
+    const authHeader = req.header("Authorization");
+    const accessToken = authHeader.split(' ')[1];
+    if (!refreshToken || !authHeader) {
+      throw new AppError(401,"Tokens missing");
+    }
 
     await blacklistToken(accessToken); 
     await db.execute("UPDATE Users SET refresh_token = NULL WHERE refresh_token = ?", [refreshToken]);
@@ -220,13 +222,13 @@ export const logoutUser = async (req, res) => {
 
   } catch (error) {
     logger.error('Error logging out user:', error.message);
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
   }
 };
 
 
 
-export const getAllUsers = async (req, res) => {
+export const getAllUsers = async (req, res,next) => {
   try {
     const [users] = await db.execute(`
       SELECT 
@@ -246,50 +248,49 @@ export const getAllUsers = async (req, res) => {
       users: users 
     });
   } catch (error) {
-    console.error("Error fetching all users:", error);
-    res.status(500).json({ error: "Internal server error" });
+    logger.error("Error fetching all users:", error);
+    next(error);
   }
 };
 
-export const getProfile = async (req, res) => {
+export const getProfile = async (req, res,next) => {
   const userID = req.userID;
 
   try {
     const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE userID = ?", [userID]);
-    if (users.length === 0) return res.status(404).json({ error: "User not found" });
+    if (users.length === 0) throw new AppError(404,"User not found");
 
     res.status(200).json({
       message: "Fetched user profile succesfully", 
       user: users[0] 
     });
   } catch (error) {
-    console.error('Error fetching user profile:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error fetching user profile:',error);
+    next(error);
   }
 };
 
 // User Address Routes ----------------------------------------------------------------------------
 
-export const addAddress = async (req, res) => {
-  const userID = req.userID;
-  const { city, pincode, state, address_line } = req.body;
-
+export const addAddress = async (req, res,next) => {
   try {
+    const userID = req.userID;
+    const { city, pincode, state, address_line } = req.body;
+
     await db.execute(
       "INSERT INTO Addresses (userID, city, pincode, state, address_line) VALUES (?, ?, ?, ?, ?)",
       [userID, city, pincode, state, address_line]
     );
     res.status(201).json({ message: "Address added successfully" });
   } catch (error) {
-    console.error('Error adding address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error adding address:', error);
+    next(error);
   }
 };
 
-export const getAddress = async (req, res) => {
-  const userID = req.userID;
-
+export const getAddress = async (req, res,next) => {
   try {
+    const userID = req.userID;
     const [addresses] = await db.execute(
       "SELECT * FROM Addresses WHERE userID = ?",
       [userID]
@@ -300,21 +301,20 @@ export const getAddress = async (req, res) => {
       addresses 
     });
   } catch (error) {
-    console.error('Error fetching address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error fetching address:', error);
+    next(error);
   }
 };
 
-export const updateAddress = async (req, res) => {
-  const userID = req.userID;
-  const { addressID } = req.params;
-  const { city, pincode, state, address_line } = req.body;
-
-  //validate address id
-  if(validID(addressID)===null){
-    return res.status(422).json({error:'Invalid address id'});
-  }
+export const updateAddress = async (req, res,next) => {
   try {
+    const userID = req.userID;
+    const { city, pincode, state, address_line } = req.body;
+    const addressID= validID(req.params.addressID);
+    //validate address id
+    if(addressID===null){
+      throw new AppError(422,"Invalid address id");
+    }
     await db.execute(
       `UPDATE Addresses 
        SET city = ?, pincode = ?, state = ?, address_line = ?
@@ -324,19 +324,19 @@ export const updateAddress = async (req, res) => {
 
     res.status(200).json({ message: "Address updated successfully" });
   } catch (error) {
-    console.error('Error updating address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error updating address:', error);
+    next(error);
   }
 };
 
-export const deleteAddress = async (req, res) => {
+export const deleteAddress = async (req, res,next) => {
   const userID = req.userID;
-  const { addressID } = req.params;
+  const addressID= validID(req.params.addressID);
   //validate address id
-  if(validID(addressID)===null){
-    return res.status(422).json({error:'Invalid address id'});
-  }
   try {
+    if(addressID===null){
+      throw new AppError(422,"Invalid address id");
+    }
     await db.execute(
       "DELETE FROM Addresses WHERE addressID = ? AND userID = ?",
       [addressID, userID]
@@ -344,26 +344,26 @@ export const deleteAddress = async (req, res) => {
 
     res.status(200).json({ message: "Address deleted successfully" });
   } catch (error) {
-    console.error('Error deleting address:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error deleting address:', error);
+    next(error);
   }
 };
 
 // User Cart Routes -------------------------------------------------------------------------------
 
 export const addItem = async (req, res) => {
-  const variantID = req.params.variantID;
+  const variantID = validID(req.params.variantID);
   const { quantity = 1 } = req.body;
   const userID = req.userID;
-  //validate address id
-  if(validID(variantID)===null){
-    return res.status(422).json({error:'Invalid variant id'});
-  }
-  if (!variantID || quantity <= 0) {
-    return res.status(400).json({ error: "Invalid variantID or quantity" });
-  }
-
   try {
+    //validate address id
+    if(variantID===null){
+      throw new AppError(422,'Invalid variant id');
+    }
+    if (!variantID || quantity <= 0) {
+      throw new AppError(400,"Invalid variantID or quantity");
+    }
+
     const [items] = await db.execute("SELECT * FROM CartItems WHERE userID = ? AND variantID = ?",
       [userID, variantID]
     )
@@ -383,8 +383,8 @@ export const addItem = async (req, res) => {
     return res.status(200).json({ message: "Items added to cart" });
 
   } catch (error) {
-    console.error('Error adding to cart:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    logger.error('Error adding to cart:', error);
+    next(error);
   }
 };
 
@@ -413,14 +413,15 @@ export const deleteItem = async (req, res) => {
 };
 
 export const updateQuantity = async (req, res) => {
-  const variantID = req.params.variantID;
-  const { quantity } = req.body;
+  const variantID = validID(req.params.variantID);
+  const quantity= validWholeNo(req.body.quantity);
+  try {
   //validate variant ID
-  if(validID(variantID)===null){
+  if(variantID===null){
     return res.status(422).json({error:"Invalid variant ID type"})
   }
   //validate quantity
-  if(validWholeNo(quantity)===null){
+  if(quantity===null){
     return res.status(422).json({error:"Invalid variant quantity provided"});
   }
   const userID = req.userID;
@@ -429,7 +430,6 @@ export const updateQuantity = async (req, res) => {
     return res.status(400).json({ error: "Invalid variantID or quantity" });
   }
 
-  try {
     const [results] = await db.execute("UPDATE CartItems SET quantity = ? WHERE userID = ? AND variantID = ?",
       [quantity, userID, variantID]
     );
