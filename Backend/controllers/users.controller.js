@@ -13,48 +13,47 @@ import AppError from "../errors/appError.js";
 
 // User Routes ------------------------------------------------------------------------------------
 
-export const registerUser = async (req, res,next) => {
-  // const { name, phone_number, whatsapp_number, email, password } = req.body;
-  const name= validStringChar(req.body.name,2,100);
-  const email= validEmail(req.body.email);
-  const password= validPassword(req.body.password);
-  const profilePicPath = req.file ? req.file.path : null;
-  const validatedPhoneNumber= validPhoneNumber(req.body.phone_number);
+export const registerUser = async (req, res, next) => {
+  const name = validStringChar(req.body.name,2,100);
+  const email = validEmail(req.body.email);
+  const password = validPassword(req.body.password);
+  const profilePicPath  = req.file ? req.file.path : null;
+  const validatedPhoneNumber = validPhoneNumber(req.body.phone_number);
   const validatedWhatsappNumber = validPhoneNumber(req.body.whatsapp_number);
   let cloudinaryID;
 
   try {
     //name validation
-    if(name===null){
-      throw new AppError(422, "Invalid User name");
+    if (name === null) {
+      throw new AppError(422 , "Invalid User name");
     }
   
     //email validation
-    if(email===null){
-      throw new AppError(422, "Invalid Email provided");
+    if (email === null) {
+      throw new AppError(422 , "Invalid Email provided");
     }
 
     //password validation
-    if(password===null){
-      throw new AppError(422,"Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit and should be between 9 to 255 characters");
+    if (password === null) {
+      throw new AppError(422 , "Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit and should be between 9 to 255 characters");
     }
 
     //phone number validation
-    if(!validatedPhoneNumber){
-      throw new AppError(422,"Invalid phone number");
+    if (!validatedPhoneNumber) {
+      throw new AppError(422 , "Invalid phone number");
     }
 
     //whatsapp number validation
-    if(!validatedWhatsappNumber){
-      throw new AppError(422,"Invalid whatsapp number");
+    if (!validatedWhatsappNumber) {
+      throw new AppError(422 , "Invalid whatsapp number");
     }
 
 
     const verified = await isOTPVerified(email,validatedPhoneNumber);
-    if (!verified) throw new AppError(403,"Please verify OTP before registering");
+    if (!verified) throw new AppError(403, "Please verify OTP before registering");
 
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-    if (existingUser.length > 0) throw new AppError(400,"Email already exists");
+    if (existingUser.length > 0) throw new AppError(400, "Email already exists");
 
     const hashedPassword = await bcrypt.hash(password, 10);
     let profileImgUrl = null;
@@ -67,7 +66,7 @@ export const registerUser = async (req, res,next) => {
 
     let razorpay_customer_id = crypto.randomBytes(6).toString('hex');
     if (process.env.NODE_ENV === 'production') {
-      const customer = await razorpay.customers.create({ name, email, contact: phone_number });
+      const customer = await razorpay.customers.create({ name, email, contact: validatedPhoneNumber });
       razorpay_customer_id = customer.id;
     }
 
@@ -78,7 +77,6 @@ export const registerUser = async (req, res,next) => {
 
     res.status(201).json({ message: "User registered successfully", profileImg: profileImgUrl });
   } catch (error) {
-    logger.error('Error registering user:', error);
     if (cloudinaryID) {
       deleteFromCloudinary(cloudinaryID).catch((error) => {
         logger.warn(`Cloudinary deletion failed. CloudinaryID:${cloudinaryID} ${error.message}`);
@@ -95,29 +93,29 @@ export const registerUser = async (req, res,next) => {
   }
 };
 
-export const loginUser = async (req, res,next) => {
+export const loginUser = async (req, res, next) => {
   // const { email, password } = req.body;
-  const email= validEmail(req.body.email);
-  const password= validPassword(req.body.password);
+  const email = validEmail(req.body.email);
+  const password = validPassword(req.body.password);
   try {
 
-    if(email===null){
-      throw new AppError(422,"Invalid Email Provided");
+    if (email === null) {
+      throw new AppError(422 , "Invalid Email Provided");
     }
-    if(password===null){
-      throw new AppError(422,'Invalid Password. Password must contain atleast 1 capital letter, 1 special Character , 1 numeric Digit');
+    if (password === null) {
+      throw new AppError(422 , 'Invalid Password. Password must contain atleast 1 capital letter, 1 special Character , 1 numeric Digit');
     }
     // Check if user exists
     const [users] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
-    if (users.length === 0){
-      throw new AppError(400,"User not found");
+    if (users.length === 0) {
+      throw new AppError(400, "User not found");
     }
 
     const user = users[0];
 
     // Validate password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new AppError(400,"Invalid credentials");
+    if (!isMatch) throw new AppError(400, "Invalid credentials");
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user.userID, 'user');
@@ -147,20 +145,21 @@ export const loginUser = async (req, res,next) => {
   }
 };
 
-export const refreshUser = async (req, res,next) => {
+export const refreshUser = async (req, res, next) => {
   const refreshToken = req.cookies.refreshToken;
  
   try {
-    if (!refreshToken) throw new AppError(401,"No refresh token provided");
+    if (!refreshToken) throw new AppError(401, "No refresh token provided");
+    
     // Check if refresh token exists in DB
     const [users] = await db.execute("SELECT * FROM Users WHERE refresh_token = ?", [refreshToken]);
-    if (users.length === 0) throw new AppError(403,"Invalid refresh token");
+    if (users.length === 0) throw new AppError(403, "Invalid refresh token");
 
     const user = users[0];
 
-    // Verify refresh token
+    // Verify refresh token 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
-      if (err) throw new AppError(403,"Invalid or expired refresh token");
+      if (err) throw new AppError(403, "Invalid or expired refresh token");
 
       // Generate new tokens
       const { accessToken, refreshToken: newRefreshToken } = generateTokens(user.userID, 'user');
@@ -186,22 +185,21 @@ export const refreshUser = async (req, res,next) => {
       res.status(200).json({ message: "Tokens refreshed successfully" });
     });
   } catch (error) {
-    logger.error('Error refresh token user:', error);
-    next(error);
+      next(error);
   }
 };
 
 
 
 
-export const logoutUser = async (req, res,next) => {
+export const logoutUser = async (req, res, next) => {
   
   try {
     const refreshToken = req.cookies.refreshToken;
     const authHeader = req.header("Authorization");
     const accessToken = authHeader.split(' ')[1];
     if (!refreshToken || !authHeader) {
-      throw new AppError(401,"Tokens missing");
+      throw new AppError(401, "Tokens missing");
     }
 
     await blacklistToken(accessToken); 
@@ -221,14 +219,13 @@ export const logoutUser = async (req, res,next) => {
     res.status(200).json({ message: "Logged out successfully" });
 
   } catch (error) {
-    logger.error('Error logging out user:', error.message);
-    next(error);
+      next(error);
   }
 };
 
 
 
-export const getAllUsers = async (req, res,next) => {
+export const getAllUsers = async (req, res, next) => {
   try {
     const [users] = await db.execute(`
       SELECT 
@@ -248,31 +245,29 @@ export const getAllUsers = async (req, res,next) => {
       users: users 
     });
   } catch (error) {
-    logger.error("Error fetching all users:", error);
-    next(error);
+      next(error);
   }
 };
 
-export const getProfile = async (req, res,next) => {
+export const getProfile = async (req, res, next) => {
   const userID = req.userID;
 
   try {
     const [users] = await db.execute("SELECT name, email, phone_number FROM Users WHERE userID = ?", [userID]);
-    if (users.length === 0) throw new AppError(404,"User not found");
+    if (users.length === 0) throw new AppError(404, "User not found");
 
     res.status(200).json({
-      message: "Fetched user profile succesfully", 
+      message: "Fetched user profile successfully", 
       user: users[0] 
     });
   } catch (error) {
-    logger.error('Error fetching user profile:',error);
-    next(error);
+      next(error);
   }
 };
 
 // User Address Routes ----------------------------------------------------------------------------
 
-export const addAddress = async (req, res,next) => {
+export const addAddress = async (req, res, next) => {
   try {
     const userID = req.userID;
     const { city, pincode, state, address_line } = req.body;
@@ -283,12 +278,11 @@ export const addAddress = async (req, res,next) => {
     );
     res.status(201).json({ message: "Address added successfully" });
   } catch (error) {
-    logger.error('Error adding address:', error);
-    next(error);
+      next(error);
   }
 };
 
-export const getAddress = async (req, res,next) => {
+export const getAddress = async (req, res, next) => {
   try {
     const userID = req.userID;
     const [addresses] = await db.execute(
@@ -301,19 +295,18 @@ export const getAddress = async (req, res,next) => {
       addresses 
     });
   } catch (error) {
-    logger.error('Error fetching address:', error);
-    next(error);
+      next(error);
   }
 };
 
-export const updateAddress = async (req, res,next) => {
+export const updateAddress = async (req, res, next) => {
   try {
     const userID = req.userID;
     const { city, pincode, state, address_line } = req.body;
-    const addressID= validID(req.params.addressID);
+    const addressID = validID(req.params.addressID);
     //validate address id
-    if(addressID===null){
-      throw new AppError(422,"Invalid address id");
+    if (addressID === null) {
+      throw new AppError(422 , "Invalid address id");
     }
     await db.execute(
       `UPDATE Addresses 
@@ -324,18 +317,18 @@ export const updateAddress = async (req, res,next) => {
 
     res.status(200).json({ message: "Address updated successfully" });
   } catch (error) {
-    logger.error('Error updating address:', error);
-    next(error);
+      next(error);
   }
 };
 
-export const deleteAddress = async (req, res,next) => {
+export const deleteAddress = async (req, res, next) => {
   const userID = req.userID;
-  const addressID= validID(req.params.addressID);
+  const addressID = validID(req.params.addressID);
   //validate address id
   try {
-    if(addressID===null){
-      throw new AppError(422,"Invalid address id");
+
+    if (addressID === null) {
+      throw new AppError(422 , "Invalid address id");
     }
     await db.execute(
       "DELETE FROM Addresses WHERE addressID = ? AND userID = ?",
@@ -344,31 +337,30 @@ export const deleteAddress = async (req, res,next) => {
 
     res.status(200).json({ message: "Address deleted successfully" });
   } catch (error) {
-    logger.error('Error deleting address:', error);
-    next(error);
+      next(error);
   }
 };
 
 // User Cart Routes -------------------------------------------------------------------------------
 
-export const addItem = async (req, res) => {
+export const addItem = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
   const { quantity = 1 } = req.body;
   const userID = req.userID;
   try {
     //validate address id
-    if(variantID===null){
-      throw new AppError(422,'Invalid variant id');
+    if (variantID === null) {
+      throw new AppError(422 , 'Invalid variant id');
     }
     if (!variantID || quantity <= 0) {
-      throw new AppError(400,"Invalid variantID or quantity");
+      throw new AppError(400, "Invalid variantID or quantity");
     }
 
     const [items] = await db.execute("SELECT * FROM CartItems WHERE userID = ? AND variantID = ?",
       [userID, variantID]
     )
 
-    // If item is already added to card increase quantity
+    // If item is already added to card, increase quantity
     if (items.length !== 0) {
       await db.execute("UPDATE CartItems SET quantity = quantity + ? WHERE userID = ? AND variantID = ?",
         [quantity, userID, variantID]
@@ -383,23 +375,19 @@ export const addItem = async (req, res) => {
     return res.status(200).json({ message: "Items added to cart" });
 
   } catch (error) {
-    logger.error('Error adding to cart:', error);
-    next(error);
+      next(error);
   }
 };
 
-export const deleteItem = async (req, res) => {
-  const variantID = req.params.variantID;
+export const deleteItem = async (req, res, next) => {
+  const variantID = validID(req.params.variantID);
   const userID = req.userID;
-  //validate address id
-  if(validID(variantID)===null){
-    return res.status(422).json({error:'Invalid variant id'});
-  }
-  // if (!variantID) {
-  //   return res.status(400).json({ error: "Invalid variantID" });
-  // }
-
   try {
+
+    //validate address id
+    if (variantID === null) {
+      throw new AppError(422 , 'Invalid variant id');
+    }
     await db.execute("DELETE FROM CartItems WHERE userID = ? AND variantID = ?",
       [userID, variantID]
     )
@@ -407,46 +395,44 @@ export const deleteItem = async (req, res) => {
     return res.status(200).json({ message: "Items deleted from cart" });
 
   } catch (error) {
-    console.error('Error deleting from cart:', error);
-    res.status(500).json({ error: 'Internal server error' });
+      next(error);
   }
 };
 
-export const updateQuantity = async (req, res) => {
+export const updateQuantity = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
-  const quantity= validWholeNo(req.body.quantity);
+  const quantity = validWholeNo(req.body.quantity);
   try {
-  //validate variant ID
-  if(variantID===null){
-    return res.status(422).json({error:"Invalid variant ID type"})
-  }
-  //validate quantity
-  if(quantity===null){
-    return res.status(422).json({error:"Invalid variant quantity provided"});
-  }
-  const userID = req.userID;
+    //validate variant ID
+    if (variantID === null) {
+      throw new AppError(422 , "Invalid variant ID type");
+    }
+    //validate quantity
+    if (quantity === null) {
+      throw new AppError(422 , "Invalid variant quantity provided")
+    }
+    const userID = req.userID;
 
-  if (!variantID || quantity <= 0) {
-    return res.status(400).json({ error: "Invalid variantID or quantity" });
-  }
+    if (!variantID || quantity <= 0) {
+      throw new AppError(400, "Invalid variantID or quantity");
+    }
 
     const [results] = await db.execute("UPDATE CartItems SET quantity = ? WHERE userID = ? AND variantID = ?",
       [quantity, userID, variantID]
     );
 
     if (results.affectedRows === 0) {
-      return res.status(400).json({ error: "Cart Item not found" });
+      throw new AppError(400, "Cart Item not found");
     }
 
     return res.status(200).json({ message: "Item quantity updated" });
 
   } catch (error) {
-    console.error('Error updating cart:', error);
-    res.status(500).json({ error: 'Internal server error' });
+      next(error);
   }
 };
 
-export const getCart = async (req, res) => {
+export const getCart = async (req, res, next) => {
   const userID = req.userID;
 
   try {
@@ -475,7 +461,6 @@ export const getCart = async (req, res) => {
       cartItems 
     });
   } catch (error) {
-    console.error('Error fetching cart:', error);
-    res.status(500).json({ error: 'Internal server error' });
+      next(error);
   }
 };
