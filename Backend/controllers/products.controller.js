@@ -756,45 +756,6 @@ export const updateVariant = async (req, res, next) => {
 };
 
 
-export const getVariantsByProduct = async (req, res, next) => {
-  const productID = validID(req.params.productID);
-
-  try {
-    if (productID === null) {
-      throw new AppError(400, "Invalid productID");
-    }
-
-    // Check if product exists
-    const [activeProduct] = await db.execute(
-      "SELECT 1 FROM Products WHERE productID = ? AND is_active = TRUE",
-      [productID]
-    );
-    if (activeProduct.length === 0){
-      throw new AppError(404, "No product found.");
-    }
-
-    // Fetch all active variants of the product 
-    const [variants] = await db.execute(`
-      SELECT variantID, color, size, price, main_image, discount 
-      FROM ProductVariants WHERE productID = ? AND is_active = TRUE
-      ORDER BY created_at DESC
-    `, [productID]);
-
-    if (variants.length === 0){
-      throw new AppError(404, "No variants found for this product");
-    }
-
-    res.status(200).json({
-      message: "Fetched all variants of given product successfully",
-      variants
-    });
-  } catch (error) {
-    error.context = { productID };
-    next(error);
-  }
-};
-
-
 export const getAllVariants = async (req, res, next) => {
   const limit = validID(req.query.limit);
   const page = validID(req.query.page);
@@ -1065,6 +1026,163 @@ export const deleteSecondaryImage = async (req, res, next) => {
 
   } catch (error) {
     error.context = { variantImageID };
+    next(error);
+  }
+};
+
+// Admin GET controllers-----------------------------------------------------------------------------
+
+
+export const getProductByIdAdmin = async (req, res, next) => {
+  const productID = validID(req.params.productID);
+  
+  try {
+    if (productID === null) {
+      throw new AppError(400, "Invalid productID");
+    }
+  
+    const [products] = await db.execute(`
+      SELECT 
+        name,
+        description,
+        category,
+        people_rated, 
+        (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating,
+        created_at
+      FROM 
+        Products 
+      WHERE 
+        productID = ? AND is_active = TRUE
+    `, [productID]);
+
+    // return if product not found
+    if (products.length === 0) throw new AppError(404, "Product not found");
+
+    const product = products[0];
+
+    // Attach active variants of the product
+    const [variants] = await db.execute(`
+      SELECT variantID, color, size, price, main_image, discount, barcode, stock, created_at
+      FROM ProductVariants 
+      WHERE productID = ? AND is_active = TRUE
+    `,[productID]);
+
+    if (variants.length === 0){
+      throw new AppError(400, "Product has no variants");
+    }
+
+    product.variants = variants;
+    res.status(200).json({
+      message: "Fetched product successfully",
+      product
+    });
+
+  } catch (error) {
+    error.context = { productID };
+    next(error);
+  }
+};
+
+
+export const getVariantByIdAdmin = async (req, res, next) => {
+  const variantID = validID(req.params.variantID);
+
+  try {
+    if (variantID === null) {
+      throw new AppError(400, "Invalid variantID");
+    }
+
+    // Get variant + product info
+    const [variants] = await db.execute(`
+      SELECT 
+        pv.variantID, 
+        pv.productID, 
+        pv.color, 
+        pv.size, 
+        pv.price, 
+        pv.main_image, 
+        pv.discount, 
+        pv.barcode,
+        pv.stock,
+        pv.created_at,
+        p.name AS product_name, 
+        p.category
+      FROM ProductVariants pv
+      JOIN Products p ON pv.productID = p.productID
+      WHERE pv.variantID = ? AND pv.is_active = TRUE
+    `, [variantID]);
+
+    // Return if variant not found
+    if (variants.length === 0) {
+      throw new AppError(404, "Variant not found.");
+    }
+    const variant = variants[0];
+
+    // Get secondary images for this variant
+    const [images] = await db.execute(
+      `SELECT variantImageID, image_url FROM VariantImages WHERE variantID = ?`,
+      [variantID]
+    );
+    variant.secondary_images = images;
+
+    res.status(200).json({
+      message: "Fetched variant successfully",
+      variant
+    });
+
+  } catch (error) {
+    error.context = { variantID };
+    next(error);
+  }
+};
+
+
+export const getAllVariantsAdmin = async (req, res, next) => {
+  const limit = validID(req.query.limit);
+  const page = validID(req.query.page);
+
+  try {
+    if (limit === null || limit > constants.MAX_LIMIT){
+      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
+    }
+
+    if(page === null){
+      throw new AppError(400, "Page must be a valid number");
+    }
+
+    const offset = (page - 1) * limit;
+    const [variants] = await db.execute(`
+      SELECT 
+        pv.variantID, 
+        pv.productID, 
+        pv.color, 
+        pv.size, 
+        pv.price, 
+        pv.main_image, 
+        pv.discount, 
+        pv.barcode,
+        pv.stock,
+        pv.created_at,
+        p.name AS product_name, 
+        p.category
+      FROM ProductVariants pv
+      JOIN Products p ON pv.productID = p.productID
+      WHERE pv.is_active = TRUE
+      ORDER BY pv.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [`${limit}`, `${offset}`]);
+
+    // Get the total count of variants
+    const [count] = await db.execute(`
+      SELECT COUNT(*) AS count FROM ProductVariants WHERE is_active = TRUE
+    `);
+
+    res.status(200).json({
+      message: "Fetched all variants successfully",
+      total: count[0].count,
+      variants
+    });
+  } catch (error) {
     next(error);
   }
 };
