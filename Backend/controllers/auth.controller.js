@@ -1,6 +1,5 @@
 import AppError from '../errors/appError.js';
 import { db } from '../index.js';
-import logger from '../utils/logger.js';
 import {
   generateOTP,
   storeOTPTemp,
@@ -10,7 +9,7 @@ import {
   deleteStoredOTP,
   markOTPVerified,
 } from '../utils/otp.helper.js';
-import { validEmail, validPhoneNumber, validWholeNo } from '../utils/validators.utils.js';
+import { validEmail, validPhoneNumber } from '../utils/validators.utils.js';
 
 export const sendOtpEmail = async (req, res, next) => {
   //validate email
@@ -56,7 +55,7 @@ export const verifyOtpEmail = async (req, res, next) => {
 export const sendOtpPhone = async (req, res, next) => {
   
   //phone number validation
-  const phone_number= validPhoneNumber(req.body.phone_number);
+  const phone_number = validPhoneNumber(req.body.phone_number);
   try {
 
     if (phone_number === null) {
