@@ -7,7 +7,7 @@ import { isOTPVerified } from "../utils/otp.helper.js";
 import { deleteTempImg } from "../utils/deleteTempImg.js";
 import { razorpay } from "../utils/razorpay.utils.js";
 import { generateTokens, blacklistToken } from "../utils/jwt.utils.js";
-import { validEmail, validID, validPassword, validPhoneNumber, validString, validStringChar, validWholeNo } from "../utils/validators.utils.js";
+import { validEmail, validID, validPassword, validPhoneNumber, validString, validStringChar, validStringNum, validWholeNo } from "../utils/validators.utils.js";
 import logger from "../utils/logger.js";
 import AppError from "../errors/appError.js";
 
@@ -39,12 +39,12 @@ export const registerUser = async (req, res, next) => {
     }
 
     //phone number validation
-    if (!validatedPhoneNumber) {
+    if (validatedPhoneNumber === null) {
       throw new AppError(422 , "Invalid phone number");
     }
 
     //whatsapp number validation
-    if (!validatedWhatsappNumber) {
+    if (validatedWhatsappNumber === null) {
       throw new AppError(422 , "Invalid whatsapp number");
     }
 
@@ -93,17 +93,20 @@ export const registerUser = async (req, res, next) => {
   }
 };
 
+
 export const loginUser = async (req, res, next) => {
-  // const { email, password } = req.body;
   const email = validEmail(req.body.email);
   const password = validPassword(req.body.password);
-  try {
 
+  try {
     if (email === null) {
       throw new AppError(422 , "Invalid Email Provided");
     }
     if (password === null) {
-      throw new AppError(422 , 'Invalid Password. Password must contain atleast 1 capital letter, 1 special Character , 1 numeric Digit');
+      throw new AppError(
+        422 , 
+        'Invalid Password. Password must contain atleast 1 capital letter, 1 lowercase, 1 special Character , 1 numeric Digit'
+      );
     }
     // Check if user exists
     const [users] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
@@ -144,6 +147,7 @@ export const loginUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 export const refreshUser = async (req, res, next) => {
   const refreshToken = req.cookies.refreshToken;
@@ -190,10 +194,7 @@ export const refreshUser = async (req, res, next) => {
 };
 
 
-
-
 export const logoutUser = async (req, res, next) => {
-  
   try {
     const refreshToken = req.cookies.refreshToken;
     const authHeader = req.header("Authorization");
@@ -219,10 +220,9 @@ export const logoutUser = async (req, res, next) => {
     res.status(200).json({ message: "Logged out successfully" });
 
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
-
 
 
 export const getAllUsers = async (req, res, next) => {
@@ -245,9 +245,10 @@ export const getAllUsers = async (req, res, next) => {
       users: users 
     });
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
+
 
 export const getProfile = async (req, res, next) => {
   const userID = req.userID;
@@ -261,7 +262,7 @@ export const getProfile = async (req, res, next) => {
       user: users[0] 
     });
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
 
@@ -270,7 +271,12 @@ export const getProfile = async (req, res, next) => {
 export const addAddress = async (req, res, next) => {
   try {
     const userID = req.userID;
-    const { city, pincode, state, address_line } = req.body;
+    const pincode = validStringNum(req.body.pincode, 6, 6);
+    const { city, state, address_line } = req.body;
+
+    if(pincode === null){
+      throw new AppError(422 , "Invalid pincode must be of 6 digits");
+    }
 
     await db.execute(
       "INSERT INTO Addresses (userID, city, pincode, state, address_line) VALUES (?, ?, ?, ?, ?)",
@@ -278,9 +284,10 @@ export const addAddress = async (req, res, next) => {
     );
     res.status(201).json({ message: "Address added successfully" });
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
+
 
 export const getAddress = async (req, res, next) => {
   try {
@@ -295,15 +302,21 @@ export const getAddress = async (req, res, next) => {
       addresses 
     });
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
 
+
 export const updateAddress = async (req, res, next) => {
+  const userID = req.userID;
+  const pincode = validStringNum(req.body.pincode, 6, 6);
+  const addressID = validID(req.params.addressID);
+  const { city, state, address_line } = req.body;
+
   try {
-    const userID = req.userID;
-    const { city, pincode, state, address_line } = req.body;
-    const addressID = validID(req.params.addressID);
+    if(pincode === null){
+      throw new AppError(422 , "Invalid pincode must be of 6 digits");
+    }
     //validate address id
     if (addressID === null) {
       throw new AppError(422 , "Invalid address id");
@@ -317,16 +330,16 @@ export const updateAddress = async (req, res, next) => {
 
     res.status(200).json({ message: "Address updated successfully" });
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
+
 
 export const deleteAddress = async (req, res, next) => {
   const userID = req.userID;
   const addressID = validID(req.params.addressID);
-  //validate address id
-  try {
 
+  try {
     if (addressID === null) {
       throw new AppError(422 , "Invalid address id");
     }
@@ -337,7 +350,7 @@ export const deleteAddress = async (req, res, next) => {
 
     res.status(200).json({ message: "Address deleted successfully" });
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
 
@@ -345,15 +358,15 @@ export const deleteAddress = async (req, res, next) => {
 
 export const addItem = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
-  const { quantity = 1 } = req.body;
+  const quantity = validID(req.body.quantity);
   const userID = req.userID;
+
   try {
-    //validate address id
     if (variantID === null) {
       throw new AppError(422 , 'Invalid variant id');
     }
-    if (!variantID || quantity <= 0) {
-      throw new AppError(400, "Invalid variantID or quantity");
+    if (quantity === null) {
+      throw new AppError(400, "Invalid quantity must be 1 or greater");
     }
 
     const [items] = await db.execute("SELECT * FROM CartItems WHERE userID = ? AND variantID = ?",
@@ -375,16 +388,16 @@ export const addItem = async (req, res, next) => {
     return res.status(200).json({ message: "Items added to cart" });
 
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
+
 
 export const deleteItem = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
   const userID = req.userID;
-  try {
 
-    //validate address id
+  try {
     if (variantID === null) {
       throw new AppError(422 , 'Invalid variant id');
     }
@@ -395,19 +408,21 @@ export const deleteItem = async (req, res, next) => {
     return res.status(200).json({ message: "Items deleted from cart" });
 
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
 
+
 export const updateQuantity = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
-  const quantity = validWholeNo(req.body.quantity);
+  const quantity = validID(req.body.quantity);
+
   try {
-    //validate variant ID
+    // validate variant ID
     if (variantID === null) {
       throw new AppError(422 , "Invalid variant ID type");
     }
-    //validate quantity
+    // validate quantity
     if (quantity === null) {
       throw new AppError(422 , "Invalid variant quantity provided")
     }
@@ -428,9 +443,10 @@ export const updateQuantity = async (req, res, next) => {
     return res.status(200).json({ message: "Item quantity updated" });
 
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
+
 
 export const getCart = async (req, res, next) => {
   const userID = req.userID;
@@ -461,6 +477,6 @@ export const getCart = async (req, res, next) => {
       cartItems 
     });
   } catch (error) {
-      next(error);
+    next(error);
   }
 };
