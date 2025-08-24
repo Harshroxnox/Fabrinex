@@ -2,9 +2,21 @@ import { db } from '../index.js';
 import logger from '../utils/logger.js';
 import { validID, validString, validDecimal, validWholeNo } from '../utils/validators.utils.js';
 
+// check banners.controller.js for reference of AppError , error.context and next(error)
+
+// use AppError instead of return res.status...
+// remove logger.error from catch attach extra context variables that may be helpful in 
+// debugging errors like this:-
+//     error.context = { bannerID };
+//     next(error);
+// use next(error) in catch
+
 export const addPromotion = async (req, res) => {
   const { code, discount, usage_per_user, min_order_price, max_discount, is_active } = req.body;
 
+  // TODO: reassign validation values like
+  // const code = validString(req.body.code);
+  // reassign these in all routes wherever necessary 
   if (validString(code) === null) {
     return res.status(400).json({ error: 'Code is not a valid string' })
   }
@@ -26,6 +38,7 @@ export const addPromotion = async (req, res) => {
   
 
   try {
+    // check for duplicate promotion_code before inserting
     await db.execute(
       `INSERT INTO Promotions 
         (promotion_code, discount, usage_per_user, min_order_price, max_discount, is_active) 
@@ -135,7 +148,8 @@ export const updatePromotion = async (req, res) => {
   }
 };
 
-//As Such no need of this controller 
+//As Such no need of this controller
+// TODO: can remove this because no need  
 export const deactivatePromotion = async (req, res) => {
   const promotionID = validID(req.params.promotionID);
   if (promotionID === null) {
@@ -211,7 +225,8 @@ export const applyPromotions = async (req, res) => {
        FROM OrderItems WHERE orderID = ?`,
       [orderID]
     );
-
+    
+    // TODO: remove question marks here we don't proceed further if orderTotal is 0
     const orderTotal = Number(orderTotalRows[0]?.orderTotal ?? 0);
 
     
@@ -244,6 +259,8 @@ export const applyPromotions = async (req, res) => {
       finalDiscountPercentage = (promo.max_discount / orderTotal) * 100;
       finalDiscountPercentage = Number(finalDiscountPercentage.toFixed(2));
     }
+
+    // TODO: Use transactions here
 
     // Update Orders table with discount
     await db.execute(
