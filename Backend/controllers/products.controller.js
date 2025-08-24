@@ -109,6 +109,7 @@ export const updateProduct = async (req, res, next) => {
 };
 
 
+// For E-Commerce Product Page
 export const getProductById = async (req, res, next) => {
   const productID = validID(req.params.productID);
   
@@ -159,20 +160,9 @@ export const getProductById = async (req, res, next) => {
 };
 
 
+// For E-Commerce Homepage and Admin Products page
 export const getAllProducts = async (req, res, next) => {
-  const limit = validID(req.query.limit);
-  const page = validID(req.query.page);
-
   try {
-    if (limit === null || limit > constants.MAX_LIMIT){
-      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
-    }
-
-    if(page === null){
-      throw new AppError(400, "Page must be a valid number");
-    }
-
-    const offset = (page - 1) * limit;
     const [products] = await db.execute(`
       SELECT 
         p.productID, 
@@ -195,8 +185,7 @@ export const getAllProducts = async (req, res, next) => {
         )
       WHERE p.is_active = TRUE
       ORDER BY p.created_at DESC
-      LIMIT ? OFFSET ?
-    `, [`${limit}`, `${offset}`]);
+    `);
 
     // Get the count of total no of products
     const [count] = await db.execute(`
@@ -756,54 +745,7 @@ export const updateVariant = async (req, res, next) => {
 };
 
 
-export const getAllVariants = async (req, res, next) => {
-  const limit = validID(req.query.limit);
-  const page = validID(req.query.page);
-
-  try {
-    if (limit === null || limit > constants.MAX_LIMIT){
-      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
-    }
-
-    if(page === null){
-      throw new AppError(400, "Page must be a valid number");
-    }
-
-    const offset = (page - 1) * limit;
-    const [variants] = await db.execute(`
-      SELECT 
-        pv.variantID, 
-        pv.productID, 
-        pv.color, 
-        pv.size, 
-        pv.price, 
-        pv.main_image, 
-        pv.discount, 
-        p.name AS product_name, 
-        p.category
-      FROM ProductVariants pv
-      JOIN Products p ON pv.productID = p.productID
-      WHERE pv.is_active = TRUE
-      ORDER BY pv.created_at DESC
-      LIMIT ? OFFSET ?
-    `, [`${limit}`, `${offset}`]);
-
-    // Get the total count of variants
-    const [count] = await db.execute(`
-      SELECT COUNT(*) AS count FROM ProductVariants WHERE is_active = TRUE
-    `);
-
-    res.status(200).json({
-      message: "Fetched all variants successfully",
-      total: count[0].count,
-      variants
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-
+// For E-Commerce Product Page
 export const getVariantById = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
 
@@ -1033,6 +975,7 @@ export const deleteSecondaryImage = async (req, res, next) => {
 // Admin GET controllers-----------------------------------------------------------------------------
 
 
+// For Admin Product Expansion
 export const getProductByIdAdmin = async (req, res, next) => {
   const productID = validID(req.params.productID);
   
@@ -1084,6 +1027,7 @@ export const getProductByIdAdmin = async (req, res, next) => {
 };
 
 
+// For Editing Variant details in Admin panel including secondary images
 export const getVariantByIdAdmin = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
 
@@ -1136,53 +1080,3 @@ export const getVariantByIdAdmin = async (req, res, next) => {
   }
 };
 
-
-export const getAllVariantsAdmin = async (req, res, next) => {
-  const limit = validID(req.query.limit);
-  const page = validID(req.query.page);
-
-  try {
-    if (limit === null || limit > constants.MAX_LIMIT){
-      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
-    }
-
-    if(page === null){
-      throw new AppError(400, "Page must be a valid number");
-    }
-
-    const offset = (page - 1) * limit;
-    const [variants] = await db.execute(`
-      SELECT 
-        pv.variantID, 
-        pv.productID, 
-        pv.color, 
-        pv.size, 
-        pv.price, 
-        pv.main_image, 
-        pv.discount, 
-        pv.barcode,
-        pv.stock,
-        pv.created_at,
-        p.name AS product_name, 
-        p.category
-      FROM ProductVariants pv
-      JOIN Products p ON pv.productID = p.productID
-      WHERE pv.is_active = TRUE
-      ORDER BY pv.created_at DESC
-      LIMIT ? OFFSET ?
-    `, [`${limit}`, `${offset}`]);
-
-    // Get the total count of variants
-    const [count] = await db.execute(`
-      SELECT COUNT(*) AS count FROM ProductVariants WHERE is_active = TRUE
-    `);
-
-    res.status(200).json({
-      message: "Fetched all variants successfully",
-      total: count[0].count,
-      variants
-    });
-  } catch (error) {
-    next(error);
-  }
-};
