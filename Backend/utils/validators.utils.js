@@ -111,7 +111,7 @@ export const validString = (str, minLen, maxLen) => {
   // Allow letters, numbers, spaces, and basic punctuation
   if (!/^[a-zA-Z0-9\s\-_'".,/|()]+$/.test(str)){
     return null
-  }
+  } 
   return str;
 }
 

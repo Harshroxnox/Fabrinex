@@ -127,7 +127,7 @@ export const refreshAdmin = async (req, res, next) => {
     const admin = admins[0];
 
     // Verify refresh token
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
+      jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, decoded) => {
       if (err) throw new AppError(403, "Invalid or expired refresh token");
 
       // Generate new tokens

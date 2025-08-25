@@ -15,7 +15,6 @@ const uploadOnCloudinary = async (localFilePath) => {
         logger.warn('No file path provided.');
         return null;
     }
-
         if(process.env.NODE_ENV === 'production'){
             // Upload the file to Cloudinary
             const response = await cloudinary.uploader.upload(localFilePath, {
