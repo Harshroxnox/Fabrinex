@@ -12,7 +12,7 @@ const calculateEAN13Checksum = (number) => {
 };
 
 // Generate a unique barcode
-const generateUniqueBarcode = async () => {
+const generateUniqueBarcode = async (table) => {
     let barcode;
     let exists = true;
 
@@ -23,7 +23,7 @@ const generateUniqueBarcode = async () => {
 
         // Check if barcode already exists in DB
         const [rows] = await db.execute(
-            "SELECT barcode FROM ProductVariants WHERE barcode = ?",
+            `SELECT barcode FROM ${table} WHERE barcode = ?`,
             [barcode]
         );
 

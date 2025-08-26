@@ -594,7 +594,7 @@ export const createVariant = async (req, res, next) => {
     const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
     cloudinaryID = mainImgCloudinary.public_id;
 
-    const barcode = await generateUniqueBarcode();
+    const barcode = await generateUniqueBarcode("ProductVariants");
 
     const [result] = await db.execute(
       `INSERT INTO ProductVariants 

@@ -40,7 +40,7 @@ import promotionRouter from "./routes/promotions.routes.js"
 import orderRouter from "./routes/orders.routes.js"
 import bannerRouter from "./routes/banners.routes.js"
 import salesPersonRouter from "./routes/salesperson.routes.js";
-
+import loyaltyCardRouter from "./routes/loyaltycards.routes.js";
 // routes declaration
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/admins", adminRouter)
@@ -52,7 +52,7 @@ app.use("/api/v1/promotions", promotionRouter)
 app.use("/api/v1/orders",orderRouter)
 app.use("/api/v1/banners",bannerRouter)
 app.use("/api/v1/salespersons",salesPersonRouter);
-
+app.use("/api/v1/loyaltycards",loyaltyCardRouter);
 // for error handling
 app.use(errorHandler);
 

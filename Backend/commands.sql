@@ -228,11 +228,18 @@ CREATE TABLE SideBanners (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE SalesPersons(
+CREATE TABLE SalesPersons (
     salesPersonID INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     phone_number VARCHAR(15) NOT NULL,
     commission DECIMAL(5,2) NOT NULL CHECK (commission > 0 AND commission < 100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE LoyaltyCards (
+    loyaltyCardID INT AUTO_INCREMENT PRIMARY KEY,
+    barcode CHAR(13) UNIQUE NOT NULL, -- EAN-13 format
+    discount INT NOT NULL CHECK (discount > 0 AND discount <= 100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
