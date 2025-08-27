@@ -4,8 +4,13 @@ import { validWholeNo } from "../utils/validators.utils.js";
 
 export const createLoyaltyCard = async (req, res, next) => {
   try {
+    // Can remove this console.log
     console.log(req.body.discount);
     const discount = validWholeNo(req.body.discount);
+
+    // NOTE: These discount values don't match with database checks make sure they are consistent
+    // For example what happens when we do discount = 0
+    // Do this for salesperson commission also 
     if(discount == null || discount < 0 || discount > 100) {
       return res.status(400).json({ message: "Invalid discount value" });
     }

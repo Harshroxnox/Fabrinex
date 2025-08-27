@@ -14,6 +14,8 @@ export const addSalesperson = async (req, res, next) => {
         if (validatedPhoneNumber == null) {
             throw new AppError(400, "Phone number must be valid");
         }
+        // TODO: make these checks consistent with database checks in sql 
+        // what happens when we give commission = 0 ?? 
         if (commission == null || commission < 0 || commission > 100) {
             throw new AppError(400, "Commission rate must be a valid percentage between 0 and 100");
         }
@@ -46,6 +48,8 @@ export const updateCommission = async (req, res, next) => {
         if (salesPersonID == null) {
             throw new AppError(400, "Invalid Salesperson ID");
         }
+        // TODO: make these checks consistent with database checks in sql 
+        // what happens when we give commission = 0 ?? 
         if (commission == null || commission < 0 || commission > 100) {
             throw new AppError(400, "Commission rate must be a valid percentage between 0 and 100");
         }
