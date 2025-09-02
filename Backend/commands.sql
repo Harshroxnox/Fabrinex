@@ -256,6 +256,15 @@ CREATE TABLE SalesPersons (
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+CREATE TABLE SalesPersonOrders (
+    salesPersonOrderID INT AUTO_INCREMENT PRIMARY KEY,
+    orderID INT NOT NULL,
+    salesPersonID INT NOT NULL,
+    commission DECIMAL(5,2) NOT NULL CHECK (commission > 0 AND commission < 100),
+    FOREIGN KEY (orderID) REFERENCES Orders(orderID),
+    FOREIGN KEY (salesPersonID) REFERENCES SalesPersons(salesPersonID)
+);
+
 CREATE TABLE LoyaltyCards (
     loyaltyCardID INT AUTO_INCREMENT PRIMARY KEY,
     barcode CHAR(13) UNIQUE NOT NULL, -- EAN-13 format

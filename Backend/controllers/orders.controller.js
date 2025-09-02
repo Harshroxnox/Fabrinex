@@ -107,6 +107,7 @@ export const createOrder = async (req, res) => {
 export const createOrderOffline = async (req, res, next) => {
   let name = req.body.name;
   let phone_number = req.body.phone_number;
+  let salesPersonID = req.body.salesPersonID;
   let loyalty_barcode = ValidEAN13(req.body.loyalty_barcode);
   const payment_method = validStringChar(req.body.payment_method);
   const items = req.body.items;
@@ -118,6 +119,7 @@ export const createOrderOffline = async (req, res, next) => {
     const NoNameOrPhone = (name === null || name === undefined || name === "") && 
     (phone_number === null || phone_number === undefined || phone_number === "");
     const barcodeGiven = loyalty_barcode!==null && loyalty_barcode!==undefined && loyalty_barcode!=="";
+    const salespersonGiven = salesPersonID!==null && salesPersonID!==undefined && salesPersonID!=="";
 
     // Skip Phone and Name validation if both are not provided
     if(!NoNameOrPhone){
@@ -141,6 +143,13 @@ export const createOrderOffline = async (req, res, next) => {
       loyalty_barcode = ValidEAN13(loyalty_barcode);
       if(loyalty_barcode === null){
         throw new AppError(400, "Invalid Barcode");
+      }
+    }
+
+    if(salesPersonID){
+      salesPersonID = validID(salesPersonID);
+      if(salesPersonID === null){
+        throw new AppError(400, "Invalid salesPersonID");
       }
     }
 
@@ -216,6 +225,24 @@ export const createOrderOffline = async (req, res, next) => {
     );
 
     const orderID = orderResult.insertId;
+
+    // Add Salesperson if given
+    if(salespersonGiven){
+      const [salespersonResult] = await conn.execute(
+        `SELECT commission FROM SalesPersons WHERE salesPersonID = ?`,
+        [salesPersonID]
+      );
+
+      if(salespersonResult.length === 0){
+        throw new AppError(404, "Salesperson Not Found");
+      }
+      const commission = salespersonResult[0].commission;
+
+      await conn.execute(
+        `INSERT INTO SalesPersonOrders (orderID, salesPersonID, commission) VALUES (?, ?, ?)`,
+        [orderID, salesPersonID, commission]
+      );
+    }
 
     // Inserting into OrderItems using items
     for (const item of items) {
