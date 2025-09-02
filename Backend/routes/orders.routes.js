@@ -4,6 +4,7 @@ import {
     getOrder,
     getOrdersByUser,
     getAllOrders,
+    createOrderOffline
 } from '../controllers/orders.controller.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
@@ -11,6 +12,7 @@ const router = Router();
 
 // order routes
 router.route("/create-order").post(authMiddleware('user'), createOrder);
+router.route("/create-order-offline").post(authMiddleware('admin'), createOrderOffline);
 router.route("/get-order/:orderID").get(getOrder);
 router.route("/get-orders-user").get(authMiddleware('user'), getOrdersByUser);
 

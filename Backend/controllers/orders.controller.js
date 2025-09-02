@@ -1,6 +1,8 @@
 import { db } from '../index.js';
 import { constants } from '../config/constants.js';
-import { validID, validString, validWholeNo } from '../utils/validators.utils.js';
+import { validID, validString, validWholeNo, validStringChar, validPhoneNumber } from '../utils/validators.utils.js';
+import { ValidEAN13 } from '../utils/generateBarcode.js';
+import AppError from "../errors/appError.js";
 
 
 export const createOrder = async (req, res) => {
@@ -95,6 +97,160 @@ export const createOrder = async (req, res) => {
     if (conn) await conn.rollback(); // rollback if failed
     console.error('Error creating order:', error);
     res.status(500).json({ error: 'Internal server error' });
+
+  } finally {
+    if (conn) conn.release(); // always release connection
+  }
+};
+
+// TODO: Add SalespersonID to this route 
+export const createOrderOffline = async (req, res, next) => {
+  let name = req.body.name;
+  let phone_number = req.body.phone_number;
+  let loyalty_barcode = ValidEAN13(req.body.loyalty_barcode);
+  const payment_method = validStringChar(req.body.payment_method);
+  const items = req.body.items;
+
+  let conn;
+
+  try {
+    // Validations
+    const NoNameOrPhone = (name === null || name === undefined || name === "") && 
+    (phone_number === null || phone_number === undefined || phone_number === "");
+    const barcodeGiven = loyalty_barcode!==null && loyalty_barcode!==undefined && loyalty_barcode!=="";
+
+    // Skip Phone and Name validation if both are not provided
+    if(!NoNameOrPhone){
+      name = validStringChar(name);
+      if(name === null){
+        throw new AppError(400, "Invalid Name");
+      }
+
+      phone_number = validPhoneNumber(phone_number);
+      if(phone_number === null){
+        throw new AppError(400, "Invalid Phone Number");
+      }
+    }
+
+    // Checking if payment method is valid
+    if(!constants.PAYMENT_METHODS.includes(payment_method)){
+      throw new AppError(400, "Invalid payment method");
+    }
+
+    if(barcodeGiven){
+      loyalty_barcode = ValidEAN13(loyalty_barcode);
+      if(loyalty_barcode === null){
+        throw new AppError(400, "Invalid Barcode");
+      }
+    }
+
+    if(!Array.isArray(items) || items.length === 0){
+      throw new AppError(400, "Invalid variants provided");
+    }
+
+    // Make connection for transaction
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    // Fetch UserID
+    let userID = 1;
+
+    // If customer info given then update userID
+    // If user already exists fetch that userID
+    // If user does not exist create a new user and use that userID
+    if(!NoNameOrPhone){
+      const [user] = await conn.execute(
+        `SELECT userID FROM Users WHERE phone_number = ?`,
+        [phone_number]
+      );
+      if(user.length > 0){
+        userID = user[0].userID;
+      }else{
+        const [userResult] = await conn.execute(
+          `INSERT INTO Users (
+            name, 
+            phone_number, 
+            whatsapp_number, 
+            password, 
+            razorpay_customer_id, 
+            is_offline
+          ) VALUES (?, ?, ?, ?, ?, ?)`,
+          [name, phone_number, '+910000000000', 'guest', 'guest_customer_id', true]
+        );
+        userID = userResult.insertId;
+      }
+    }
+
+    // Apply loyalty card if given
+    let promo_discount = 0;
+    if(barcodeGiven){
+      const [barcodeRow] = await conn.execute(
+        `SELECT discount FROM LoyaltyCards WHERE barcode = ?`,
+        [loyalty_barcode]
+      );
+
+      if(barcodeRow.length === 0){
+        throw new AppError(404, "Given Loyalty Card does not exist");
+      }
+
+      promo_discount = barcodeRow[0].discount;
+
+      // After applying remove
+      await conn.execute(
+        `DELETE FROM LoyaltyCards WHERE barcode = ?`,
+        [loyalty_barcode]
+      );
+    }
+
+    // Creating order
+    const [orderResult] = await conn.execute(
+      `INSERT INTO Orders (
+        userID, 
+        payment_method, 
+        payment_status, 
+        order_location, 
+        order_status, 
+        promo_discount
+      ) VALUES (?, ?, ?, ?, ?, ?)`,
+      [userID, payment_method, 'completed', constants.SHOP_LOCATION, 'delivered', promo_discount]
+    );
+
+    const orderID = orderResult.insertId;
+
+    // Inserting into OrderItems using items
+    for (const item of items) {
+      // Getting price at time of purchase
+      const [variantRow] = await conn.execute(
+        `SELECT price, discount FROM ProductVariants WHERE variantID = ?`,
+        [item.variantID]
+      );
+
+      if (variantRow.length === 0) {
+        await conn.rollback();
+        throw new AppError(400, 'Invalid product variant given');
+      }
+
+      const { price, discount } = variantRow[0];
+      const discountedPrice = price - (price * (discount / 100));
+
+      await conn.execute(
+        `INSERT INTO OrderItems (orderID, variantID, quantity, price_at_purchase)
+         VALUES (?, ?, ?, ?)`,
+        [orderID, item.variantID, item.quantity, discountedPrice]
+      );
+    }
+
+    // Commit database changes
+    await conn.commit();
+
+    res.status(201).json({
+      message: 'Order created successfully',
+      orderID
+    });
+
+  } catch (error) {
+    if (conn) await conn.rollback(); // rollback if failed
+    next(error);
 
   } finally {
     if (conn) conn.release(); // always release connection

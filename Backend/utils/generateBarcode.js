@@ -1,5 +1,8 @@
 import { db } from '../index.js';
 
+// NOTE: Barcode must be passed as 13 digit string otherwise as number the leading zero will 
+// be neglected.
+
 // Function to calculate EAN-13 checksum digit
 const calculateEAN13Checksum = (number) => {
     let sum = 0;
@@ -35,4 +38,23 @@ const generateUniqueBarcode = async (table) => {
     return barcode;
 };
 
-export {generateUniqueBarcode}
+// Validate an EAN-13 barcode
+const ValidEAN13 = (barcode) => {
+    if (typeof barcode !== "string") {
+        return null;
+    }
+    barcode = barcode.trim();
+    if (!/^\d{13}$/.test(barcode)) return false; // must be 13 digits
+
+    const base = barcode.slice(0, 12);
+    const checksum = parseInt(barcode[12], 10);
+
+    if(calculateEAN13Checksum(base) === checksum){
+      return barcode;
+    }
+
+    return null;
+};
+
+
+export {generateUniqueBarcode, ValidEAN13}

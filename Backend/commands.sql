@@ -51,13 +51,32 @@ CREATE TABLE Users (
     name VARCHAR(100) NOT NULL,
     phone_number VARCHAR(15) NOT NULL UNIQUE,
     whatsapp_number VARCHAR(15) NOT NULL,
-    email VARCHAR(254) NOT NULL UNIQUE,
+    email VARCHAR(254) UNIQUE,
     password VARCHAR(255) NOT NULL,
     profile_img VARCHAR(500),
     razorpay_customer_id VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     refresh_token TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_offline BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+INSERT INTO Users (
+    name,
+    phone_number,
+    whatsapp_number,
+    email,
+    password,
+    razorpay_customer_id,
+    is_offline
+) VALUES (
+    'guest',
+    '+910000000000',
+    '+910000000000',
+    'guest@guest.com',
+    'guest',
+    'guest_customer_id',
+    TRUE
 );
 
 CREATE TABLE AdminUsers (
@@ -127,7 +146,7 @@ CREATE TABLE Addresses (
 CREATE TABLE Orders (
     orderID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
-    addressID INT NOT NULL,
+    addressID INT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_method VARCHAR(50) NOT NULL,
     payment_status VARCHAR(40) NOT NULL DEFAULT 'pending',
