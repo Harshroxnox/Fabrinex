@@ -1,20 +1,22 @@
 import { db } from '../index.js';
 import { constants } from '../config/constants.js';
-import { validID, validString, validWholeNo, validStringChar, validPhoneNumber } from '../utils/validators.utils.js';
+import { validID, validStringChar, validPhoneNumber } from '../utils/validators.utils.js';
 import { ValidEAN13 } from '../utils/generateBarcode.js';
 import AppError from "../errors/appError.js";
 
 
-export const createOrder = async (req, res) => {
-  const { addressID, payment_method } = req.body;
+export const createOrder = async (req, res, next) => {
+  const addressID = validID(req.body.addressID);
+  const { payment_method } = req.body;
   const userID = req.userID;
-  //validate address Id
-  if(validID(addressID)===null){
-    return res.status(422).json({error:'Invalid Address ID'});
-  }
   let conn;
 
   try {
+    // Validate address Id
+    if(addressID === null){
+      throw new AppError(422, 'Invalid Address ID');
+    }
+
     // Make connection for transaction
     conn = await db.getConnection();
     await conn.beginTransaction();
@@ -26,14 +28,12 @@ export const createOrder = async (req, res) => {
     );
 
     if (addressRows.length === 0) {
-      await conn.rollback();
-      return res.status(400).json({ error: 'Invalid address' });
+      throw new AppError(400, 'Invalid address');
     }
 
     // Checking if payment method is valid
     if(!constants.PAYMENT_METHODS.includes(payment_method)){
-      await conn.rollback();
-      return res.status(400).json({ error: 'Invalid payment method' });
+      throw new AppError(400, 'Invalid payment method');
     }
 
     // Fetching cart items
@@ -43,41 +43,88 @@ export const createOrder = async (req, res) => {
     );
 
     if (cartItems.length === 0) {
-      await conn.rollback();
-      return res.status(400).json({ error: 'Cart is empty' });
+      throw new AppError(400, 'Cart is empty');
     }
 
     // Creating order
     const [orderResult] = await conn.execute(
-      `INSERT INTO Orders (userID, addressID, payment_method, order_location) 
-       VALUES (?, ?, ?, ?)`,
-      [userID, addressID, payment_method, constants.SHOP_LOCATION]
+      `INSERT INTO Orders (userID, addressID, payment_method, amount, order_location) 
+       VALUES (?, ?, ?, ?, ?)`,
+      [userID, addressID, payment_method, 0.1, constants.SHOP_LOCATION]
     );
 
     const orderID = orderResult.insertId;
 
-    // Inserting into OrderItems using cart data
+    let amount = 0;
+
+    // Inserting into OrderItems using items
     for (const item of cartItems) {
       // Getting price at time of purchase
-      const [variantRow] = await conn.execute(
-        `SELECT price, discount FROM ProductVariants WHERE variantID = ?`,
+      const [variantRow] = await conn.execute(`
+        SELECT 
+          variantID, 
+          productID, 
+          color, 
+          size, 
+          main_image, 
+          price, 
+          discount 
+        FROM ProductVariants WHERE variantID = ?`,
         [item.variantID]
       );
 
+      // Decrement stock by quantity
+      await conn.execute(`
+        UPDATE ProductVariants SET stock = stock - ? WHERE variantID = ?`,
+        [item.quantity, item.variantID]
+      );
+
       if (variantRow.length === 0) {
-        await conn.rollback();
-        return res.status(400).json({ error: 'Invalid product variant in cart' });
+        throw new AppError(400, 'Invalid product variant given');
       }
+
+      const [productRow] = await conn.execute(
+        `SELECT name, category, tax FROM Products WHERE productID = ?`,
+        [variantRow[0].productID]
+      );
 
       const { price, discount } = variantRow[0];
       const discountedPrice = price - (price * (discount / 100));
+      amount = amount + (discountedPrice * item.quantity);
 
-      await conn.execute(
-        `INSERT INTO OrderItems (orderID, variantID, quantity, price_at_purchase)
-         VALUES (?, ?, ?, ?)`,
-        [orderID, item.variantID, item.quantity, discountedPrice]
+      await conn.execute(`
+        INSERT INTO OrderItems (
+          orderID,
+          variantID,
+          name,
+          category,
+          tax,
+          color,
+          main_image,
+          size,
+          quantity,
+          price_at_purchase
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          orderID, 
+          variantRow[0].variantID, 
+          productRow[0].name, 
+          productRow[0].category, 
+          productRow[0].tax,
+          variantRow[0].color, 
+          variantRow[0].main_image, 
+          variantRow[0].size, 
+          item.quantity, 
+          discountedPrice
+        ]
       );
     }
+
+    // Set order amount
+    await conn.execute(
+      "UPDATE Orders SET amount = ? WHERE orderID = ?",
+      [amount, orderID]
+    );
 
     // Clearing the cart
     await conn.execute(
@@ -95,15 +142,14 @@ export const createOrder = async (req, res) => {
 
   } catch (error) {
     if (conn) await conn.rollback(); // rollback if failed
-    console.error('Error creating order:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    next(error);
 
   } finally {
     if (conn) conn.release(); // always release connection
   }
 };
 
-// TODO: Add SalespersonID to this route 
+
 export const createOrderOffline = async (req, res, next) => {
   let name = req.body.name;
   let phone_number = req.body.phone_number;
@@ -217,11 +263,12 @@ export const createOrderOffline = async (req, res, next) => {
         userID, 
         payment_method, 
         payment_status, 
+        amount,
         order_location, 
         order_status, 
         promo_discount
-      ) VALUES (?, ?, ?, ?, ?, ?)`,
-      [userID, payment_method, 'completed', constants.SHOP_LOCATION, 'delivered', promo_discount]
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [userID, payment_method, 'completed', 0.1, constants.SHOP_LOCATION, 'delivered', promo_discount]
     );
 
     const orderID = orderResult.insertId;
@@ -243,13 +290,29 @@ export const createOrderOffline = async (req, res, next) => {
         [orderID, salesPersonID, commission]
       );
     }
+    
+    let amount = 0;
 
     // Inserting into OrderItems using items
     for (const item of items) {
       // Getting price at time of purchase
-      const [variantRow] = await conn.execute(
-        `SELECT price, discount FROM ProductVariants WHERE variantID = ?`,
-        [item.variantID]
+      const [variantRow] = await conn.execute(`
+        SELECT 
+          variantID, 
+          productID, 
+          color, 
+          size, 
+          main_image, 
+          price, 
+          discount 
+        FROM ProductVariants WHERE barcode = ?`,
+        [item.barcode]
+      );
+
+      // Decrement stock by quantity
+      await conn.execute(`
+        UPDATE ProductVariants SET stock = stock - ? WHERE barcode = ?`,
+        [item.quantity, item.barcode]
       );
 
       if (variantRow.length === 0) {
@@ -257,15 +320,48 @@ export const createOrderOffline = async (req, res, next) => {
         throw new AppError(400, 'Invalid product variant given');
       }
 
+      const [productRow] = await conn.execute(
+        `SELECT name, category, tax FROM Products WHERE productID = ?`,
+        [variantRow[0].productID]
+      );
+
       const { price, discount } = variantRow[0];
       const discountedPrice = price - (price * (discount / 100));
+      amount = amount + (discountedPrice * item.quantity);
 
-      await conn.execute(
-        `INSERT INTO OrderItems (orderID, variantID, quantity, price_at_purchase)
-         VALUES (?, ?, ?, ?)`,
-        [orderID, item.variantID, item.quantity, discountedPrice]
+      await conn.execute(`
+        INSERT INTO OrderItems (
+          orderID,
+          variantID,
+          name,
+          category,
+          tax,
+          color,
+          main_image,
+          size,
+          quantity,
+          price_at_purchase
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          orderID, 
+          variantRow[0].variantID, 
+          productRow[0].name, 
+          productRow[0].category, 
+          productRow[0].tax,
+          variantRow[0].color, 
+          variantRow[0].main_image, 
+          variantRow[0].size, 
+          item.quantity, 
+          discountedPrice
+        ]
       );
     }
+
+    // Set order amount
+    await conn.execute(
+      "UPDATE Orders SET amount = ? WHERE orderID = ?",
+      [amount, orderID]
+    );
 
     // Commit database changes
     await conn.commit();
@@ -285,23 +381,24 @@ export const createOrderOffline = async (req, res, next) => {
 };
 
 
-export const getOrder = async (req, res) => {
-  const { orderID } = req.params;
-  if(validID(orderID)===null){
-    return res.status(422).json({error:'Invalid Order ID'});
-  }
+export const getOrder = async (req, res, next) => {
+  const orderID = validID(req.params.orderID);
+
   try {
+    if(orderID===null){
+      throw new AppError(422, 'Invalid Order ID');
+    }
+
     const [orderRows] = await db.execute(
-      `SELECT o.*, a.city, a.state, a.pincode, a.address_line, u.name AS customer_name
+      `SELECT o.*, u.name AS customer_name
        FROM Orders o
-       JOIN Addresses a ON o.addressID = a.addressID
        JOIN Users u ON o.userID = u.userID
        WHERE o.orderID = ?`,
       [orderID]
     );
 
     if (orderRows.length === 0) {
-      return res.status(404).json({ error: "Order not found" });
+      throw new AppError(404, "Order not found");
     }
 
     const [items] = await db.execute(
@@ -321,18 +418,17 @@ export const getOrder = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching order:', error);
-    return res.status(500).json({ error: "Internal server error" });
+    next(error);
   }
 };
 
 
-export const getOrdersByUser = async (req, res) => {
+export const getOrdersByUser = async (req, res, next) => {
   const userID = req.userID;
 
   try {
     const [orders] = await db.execute(
-      `SELECT orderID, created_at, payment_method, payment_status, order_status 
+      `SELECT orderID, created_at, payment_method, payment_status, order_status, amount
        FROM Orders 
        WHERE userID = ? 
        ORDER BY created_at DESC`,
@@ -343,19 +439,14 @@ export const getOrdersByUser = async (req, res) => {
       message: 'User orders fetched successfully',
       orders 
     });
-    if (profilePicPath) {
-      deleteTempImg(profilePicPath).catch((error) => {
-        console.warn(`Failed to delete file ${profilePicPath}: ${error.message}`);
-      });
-    }
+
   } catch (error) {
-    console.error('Error fetching user orders:', error);
-    return res.status(500).json({ error: "Internal server error" });
+    next(error);
   }
 };
 
 
-export const getAllOrders = async (req, res) => {
+export const getAllOrders = async (req, res, next) => {
   try {
     const [orders] = await db.execute(`
       SELECT 
@@ -364,6 +455,7 @@ export const getAllOrders = async (req, res) => {
         o.payment_method, 
         o.payment_status, 
         o.order_status, 
+        o.amount,
         u.userID, 
         u.name AS customer_name, 
         u.email
@@ -378,8 +470,7 @@ export const getAllOrders = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error fetching all orders:', error);
-    return res.status(500).json({ error: "Internal server error" });
+    next(error);
   }
 };
 

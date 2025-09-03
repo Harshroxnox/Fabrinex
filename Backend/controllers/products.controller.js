@@ -11,12 +11,17 @@ import AppError from '../errors/appError.js';
 
 export const createProduct = async (req, res, next) => {
   const name = validString(req.body.name, 3, 100);
+  const tax = validDecimal(req.body.tax);
   const { description, category } = req.body;
 
   try {
     // check if name is valid
     if(name === null){
       throw new AppError(400, "Name must be a valid string between 3 to 100 chars");
+    }
+
+    if(tax === null || tax < 0){
+      throw new AppError(400, "Invalid tax given");
     }
 
     // check if category is valid
@@ -33,8 +38,8 @@ export const createProduct = async (req, res, next) => {
     }
 
     const [result] = await db.execute(
-      "INSERT INTO Products (name, description, category) VALUES (?, ?, ?)",
-      [name, description, category]
+      "INSERT INTO Products (name, description, category, tax) VALUES (?, ?, ?, ?)",
+      [name, description, category, tax]
     );
     res.status(201).json({ message: "Product created", productID: result.insertId });
 
@@ -46,7 +51,8 @@ export const createProduct = async (req, res, next) => {
 
 export const updateProduct = async (req, res, next) => {
   const productID = validID(req.params.productID);
-  const rawName = req.body.name
+  const rawName = req.body.name;
+  let tax = req.body.tax;
   const { description, category } = req.body;
   const fields = {};
 
@@ -63,6 +69,15 @@ export const updateProduct = async (req, res, next) => {
         throw new AppError(400, "Name must be a valid string between 3 to 100 chars");
       }
       fields.name = name;
+    }
+
+    // If tax exists check if it is valid
+    if(tax){
+      tax = validDecimal(tax);
+      if(tax === null || tax < 0){
+        throw new AppError(400, "Invalid tax given");
+      }
+      fields.tax = tax;
     }
 
     // If category exists check if it is valid
@@ -169,6 +184,7 @@ export const getAllProducts = async (req, res, next) => {
         p.name,
         p.description,
         p.category,
+        p.tax,
         p.people_rated,
         (p.cumulative_rating / NULLIF(p.people_rated, 0)) AS average_rating,
         pv.main_image, 
@@ -546,8 +562,12 @@ export const createVariant = async (req, res, next) => {
   const color = validStringChar(req.body.color, 3, 50);
   const size = validString(req.body.size, 1, 20);
   const price = validDecimal(req.body.price);
+  const myWallet = validDecimal(req.body.myWallet);
+  const source = validString(req.body.source);
+  const floor = validWholeNo(req.body.floor);
   const discount = validDecimal(req.body.discount);
   const stock = validWholeNo(req.body.stock);
+  
   const mainImgPath = req.file ? req.file.path : null;
   let cloudinaryID;
 
@@ -567,6 +587,18 @@ export const createVariant = async (req, res, next) => {
 
     if (price === null || price <= 0) {
       throw new AppError(400, "Invalid price");
+    }
+
+    if (myWallet === null || myWallet <= 0) {
+      throw new AppError(400, "Invalid myWallet");
+    }
+
+    if (source === null) {
+      throw new AppError(400, "Invalid source");
+    }
+
+    if (floor === null) {
+      throw new AppError(400, "Invalid floor");
     }
 
     if (discount === null || discount < 0 || discount >= 100) {
@@ -590,6 +622,10 @@ export const createVariant = async (req, res, next) => {
       throw new AppError(404, "No product found");
     }
 
+    // Calculate profit
+    const discountedPrice = price - (price * (discount / 100));
+    const profit = discountedPrice - myWallet;
+
     // UPLOAD IMAGE 
     const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
     cloudinaryID = mainImgCloudinary.public_id;
@@ -598,13 +634,17 @@ export const createVariant = async (req, res, next) => {
 
     const [result] = await db.execute(
       `INSERT INTO ProductVariants 
-       (productID, color, size, price, discount, stock, main_image, cloudinary_id, barcode) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       (productID, color, size, price, my_wallet, profit, source, floor, discount, stock, main_image, cloudinary_id, barcode) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         productID,
         color,
         size,
         price,
+        myWallet,
+        profit,
+        source,
+        floor,
         discount,
         stock,
         mainImgCloudinary.url,
@@ -643,6 +683,9 @@ export const createVariant = async (req, res, next) => {
 export const updateVariant = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
   const priceRaw = req.body.price;
+  const myWalletRaw = req.body.myWallet;
+  const sourceRaw = req.body.source;
+  const floorRaw = req.body.floor;
   const discountRaw = req.body.discount;
   const stockRaw = req.body.stock;
   const mainImgPath = req.file ? req.file.path : null;
@@ -668,6 +711,58 @@ export const updateVariant = async (req, res, next) => {
         throw new AppError(400, "Invalid discount. Must be between 0 and 100.");
       }
       fields.discount = discount;
+    }
+
+    if (myWalletRaw) {
+      const my_wallet = validDecimal(myWalletRaw);
+      if (my_wallet === null || my_wallet <= 0) {
+        throw new AppError(400, "Invalid myWallet");
+      }
+      
+      // fetch latest price and discount
+      let price, discount;
+      if(fields.price){
+        price = fields.price;
+      }else{
+        const [variantRow] = await db.execute(
+          `SELECT price FROM ProductVariants WHERE variantID = ?`,
+          [variantID]
+        );
+        price = variantRow[0].price;
+      }
+
+      if(fields.discount){
+        discount = fields.discount;
+      }else{
+        const [variantRow] = await db.execute(
+          `SELECT discount FROM ProductVariants WHERE variantID = ?`,
+          [variantID]
+        );
+        discount = variantRow[0].discount;
+      }
+
+      // Calculate profit
+      const discountedPrice = price - (price * (discount / 100));
+      const profit = discountedPrice - my_wallet;
+
+      fields.my_wallet = my_wallet;
+      fields.profit = profit;
+    }
+
+    if (sourceRaw) {
+      const source = validDecimal(sourceRaw);
+      if (source === null) {
+        throw new AppError(400, "Invalid source");
+      }
+      fields.source = source;
+    }
+
+    if (floorRaw) {
+      const floor = validWholeNo(floorRaw);
+      if (floor === null) {
+        throw new AppError(400, "Invalid floor");
+      }
+      fields.floor = floor;
     }
 
     if (stockRaw !== undefined) {
@@ -989,6 +1084,7 @@ export const getProductByIdAdmin = async (req, res, next) => {
         name,
         description,
         category,
+        tax,
         people_rated, 
         (cumulative_rating / NULLIF(people_rated, 0)) AS average_rating,
         created_at
@@ -1005,7 +1101,7 @@ export const getProductByIdAdmin = async (req, res, next) => {
 
     // Attach active variants of the product
     const [variants] = await db.execute(`
-      SELECT variantID, color, size, price, main_image, discount, barcode, stock, created_at
+      SELECT variantID, color, size, price, my_wallet, profit, source, floor, main_image, discount, barcode, stock, created_at
       FROM ProductVariants 
       WHERE productID = ? AND is_active = TRUE
     `,[productID]);
@@ -1044,6 +1140,10 @@ export const getVariantByIdAdmin = async (req, res, next) => {
         pv.color, 
         pv.size, 
         pv.price, 
+        pv.my_wallet,
+        pv.profit,
+        pv.source,
+        pv.floor,
         pv.main_image, 
         pv.discount, 
         pv.barcode,

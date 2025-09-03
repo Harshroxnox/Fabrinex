@@ -50,7 +50,7 @@ export const registerUser = async (req, res, next) => {
 
 
     const verified = await isOTPVerified(email,validatedPhoneNumber);
-    if (!verified) throw new AppError(403, "Please verify OTP before registering");
+    //if (!verified) throw new AppError(403, "Please verify OTP before registering");
 
     const [existingUser] = await db.execute("SELECT * FROM Users WHERE email = ?", [email]);
     if (existingUser.length > 0) throw new AppError(400, "Email already exists");
