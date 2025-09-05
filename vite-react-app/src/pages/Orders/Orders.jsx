@@ -1,19 +1,41 @@
-import React, { useEffect, useState } from 'react';
+
+
+
+import React, { useCallback, useEffect, useState } from 'react';
 import { ChevronDown, Search, MapPin, Calendar, DollarSign, CreditCard, CheckCircle, XCircle, Clock, Filter, Plus, Scan, Minus, ShoppingCart, ArrowLeft, Package, X, FileInput } from 'lucide-react';
 import Invoice from '../../components/Invoice/Invoice';
 import { ordersData } from '../../constants/ordersData';
 import { productData } from '../../constants/ProductsData';
 import { styles } from './Orders';
+import { getAllOrders } from '../../contexts/api/orders';
+import { paymentStatusColor, paymentStatusIcon, statusColor } from '../../utils/colorSelection.jsx';
 // Sample products database
 const productsDB = productData;
-
 // Initial orders data (your existing data)
 const initialOrdersData = ordersData;
-
 const OrderCreationCRM = () => {
   const [currentView, setCurrentView] = useState('orders'); // 'orders' or 'create'
-  const [ordersData, setOrdersData] = useState(initialOrdersData);
-  
+  const [ordersData, setOrdersData] = useState([]);
+  const [loading , setLoading] = useState(true);
+    // Fetch orders
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getAllOrders();
+      console.log(res);
+      setOrdersData(res.orders || []);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch orders on mount
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
   // Orders page filters
   const [statusFilter, setStatusFilter] = useState('All');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('All');
@@ -30,58 +52,23 @@ const OrderCreationCRM = () => {
   const [barcodeInput, setBarcodeInput] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [customerInfo, setCustomerInfo] = useState({
-    customerId: '',
-    customerName: '',
-    location: '',
-    paymentMethod: 'Credit Card'
-  });
+    userID: '',
+    customer_name: '',
+    location: 'noor',
+    payment_method: 'Credit Card'
+  }); 
+  const [salesperson , setSalesperson] = useState("");
   const [scanMode, setScanMode] = useState(false);
-
- 
-
-  // Utility functions
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Delivered':
-        return { backgroundColor: '#dcfce7', color: '#166534' };
-      case 'Shipped':
-        return { backgroundColor: '#dbeafe', color: '#1d4ed8' };
-      case 'Pending':
-        return { backgroundColor: '#fef3c7', color: '#92400e' };
-      default:
-        return { backgroundColor: '#f3f4f6', color: '#374151' };
-    }
-  };
-
-  const getPaymentStatusColor = (status) => {
-    switch (status) {
-      case 'Success':
-        return { backgroundColor: '#dcfce7', color: '#166534' };
-      case 'Failed':
-        return { backgroundColor: '#fee2e2', color: '#dc2626' };
-      case 'Pending':
-        return { backgroundColor: '#fef3c7', color: '#92400e' };
-      default:
-        return { backgroundColor: '#f3f4f6', color: '#374151' };
-    }
-  };
   const [invoice, setInvoice] = useState(null);
   const [orderchoose,setOrderChoose]=useState([]);
+
+  const getStatusColor =(status) => statusColor(status);
+  const getPaymentStatusColor = (status) => paymentStatusColor(status);
+
   useEffect(()=>{
     console.log(orderchoose);
   },[orderchoose])
-  const getPaymentStatusIcon = (status) => {
-    switch (status) {
-      case 'Success':
-        return <CheckCircle size={14} />;
-      case 'Failed':
-        return <XCircle size={14} />;
-      case 'Pending':
-        return <Clock size={14} />;
-      default:
-        return null;
-    }
-  };
+  const getPaymentStatusIcon = (status) => paymentStatusIcon(status);
 
   // Order creation functions
   const handleBarcodeSubmit = () => {
@@ -144,22 +131,22 @@ const OrderCreationCRM = () => {
     )[0];
     const lastId = lastOrder ? parseInt(lastOrder.id.substring(1)) : 1000;
     return `#${lastId + 1}`;
-  };
+  }; // no need ,,, will remove
 
   const handleCreateOrder = () => {
-    if (!customerInfo.customerId || !customerInfo.customerName || selectedProducts.length === 0) {
+    if (!customerInfo.userID || !customerInfo.customer_name || selectedProducts.length === 0) {
       alert('Please fill all customer information and add at least one product');
       return;
     }
 
     const newOrder = {
-      id: generateOrderId(),
-      customerId: customerInfo.customerId,
-      customer: customerInfo.customerName,
-      total: parseFloat(calculateTotal()),
-      status: 'Pending',
-      paymentStatus: 'Pending',
-      paymentMethod: customerInfo.paymentMethod,
+      orderID: generateOrderId(),
+      userID: customerInfo.userID,
+      customer_name: customerInfo.customer_name,
+      amount: parseFloat(calculateTotal()),
+      order_status: 'pending',
+      payment_status: 'pending',
+      payment_method: customerInfo.paymentMethod,
       location: customerInfo.location || 'Store Location',
       date: new Date().toISOString().split('T')[0],
       items: selectedProducts.map(p => ({
@@ -175,17 +162,19 @@ const OrderCreationCRM = () => {
           status: 'Confirmed'
         }
       ]
-    };
+    }; //need to update
+
+    console.log(newOrder);
 
     setOrdersData(prev => [newOrder, ...prev]);
     
     // Reset form
     setSelectedProducts([]);
     setCustomerInfo({
-      customerId: '',
-      customerName: '',
+      userID: '',
+      customer_name: '',
       location: '',
-      paymentMethod: 'Credit Card'
+      payment_method: 'Credit Card'
     });
     setBarcodeInput('');
     
@@ -196,9 +185,9 @@ const OrderCreationCRM = () => {
   // Orders page functions
   const filteredOrders = ordersData.filter(order => {
     const statusMatch = statusFilter === 'All' || order.status === statusFilter;
-    const paymentStatusMatch = paymentStatusFilter === 'All' || order.paymentStatus === paymentStatusFilter;
+    const paymentStatusMatch = paymentStatusFilter === 'All' || order.payment_status === paymentStatusFilter;
     const locationMatch = locationFilter === 'All' || order.location === locationFilter;
-    const paymentMethodMatch = paymentMethodFilter === 'All' || order.paymentMethod === paymentMethodFilter;
+    const paymentMethodMatch = paymentMethodFilter === 'All' || order.payment_method === paymentMethodFilter;
     
     const totalAmountMatch = (() => {
       switch (totalAmountFilter) {
@@ -215,7 +204,7 @@ const OrderCreationCRM = () => {
 
     const dateMatch = (() => {
       if (!dateFromFilter && !dateToFilter) return true;
-      const orderDate = new Date(order.date);
+      const orderDate = new Date(order.created_at);
       const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
       const toDate = dateToFilter ? new Date(dateToFilter) : null;
       
@@ -238,7 +227,7 @@ const OrderCreationCRM = () => {
   };
 
   const uniqueLocations = [...new Set(ordersData.map(order => order.location))];
-  const uniquePaymentMethods = [...new Set(ordersData.map(order => order.paymentMethod))];
+  const uniquePaymentMethods = [...new Set(ordersData.map(order => order.payment_method))];
 
   if (currentView === 'create') {
     return (
@@ -255,6 +244,26 @@ const OrderCreationCRM = () => {
             </button>
           </div>
 
+
+{/* salespersons information */}
+          <div style={styles.section}>
+            <h2 style={styles.sectionTitle}>
+              <Package size= {20}/>
+              Salesperson Information
+            </h2>
+            <div style={styles.formGrid}>
+              <div style = {styles.formGroup}>
+                <label style={styles.label}> Salesperson name *</label>
+                <input
+                type="text"
+                style={styles.input}
+                value = {salesperson}
+                onChange={(e)=>  setSalesperson(e.target.value)}
+                placeholder='Enter Salesperson Name'
+                />
+              </div>
+            </div>
+          </div>
           {/* Customer Information */}
           <div style={styles.section}>
             <h2 style={styles.sectionTitle}>
@@ -267,8 +276,8 @@ const OrderCreationCRM = () => {
                 <input
                   type="text"
                   style={styles.input}
-                  value={customerInfo.customerId}
-                  onChange={(e) => setCustomerInfo(prev => ({...prev, customerId: e.target.value}))}
+                  value={customerInfo.userID}
+                  onChange={(e) => setCustomerInfo(prev => ({...prev, userID: e.target.value}))}
                   placeholder="Enter customer ID"
                 />
               </div>
@@ -450,7 +459,7 @@ const OrderCreationCRM = () => {
                 onClick={() => setShowFilters(!showFilters)}
                 style={styles.filterButton}
               >
-                <Filter size={16} />
+                <Filter size={16} color="white"/>
                 Filters
                 <ChevronDown 
                   size={16} 
@@ -494,9 +503,9 @@ const OrderCreationCRM = () => {
                       style={styles.select}
                     >
                       <option value="All">All Status</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Shipped">Shipped</option>
-                      <option value="Delivered">Delivered</option>
+                      <option value="pending">Pending</option>
+                      <option value="shipped">Shipped</option>
+                      <option value="delivered">Delivered</option>
                     </select>
                   </div>
 
@@ -525,9 +534,9 @@ const OrderCreationCRM = () => {
                       style={styles.select}
                     >
                       <option value="All">All Amounts</option>
-                      <option value="Under ₹150">Under ₹150</option>
-                      <option value="₹150 - ₹200">₹150 - ₹200</option>
-                      <option value="Over ₹200">Over ₹200</option>
+                      <option value="Under ₹1500">Under ₹1500</option>
+                      <option value="₹1500 - ₹2000">₹1500 - ₹2000</option>
+                      <option value="Over ₹2000">Over ₹2000</option>
                     </select>
                   </div>
 
@@ -572,12 +581,12 @@ const OrderCreationCRM = () => {
               style={styles.createButton}
               onClick={() => setCurrentView('create')}
             >
-              <Plus size={16} />
+              <Plus size={16} color="white" />
               Create Order
             </button>
           </div>
         </div>
-
+        {loading === true ? <p> Loading data</p> : 
         <div style={styles.tableContainer}>
           <div style={{overflowX: 'auto'}}>
             <table style={styles.table}>
@@ -593,7 +602,7 @@ const OrderCreationCRM = () => {
                   <th style={styles.th}>Location</th>
                   <th style={styles.th}>Date</th>
                   <th style={styles.th}>Check Invoice</th>
-
+                  <th style={styles.th}>Billed By</th>
                 </tr>
               </thead>
               <tbody style={{backgroundColor: '#FDFDFD'}}>
@@ -608,49 +617,52 @@ const OrderCreationCRM = () => {
                     onMouseLeave={(e) => e.target.parentElement.style.backgroundColor = '#FDFDFD'}
                   >
                     <td style={styles.td}>
-                      <span style={{fontWeight: '600', color: 'black'}}>{order.id}</span>
+                      <span style={{fontWeight: '600', color: 'black'}}>{order.orderID}</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: 'black', fontWeight: '300'}}>{order.customerId}</span>
+                      <span style={{color: 'black', fontWeight: '300'}}>{order.userID}</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: 'black', fontWeight: '300'}}>{order.customer}</span>
+                      <span style={{color: 'black', fontWeight: '300'}}>{order.customer_name}</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{fontWeight: '600', color: 'black'}}>₹{order.total}</span>
+                      <span style={{fontWeight: '600', color: 'black'}}>₹{order.amount}</span>
                     </td>
                     <td style={styles.td}>
                       <span 
                         style={{
                           ...styles.statusBadge,
-                          ...getStatusColor(order.status)
+                          ...getStatusColor(order.order_status)
                         }}
                       >
-                        {order.status}
+                        {order.order_status}
                       </span>
                     </td>
                     <td style={styles.td}>
                       <span 
                         style={{
                           ...styles.statusBadge,
-                          ...getPaymentStatusColor(order.paymentStatus)
+                          ...getPaymentStatusColor(order.payment_status)
                         }}
                       >
-                        {getPaymentStatusIcon(order.paymentStatus)}
-                        {order.paymentStatus}
+                        {getPaymentStatusIcon(order.payment_status)}
+                        {order.payment_status}
                       </span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: '#2c2c2c', fontWeight: '300'}}>{order.paymentMethod}</span>
+                      <span style={{color: '#2c2c2c', fontWeight: '300'}}>{order.payment_method}</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: 'black', fontWeight: '300'}}>{order.location}</span>
+                      <span style={{color: 'black', fontWeight: '300'}}>noor</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: '#2c2c2c', fontWeight: '300'}}>{order.date}</span>
+                      <span style={{color: '#2c2c2c', fontWeight: '300'}}>{order.created_at}</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: '#2c2c2c', fontWeight: '300'}} onClick={()=> {setInvoice(true);setOrderChoose(order) }}><FileInput style={{color: '#2c2c2c', fontWeight: '300',alignContent: 'center',cursor: 'pointer'}}/></span>
+                      <span style={{color: '#2c2c2c', fontWeight: '300'}} onClick={()=> {setInvoice(true);setOrderChoose(order.orderID) }}><FileInput style={{color: '#2c2c2c', fontWeight: '300',alignContent: 'center',cursor: 'pointer'}}/></span>
+                    </td>
+                    <td style = {styles.td}>
+                      <span style= {{ color:'#2c2c2c', fontWeight: '300'}}> salesperson</span> 
                     </td>
                   </tr>
                           
@@ -659,6 +671,7 @@ const OrderCreationCRM = () => {
             </table>
           </div>
         </div>
+        }
 
         <div style={styles.section}>
           <h2 style={{fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', color: 'black'}}>
@@ -817,7 +830,6 @@ const OrderCreationCRM = () => {
           </div>
         </div>
       )}
-      {/* <Invoice order={ordersData[1]}/> */}
     </div>
   );
 };

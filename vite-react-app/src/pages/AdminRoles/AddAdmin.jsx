@@ -75,18 +75,18 @@ const AddAdmin = ({ onClose, onSave }) => {
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="add-modal">
+    <div className="add-admin-modal-overlay">
+      <div className="add-admin-add-modal">
         <h5>Add New Admin</h5>
 
         <form onSubmit={handleSubmit}>
           {errors.api && (
-            <div className="error-message" style={{ marginBottom: '10px' }}>
+            <div className="add-admin-error-message" style={{ marginBottom: '10px' }}>
               {errors.api}
             </div>
           )}
 
-          <div className="form-group">
+          <div className="add-admin-form-group">
             <label>Email</label>
             <input
               type="email"
@@ -96,7 +96,7 @@ const AddAdmin = ({ onClose, onSave }) => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="add-admin-form-group">
             <label>Password</label>
             <input
               type="password"
@@ -106,7 +106,7 @@ const AddAdmin = ({ onClose, onSave }) => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="add-admin-form-group">
             <label>Confirm Password</label>
             <input
               type="password"
@@ -116,11 +116,11 @@ const AddAdmin = ({ onClose, onSave }) => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="add-admin-form-group">
             <label>Roles</label>
-            <div className="roles-checkbox-group">
+            <div className="add-admin-roles-checkbox-group">
               {availableRoles.map(role => (
-                <div key={role} className="role-checkbox">
+                <div key={role} className="add-admin-role-checkbox">
                   <input
                     type="checkbox"
                     id={`role-${role}`}
@@ -134,11 +134,11 @@ const AddAdmin = ({ onClose, onSave }) => {
             </div>
           </div>
 
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose} disabled={isSubmitting}>
+          <div className="add-admin-modal-actions">
+            <button type="button" className="add-admin-cancel-btn" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </button>
-            <button type="submit" className="save-btn" disabled={isSubmitting}>
+            <button type="submit" className="add-admin-save-btn" disabled={isSubmitting}>
               {isSubmitting ? 'Creating...' : 'Create Admin'}
             </button>
           </div>

@@ -6,7 +6,9 @@ export const styles = {
       borderRadius: '2rem',
       width: '84vw',
       overflow: 'hidden',
-      minHeight: '600px'
+      minHeight: '600px',
+      margin: '0 auto',
+      padding:'35px'
     },
     mainContent: {
       display: 'flex',
@@ -14,7 +16,7 @@ export const styles = {
       gap: '1rem',
       maxWidth: '100%',
       margin: '0 auto',
-      padding: '32px 24px',
+      // padding: '30px 24px',
       overflow: 'hidden'
     },
     header: {
@@ -96,8 +98,8 @@ export const styles = {
       borderRadius: '2rem',
       padding: '0.75rem 1rem',
       fontSize: '0.875rem',
-      fontWeight: '300',
-      color: '#2c2c2c',
+      fontWeight: '500',
+      color: 'black',
       outline: 'none',
       width: '100%'
     },
@@ -275,14 +277,14 @@ export const styles = {
       gap: '0.25rem'
     },
     tableContainer: {
-      border: '0.01rem solid #a2a2a2',
-      padding: '2rem',
-      borderRadius: '2rem',
-      backgroundColor: '#FDFDFD',
+      background: 'white',
+      border: '0.5px solid rgb(207, 202, 202)',
+      borderRadius: '0.75rem',
       overflow: 'hidden',
-      marginBottom: '2rem'
+      fontSize: 'medium'
     },
     table: {
+      borderRadius:'2rem',
       borderCollapse: 'separate',
       borderSpacing: '0',
       borderRadius: '0.8rem',
@@ -292,11 +294,14 @@ export const styles = {
     },
     th: {
       fontWeight: '500',
-      padding: '0.75rem 1rem',
+      padding: '0.75rem 1.5rem',
       textAlign: 'left',
-      borderBottom: '0.1rem solid #a2a2a2',
-      fontSize: '0.875rem',
-      whiteSpace: 'nowrap'
+      borderBottom: '1px solid #e5e7eb',
+      fontSize: '1rem',
+      whiteSpace: 'nowrap',
+      color:'#374151',
+      backgroundColor: '#f9fafb',
+      justifyContent: 'space-around'
     },
     td: {
       padding: '0.75rem 1rem',

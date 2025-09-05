@@ -1,0 +1,289 @@
+.loyalty-cards-container {
+  background-color: #f9fafb;
+  font-family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  border: 0.01rem solid black;
+  border-radius: 2rem;
+  width: 84vw;
+  overflow: hidden;
+  min-height: 600px;
+  margin: 0 auto;
+  padding:35px;
+}
+
+.loyalty-cards-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.loyalty-cards-header h5 {
+  font-size: 2rem;
+  text-decoration: none;
+  font-weight: 600;
+  margin: 0;
+  color: black;
+}
+
+.add-loyalty-card-btn {
+  background-color: #111827;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-loyalty-card-btn:hover {
+  background-color: #374151;
+}
+
+.loyalty-cards-search-div {
+  margin-bottom: 1.5rem;
+  display: flex;
+}
+
+.loyalty-card-search-input-wrapper {
+  position: relative;
+  display: flex;
+  max-width: 300px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+}
+
+.loyalty-cards-search-input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 2rem 0 0 2rem;
+  font-size: 0.875rem;
+  background-color: #FDFDFD;
+  outline: none;
+}
+
+.loyalty-cards-search-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.loyalty-cards-search-text{
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 0 1.5rem;
+  border-radius: 0 2rem 2rem 0;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  /* top:50%; */
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  height:100%;
+}
+
+.table-container {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.loyalty-cards-list {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.loyalty-cards-list th {
+  background-color: #f9fafb;
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-weight: 500;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.loyalty-cards-list td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Zebra striping */
+.loyalty-cards-list tr.even-row {
+  background-color: #ffffff;
+}
+
+.loyalty-cards-list tr.odd-row {
+  background-color: #f9fafb;
+}
+
+.loyalty-cards-list tr:hover {
+  background-color: #f3f4f6;
+}
+
+.barcode-cell {
+  /* font-family: monospace; */
+  font-size: 0.9rem;
+}
+
+.actions-cell {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.loyalty-card-delete-btn {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.loyalty-card-delete-btn:hover {
+  background-color: #dc2626;
+}
+
+.no-results {
+  text-align: center;
+  color: #6b7280;
+  padding: 2rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+/* Dialog Styles */
+.loyalty-card-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.loyalty-card-dialog-content {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 0.75rem;
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.loyalty-card-dialog-content h6 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  color: #1f2937;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.input-group {
+  margin-bottom: 1rem;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.loyalty-card-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.loyalty-card-cancel-btn {
+  background-color: #f3f4f6;
+  color: #374151;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.loyalty-card-cancel-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.loyalty-card-save-btn {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.loyalty-card-save-btn:hover {
+  background-color: #059669;
+}
+
+@media (max-width: 768px) {
+  .loyalty-cards-container {
+    width: 95vw;
+    padding: 1rem;
+  }
+  
+  .loyalty-cards-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .loyalty-cards-list {
+    display: block;
+    overflow-x: auto;
+  }
+  
+  .barcode-cell {
+    word-break: break-all;
+  }
+}

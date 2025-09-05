@@ -1,17 +1,38 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import html2pdf from "html2pdf.js";
 import styles from "./Invoice.module.css"; // Changed to CSS Module
+import { getOrder } from "../../contexts/api/orders";
 
-const Invoice = ({ order }) => {
+const Invoice = ({ orderID }) => {
   const downloadPDF = () => {
     const invoice = document.getElementById("invoice");
     html2pdf().from(invoice).save(`invoice_${order.id}.pdf`);
   };
+  const [orderData,setOrderData] = useState([]);
+  const [loading , setLoading] = useState(true);
+  const fetchData = useCallback( async () => {
+    try {
+      setLoading(true);
+      const res = await getOrder(orderID);
+      console.log(res);
+      setOrderData(res);
+    } catch (error) {
+      console.error("error fetching order data", error);
+    }
+    finally{
+      setLoading(false);
+    }
+  } , []);
 
-  const subtotal = order.items.reduce((sum, item) => sum + item.qty * item.price, 0);
-  const delieveryCharge = +(order.delieveryCharge || 0).toFixed(2);
-  const tax = +(subtotal * 0.13).toFixed(2);
-  const total = +(subtotal + tax).toFixed(2);
+    // Fetch orders data on mount
+    useEffect(() => {
+      fetchData();
+    }, [fetchData]);
+
+  // const subtotal = orderData.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+  // const delieveryCharge = +(order.delieveryCharge || 0).toFixed(2);
+  // const tax = +(subtotal * 0.13).toFixed(2);
+  // const total = +(subtotal + tax).toFixed(2);
 
   return (
     <div className={styles.invoiceContainer}>
@@ -19,18 +40,21 @@ const Invoice = ({ order }) => {
         <div className={styles.invoiceHeader}>
           <div className={styles.billTo}>
             <h4>Bill To:</h4>
-            <p>{order.customer}</p>
-            <p>{order.location}</p>
-            <p>{order.country}</p>
-            <p>{order.email}</p>
+            <p>{orderData.customer_name}</p>
+            <p>noot</p>
+            {/* <p>{order.country}</p> */}
+            <p>{orderData.email}</p>
           </div>
           <div className={styles.invoiceDetails}>
-            <p><strong>Invoice #</strong> {order.id}</p>
-            <p><strong>Invoice Date:</strong> {order.date}</p>
-            <p className={styles.amountDue}><strong>Amount Due:</strong> ₹{total}</p>
+            <p><strong>Invoice #</strong> {orderData.orderID}</p>
+            <p><strong>Invoice Date:</strong> {orderData.created_at}</p>
+            {/* <p className={styles.amountDue}><strong>Amount Due:</strong> ₹{total}</p> */}
           </div>
         </div>
-
+        <div className={styles.billTo} style={{marginBottom:'10px'}}>
+          <p style={{fontSize:'15px' , fontWeight:'500'}}> Billed By:</p>
+          <p style={{fontSize:'15px' , fontWeight:'350'}}> {orderData.billedBy}</p>
+        </div>
         <table className={styles.itemsTable}>
           <thead>
             <tr>
@@ -42,7 +66,7 @@ const Invoice = ({ order }) => {
             </tr>
           </thead>
           <tbody>
-            {order.items.map((item, index) => (
+            {orderData.items.map((item, index) => (
               <tr key={index}>
                 <td>{item.name}</td>
                 <td>{item.description}</td>
@@ -56,7 +80,7 @@ const Invoice = ({ order }) => {
 
         <div className={styles.notes}>
           <p><strong>Notes / Memo:</strong></p>
-          <p>{order.notes || "Free Shipping with 30-day money-back guarantee."}</p>
+          <p>{orderData.notes || "Free Shipping with 30-day money-back guarantee."}</p>
         </div>
 
         <div className={styles.summary}>

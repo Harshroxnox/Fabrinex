@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import './ProductsList.css';
 import { ProductContext } from '../../contexts/ProductContext';
+import { Upload } from 'lucide-react';
 
 const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
   const [variant, setVariant] = useState({
@@ -87,7 +88,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
   return (
     <div className="dialog-overlay">
       <div className="dialog-content">
-        <h2>Add Variant</h2>
+        <h2 className='variant-heading'>Add Variant</h2>
 
         {(error || contextError) && <p className="error-message">{error || contextError}</p>}
 
@@ -173,7 +174,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
             </div>
           </div>
 
-          <div className="form-group">
+          <div className="form-group-image">
             <label>Image*</label>
             <input
               type="file"
@@ -183,6 +184,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               required
               // disabled={loading}
             />
+            {/* <Upload /> */}
           </div>
 
           {previewUrl && (

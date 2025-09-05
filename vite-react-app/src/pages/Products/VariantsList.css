@@ -14,7 +14,9 @@
   text-align: left;
   border-bottom: 1px solid #e0e0e0;
 }
-
+.variants-table-container{
+  overflow-x: scroll;
+}
 .variants-table th {
   background-color: #f2f2f2;
   font-weight: bold;
@@ -41,9 +43,7 @@
   background-color: #0b7dda;
 }
 
-.delete-btn {
-  /* background-color: blue; */
-  background-color: white;
+.delete-btn{
   color: white;
   border: none;
   padding: 5px 10px;
@@ -51,6 +51,3 @@
   cursor: pointer;
 }
 
-.delete-btn:hover {
-  /* background-color: #da190b; */
-}

@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import axios from 'axios';
+import axiosInstance from '../utils/axiosInstance';
 
 const ProductContext = createContext();
 
@@ -55,7 +56,8 @@ export const ProductProvider = ({ children }) => {
     const getAllProducts = async () => {
         try {
             setLoading(true);
-            const response = await api.get('/get-all-products');
+            // localhost:5000/api/v1/products/get-all-products?limit=10&page=1
+            const response = await api.get('/get-all-products?limit=10&page=1');
             return response.data; // [ array of products ]
         } catch (err) {
             setError(err.response?.data?.message || err.message);
@@ -64,6 +66,19 @@ export const ProductProvider = ({ children }) => {
             setLoading(false);
         }
     };
+    const getProductByIDByAdmin = async (productID) => {
+        try {
+            setLoading(true);
+            const response = await axiosInstance.get(`/products/get-product-admin/${productID}`);
+            return response.data;
+        } catch (error) {
+            setError(err.response?.data?.message || err.message);
+            throw err;
+        }
+        finally{
+            setLoading(false);
+        }
+    }
 
     const deleteProduct = async (productID) => {
         try {
@@ -185,6 +200,7 @@ export const ProductProvider = ({ children }) => {
             getVariantsByProduct,
             getAllVariants,
             deleteVariant,
+            getProductByIDByAdmin,
             variantsListOfProduct
         }}>
             {children}

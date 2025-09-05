@@ -3,8 +3,9 @@
     flex-direction: column;
     padding-right: 3.5rem;
     gap: 1rem;
-
-background: linear-gradient(180deg, #e8e8e8, #ffffff);
+    /* height: fit-content; */
+    height: 94vh;
+    /* overflow-y:auto; */
 }
 
 .text-card {
@@ -117,6 +118,7 @@ background: linear-gradient(180deg, #e8e8e8, #ffffff);
     display: flex;
     align-items: center;
     gap: 1rem;
+    width:100%;
 }
 
 .admin-graphs {
@@ -124,6 +126,7 @@ background: linear-gradient(180deg, #e8e8e8, #ffffff);
     padding: 2rem;
     border-radius: 2rem;
     background-color: #FDFDFD;
+    width:70vw;
 }
 
 .card {

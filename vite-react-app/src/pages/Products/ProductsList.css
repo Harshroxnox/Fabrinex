@@ -104,6 +104,7 @@
   transition: background-color 0.2s;
 }
 .products-list {
+  /* overflow: scroll; */
   border: 0.01rem solid #a2a2a2;
   padding: 2rem;
   border-radius: 2rem;
@@ -165,7 +166,23 @@
   /* background-color: /#2563eb; */
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.0rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin:0 auto;
+  /* transition: background-color 0.2s; */
+}
+
+.edit-btn:hover {
+  background-color: #7c8cb7;
+}
+.delete-icon {
+  /* background-color: /#2563eb; */
+  color: white;
+  border: none;
+  padding: 0.75rem 1.0rem;
   border-radius: 2rem;
   font-size: 0.75rem;
   font-weight: 500;
@@ -173,25 +190,43 @@
   /* transition: background-color 0.2s; */
 }
 
-.edit-btn:hover {
-  background-color: #1d4ed8;
+.delete-icon:hover {
+  background-color: #ca9999;
+}
+.delete-btn{
+  background-color: #b91c1c;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-right: 4px;
 }
 
-.delete-btn {
-  /* background-color: #dc2626; */
+.delete-btn:hover {
+  background-color: #eeb4b4;
+}
+.add-variant-btn {
+  background-color: #dc2626;
   color: white;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 2rem;
-  font-size: 0.75rem;
+  font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
-.delete-btn:hover {
+.add-variant-btn:hover {
   background-color: #b91c1c;
 }
+
 
 .expand-icon {
   margin-left: 0.5rem;
@@ -256,7 +291,7 @@
   padding: 2rem;
   border-radius: 2rem;
   width: 80vw;
-  max-width: 90%;
+  max-width: 40%;
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   font-size: 20px;
 }
@@ -273,12 +308,46 @@
   flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1rem;
+  width:100%;
+}
+.form-row{
+  display: flex;
+  gap:2rem;
+  width:100%;
 }
 
+.form-action{
+  justify-items: right;
+  align-items:end;
+}
 .form-group label {
   font-size: 0.875rem;
   font-weight: 500;
   color: #374151;
+}
+.form-group-image{
+  display: flex;
+  /* border:1px solid black; */
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  /* width:100%; */
+}
+.form-group-image input{
+  background-color: #FDFDFD;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 300;
+  color: #2c2c2c;
+  outline: none;
+  width: 100%;
+}
+.variant-heading{
+  justify-content: center;
+  text-align: center;
+  margin-bottom: 2rem;
 }
 
 .form-group input,
@@ -286,7 +355,7 @@
 .form-group select {
   background-color: #FDFDFD;
   border: 0.01rem solid #a2a2a2;
-  border-radius: 2rem;
+  border-radius: 0.75rem;
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
   font-weight: 300;
@@ -307,7 +376,7 @@
   margin-top: 1.5rem;
 }
 
-.cancel-btn {
+.cancel-btn,.back-btn {
   background-color: #e5e7eb;
   color: #374151;
   border: none;
@@ -317,12 +386,28 @@
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
+  margin-right: 4px;
 }
 
 .cancel-btn:hover {
   background-color: #d1d5db;
 }
+.next-btn {
+  background-color: #16a34a;
+  color: white;
+  border: none;
+  margin-left: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
 
+.next-btn:hover {
+  background-color: #15803d;
+}
 .save-btn {
   background-color: #16a34a;
   color: white;
@@ -403,26 +488,6 @@
   padding: 1rem;
 }
 
-/* Icon button styles */
-.edit-btn, .delete-btn {
-  background: none;
-  border: none;
-  padding: 0.5rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.edit-btn:hover {
-  background-color: rgba(59, 130, 246, 0.1);
-}
-
-.delete-btn:hover {
-  background-color: rgba(220, 38, 38, 0.1);
-}
 
 /* Loading state */
 .product-item.loading {

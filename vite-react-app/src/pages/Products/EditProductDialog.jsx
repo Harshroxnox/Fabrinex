@@ -5,9 +5,9 @@ import { ProductContext } from '../../contexts/ProductContext';
 
 const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
   const [editedProduct, setEditedProduct] = useState({
-    name: '',
-    description: { content: '' },
-    category: ''
+    name: product.name,
+    description: product.description.content,
+    category: product.category
   });
   const [error, setError] = useState('');
   const { updateProduct,error: contextError, clearError } = useContext(ProductContext);
@@ -55,7 +55,7 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
       console.error('Error updating product:', err);
       setError(contextError || 'Failed to update product');
     } finally{
-      setLoading(true);
+      setLoading(false);
     }
   };
 

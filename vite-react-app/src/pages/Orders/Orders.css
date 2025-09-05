@@ -1,0 +1,384 @@
+/* Orders.css */
+.order-container {
+  background-color: #f9fafb;
+  font-family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  border: 0.01rem solid black;
+  border-radius: 2rem;
+  width: 84vw;
+  overflow: hidden;
+  min-height: 600px;
+  margin: 0 auto;
+  padding: 35px;
+}
+
+.order-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.order-title {
+  color: #1f2937;
+  font-weight: 600;
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.order-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.order-filter-button {
+  background-color: #f9fafb;
+  color: #374151;
+  padding: 0.75rem 1rem;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-filter-button:hover {
+  background-color: #f3f4f6;
+}
+
+.order-filter-arrow {
+  transition: transform 0.2s;
+}
+
+.order-filter-arrow.open {
+  transform: rotate(180deg);
+}
+
+.order-filter-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 0.5px solid rgb(207, 202, 202);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  z-index: 10;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  min-width: 300px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.order-create-button {
+  background-color: #111827;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-create-button:hover {
+  background-color: #1f2937;
+}
+
+.order-back-button {
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-back-button:hover {
+  background-color: #e5e7eb;
+}
+
+.order-table-container {
+  background: white;
+  border: 0.5px solid rgb(207, 202, 202);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  font-size: large;
+}
+
+.order-table-wrapper {
+  overflow-x: auto;
+}
+
+.order-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.order-table th {
+  background-color: #f9fafb;
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-weight: 500;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.order-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.order-table tr.even-row {
+  background-color: #ffffff;
+}
+
+.order-table tr.odd-row {
+  background-color: #f9fafb;
+}
+
+.order-table tr:hover {
+  background-color: #f3f4f6;
+}
+
+.order-id {
+  font-weight: 600;
+  color: #111827;
+}
+
+.order-amount {
+  font-weight: 600;
+  color: #111827;
+}
+
+.order-status-badge,
+.order-payment-status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-block;
+}
+
+.order-invoice-icon {
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.order-invoice-icon:hover {
+  color: #374151;
+}
+
+.order-loading {
+  text-align: center;
+  color: #6b7280;
+  padding: 2rem;
+}
+
+.order-section {
+  background: white;
+  border: 0.5px solid rgb(207, 202, 202);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.order-section-title {
+  color: #1f2937;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.order-form-group {
+  margin-bottom: 1rem;
+}
+
+.order-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.order-input,
+.order-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.order-input:focus,
+.order-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.order-track-section {
+  background: white;
+  border: 0.5px solid rgb(207, 202, 202);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+.order-track-title {
+  color: #1f2937;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  font-size: 1.125rem;
+}
+
+.order-track-controls {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.order-track-input {
+  flex: 1;
+  max-width: 300px;
+  padding: 0.75rem 1rem;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  background-color: #FDFDFD;
+  outline: none;
+}
+
+.order-track-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.order-track-button {
+  background-color: #111827;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.order-track-button:hover {
+  background-color: #1f2937;
+}
+
+.order-track-result {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 1rem;
+  background-color: #f9fafb;
+}
+
+.order-invoice-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.order-invoice-content {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 2rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.order-invoice-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-invoice-close:hover {
+  background-color: #f3f4f6;
+}
+
+@media (max-width: 768px) {
+  .order-container {
+    width: 95vw;
+    padding: 1rem;
+  }
+  
+  .order-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .order-header-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .order-filter-dropdown {
+    position: static;
+    margin-top: 1rem;
+  }
+  
+  .order-track-controls {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .order-track-input {
+    max-width: 100%;
+  }
+}

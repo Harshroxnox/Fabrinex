@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './Message.css';
 import axios from 'axios';
 import RenderPreviewContent from './PreviewMessage';
@@ -9,66 +9,66 @@ const MessageTemplates = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchTemplates = async () => {
-      try {
-        const response = await axios.get('http://localhost:5000/api/v1/marketing/get-message-templates');
-        const apiData = response.data;
-        
-        // Transform API data into our template structure
-        const transformedTemplates = {
-          smsMarketingTemplate: {
-            title: "SMS Marketing",
-            description: "Discount promotion via SMS",
-            icon: "📱",
-            color: "#3B82F6",
-            content: apiData.smsMarketingTemplate,
-            type: "sms"
-          },
-          whatsappMarketingTemplate: {
-            title: "WhatsApp Marketing",
-            description: "WhatsApp promotional message",
-            icon: "💬",
-            color: "#25D366",
-            content: apiData.whatsappMarketingTemplate,
-            type: "whatsapp"
-          },
-          emailMarketingTemplate: {
-            title: "Email Marketing",
-            description: "HTML email template",
-            icon: "✉️",
-            color: "#EC4899",
-            content: apiData.emailMarketingTemplate,
-            type: "email"
-          },
-          orderUpdateTemplate: {
-            title: "Order Update",
-            description: "Order status notification",
-            icon: "📦",
-            color: "#F59E0B",
-            content: apiData.orderUpdateTemplate,
-            type: "whatsapp"
-          },
-          emailOtpTemplate: {
-            title: "Email OTP",
-            description: "One-time password email",
-            icon: "🔒",
-            color: "#10B981",
-            content: apiData.emailOtpTemplate,
-            type: "email"
-          }
-        };
-        
-        setTemplates(transformedTemplates);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
 
-    fetchTemplates();
+  const fetchTemplates = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/v1/marketing/get-message-templates"
+      );
+      const apiData = response.data;
+      const transformedTemplates = {
+        smsMarketingTemplate: {
+          title: "SMS Marketing",
+          description: "Discount promotion via SMS",
+          icon: "📱",
+          color: "#3B82F6",
+          content: apiData.templates.smsMarketingTemplate,
+          type: "sms",
+        },
+        whatsappMarketingTemplate: {
+          title: "WhatsApp Marketing",
+          description: "WhatsApp promotional message",
+          icon: "💬",
+          color: "#25D366",
+          content: apiData.templates.whatsappMarketingTemplate,
+          type: "whatsapp",
+        },
+        emailMarketingTemplate: {
+          title: "Email Marketing",
+          description: "HTML email template",
+          icon: "✉️",
+          color: "#EC4899",
+          content: apiData.templates.emailMarketingTemplate,
+          type: "email",
+        },
+        orderUpdateTemplate: {
+          title: "Order Update",
+          description: "Order status notification",
+          icon: "📦",
+          color: "#F59E0B",
+          content: apiData.templates.orderUpdateTemplate,
+          type: "whatsapp",
+        },
+        emailOtpTemplate: {
+          title: "Email OTP",
+          description: "One-time password email",
+          icon: "🔒",
+          color: "#10B981",
+          content: apiData.templates.emailOtpTemplate,
+          type: "email",
+        },
+      };
+      setTemplates(transformedTemplates);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, [fetchTemplates]); // ✅ include fetchTemplates in deps
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);

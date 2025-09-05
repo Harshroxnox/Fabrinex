@@ -14,6 +14,8 @@ import OrderCreationCRM from '../Orders/Orders.jsx';
 import AdminRoles from '../AdminRoles/AdminRoles.jsx';
 import CustomerPage from '../Customers/CustomerPage.jsx';
 import ProductsList from '../Products/ProductsList.jsx';
+import SalesPersons from '../Salespersons/Salespersons.jsx';
+import LoyaltyCards from '../LoyaltyCards/LoyaltyCards.jsx';
 // import ProductsPage from '../Products/ProductsPage.jsx';
 // import MainContainer from '../Products/MainContainer.jsx';
 
@@ -26,6 +28,9 @@ const Admin = () => {
     if (activeBtn === "Orders") return <OrderCreationCRM />;
     if (activeBtn === "Products") return <ProductsList />;
     if (activeBtn === "Customers") return <CustomerPage/>;
+    if (activeBtn === "SalesPersons") return <SalesPersons/>;
+    if (activeBtn === "LoyaltyCards") return <LoyaltyCards/>;
+
     if (activeBtn === "Messaging") return <MessagingSection />;
     if (activeBtn === "Web") return <WebPage />;
     if (activeBtn === "Promotions") return <PromotionsPage />;
@@ -72,7 +77,18 @@ const Admin = () => {
           >
             Customers
           </button>
-
+          <button
+            onClick={() => setActiveBtn("SalesPersons")}
+            className={activeBtn === "SalesPersons" ? "active-btn" : ""}
+          >
+            SalesPersons
+          </button>
+          <button
+            onClick={() => setActiveBtn("LoyaltyCards")}
+            className={activeBtn === "LoyaltyCards" ? "active-btn" : ""}
+          >
+            Loyalty Cards
+          </button>
           <button
             onClick={() => setActiveBtn("Messaging")}
             className={activeBtn === "Messaging" ? "active-btn" : ""}

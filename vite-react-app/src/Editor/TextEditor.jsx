@@ -8,10 +8,11 @@ const TextEditor = ({ value, onChange }) => {
   const quillInstance = useRef(null);
 
   useEffect(() => {
+    console.log(value);
     if (editorRef.current && !quillInstance.current) {
       quillInstance.current = new Quill(editorRef.current, {
         theme: 'snow',
-        placeholder: 'Write your product description...',
+        placeholder: {value},
         modules: {
           toolbar: [
             [{ header: [1, 2, 3, false] }],

@@ -1,0 +1,257 @@
+import React, { useEffect, useState, useCallback } from "react";
+import "./Salespersons.css";
+import {
+  deleteSalesPersons,
+  getAllSalesPersons,
+  updateCommission,
+  addSalesPerson,
+} from "../../contexts/api/salespersons";
+import { Trash, Search, Plus } from "lucide-react";
+
+const Salespersons = () => {
+  const [salespersons, setSalespersons] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Dialog states
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+
+  // Form states
+  const [newSalesperson, setNewSalesperson] = useState({
+    name: "",
+    commission: "",
+    phone_number: "",
+  });
+  const [selectedSalesperson, setSelectedSalesperson] = useState(null);
+  const [newCommission, setNewCommission] = useState("");
+
+  // Fetch salespersons
+  const fetchSalespersons = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getAllSalesPersons();
+      setSalespersons(res.data.salesPersons || []);
+    } catch (error) {
+      console.error("Error fetching salespersons:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch salespersons on mount
+  useEffect(() => {
+    fetchSalespersons();
+  }, [fetchSalespersons]);
+
+  // Add salesperson
+  const handleAdd = async () => {
+    if (!newSalesperson.name || !newSalesperson.commission || !newSalesperson.phone_number) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    try {
+      await addSalesPerson(newSalesperson);
+      // Refresh the list after adding
+      fetchSalespersons();
+      setNewSalesperson({ name: "", commission: "", phone_number: "" });
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding salesperson:", error);
+    }
+  };
+
+  // Delete salesperson
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this salesperson?")) return;
+
+    try {
+      await deleteSalesPersons(id);
+      // Refresh the list after deleting
+      fetchSalespersons();
+    } catch (error) {
+      console.error("Error deleting salesperson:", error);
+    }
+  };
+
+  // Update commission
+  const handleUpdateCommission = async () => {
+    if (!selectedSalesperson) return;
+
+    try {
+      await updateCommission(selectedSalesperson.salesPersonID, {
+        commission: newCommission,
+      });
+      // Refresh the list after updating
+      fetchSalespersons();
+      setIsUpdateDialogOpen(false);
+      setSelectedSalesperson(null);
+      setNewCommission("");
+    } catch (error) {
+      console.error("Error updating commission:", error);
+    }
+  };
+
+  // Filter salespersons by name
+  const filteredSalespersons = salespersons.filter((sp) =>
+    sp.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  return (
+    <div className="salesperson-container">
+      <div className="salespersons-header">
+        <h5>Salespersons</h5>
+        <button className="add-salesperson-btn" onClick={() => setIsAddDialogOpen(true)}>
+          <Plus size={18} />
+          Add Salesperson
+        </button>
+      </div>
+      
+      <div className="salesperson-search-div">
+        <div className="search-input-wrapper">
+          {/* <Search size={18} className="search-icon" /> */}
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="salesperson-search-input"
+          />
+        </div>
+        <div className="salesperson-search-text">
+          Search
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="loading-state">Loading salespersons...</div>
+      ) : (
+        <div className="table-container">
+          <table className="salesperson-list">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Commission (%)</th>
+                <th>Phone Number</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredSalespersons.map((sp, index) => (
+                <tr key={sp.salesPersonID} className={index % 2 === 0 ? "even-row" : "odd-row"}>
+                  <td>{sp.name}</td>
+                  <td>{sp.commission}</td>
+                  <td>{sp.phone_number}</td>
+                  <td className="actions-cell">
+                    <button
+                      className="salesperson-edit-btn"
+                      onClick={() => {
+                        setSelectedSalesperson(sp);
+                        setNewCommission(sp.commission);
+                        setIsUpdateDialogOpen(true);
+                      }}
+                    >
+                      Update Commission
+                    </button>
+                    <button
+                      className="salesperson-delete-btn"
+                      onClick={() => handleDelete(sp.salesPersonID)}
+                    >
+                      <Trash size={15} color="white"/>
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {filteredSalespersons.length === 0 && (
+                <tr>
+                  <td colSpan="4" className="no-results">No salespersons found</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Add Salesperson Dialog */}
+      {isAddDialogOpen && (
+        <div className="salesperson-dialog-overlay">
+          <div className="salesperson-dialog-content">
+            <h6>Add New Salesperson</h6>
+            <div className="input-group">
+              <label>Name</label>
+              <input
+                type="text"
+                placeholder="Enter name"
+                value={newSalesperson.name}
+                onChange={(e) =>
+                  setNewSalesperson({ ...newSalesperson, name: e.target.value })
+                }
+              />
+            </div>
+            <div className="input-group">
+              <label>Commission (%)</label>
+              <input
+                type="number"
+                placeholder="Enter commission percentage"
+                value={newSalesperson.commission}
+                onChange={(e) =>
+                  setNewSalesperson({ ...newSalesperson, commission: e.target.value })
+                }
+              />
+            </div>
+            <div className="input-group">
+              <label>Phone Number</label>
+              <input
+                type="text"
+                placeholder="Enter phone number"
+                value={newSalesperson.phone_number}
+                onChange={(e) =>
+                  setNewSalesperson({ ...newSalesperson, phone_number: e.target.value })
+                }
+              />
+            </div>
+            <div className="salesperson-dialog-actions">
+              <button className="salesperson-cancel-btn" onClick={() => setIsAddDialogOpen(false)}>
+                Cancel
+              </button>
+              <button className="salesperson-save-btn" onClick={handleAdd}>
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Update Commission Dialog */}
+      {isUpdateDialogOpen && selectedSalesperson && (
+        <div className="salesperson-dialog-overlay">
+          <div className="salesperson-dialog-content">
+            <h6>Update Commission for {selectedSalesperson.name}</h6>
+            <div className="input-group">
+              <label>New Commission (%)</label>
+              <input
+                type="number"
+                value={newCommission}
+                onChange={(e) => setNewCommission(e.target.value)}
+              />
+            </div>
+            <div className="salesperson-dialog-actions">
+              <button
+                className="salesperson-cancel-btn"
+                onClick={() => setIsUpdateDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button className="salesperson-save-btn" onClick={handleUpdateCommission}>
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Salespersons;

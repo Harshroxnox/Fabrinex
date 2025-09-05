@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useContext } from 'react';
 import './AdminRoles.css';
 import DeleteAdmin from './DeleteAdmin';
-import EditAdmin from './EditAdmin';
+import Admin from './EditAdmin';
 import AddAdmin from './AddAdmin';
-import { Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { LoginContext } from '../../contexts/LoginContext';
 import { DeleteButton, EditButton } from '../../ui/Button';
+import EditAdmin from './EditAdmin';
 
 const AdminRoles = () => {
 
@@ -72,9 +73,9 @@ const {getAllAdmins}=useContext(LoginContext);
 
   const renderRoles = (roles) => {
     return (
-      <div className="roles-container">
+      <div className="admin-roles-roles-container">
         {roles.map((role, index) => (
-          <span key={index} className="role-pill">
+          <span key={index} className="admin-roles-role-pill">
             {role}
           </span>
         ))}
@@ -90,29 +91,33 @@ const {getAllAdmins}=useContext(LoginContext);
   });
   return (
     <div className="admin-roles-container">
-      <h5>Admin Roles Management</h5>
-      
+       <div className="salespersons-header">
+          <h5>Admin Roles</h5>
+          <button className="add-salesperson-btn" >
+            <Plus size={18} color="white" />
+            Add Admin
+          </button>
+        </div>
+        <div className="salesperson-search-div">
+          <div className="search-input-wrapper">
+            {/* <Search size={18} className="search-icon" /> */}
+            <input
+              type="text"
+              placeholder="Search by admin name..."
+              value={searchTerm}
+              onChange={handleSearch}
+              className="salesperson-search-input"
+            />
+          </div>
+          <div className="salesperson-search-text">
+            Search
+          </div>
+        </div>
       {isLoading && admins.length==0 ? (
-        <div className="loading-indicator">Loading admins...</div>
+        <div className="admin-roles-loading-indicator">Loading admins...</div>
       ) : (
         <>
-          <div className="admin-toolbar">
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Search admins..."
-                value={searchTerm}
-                onChange={handleSearch}
-              />
-              <Search size={22} className="search-icon" />
-            </div>
-            
-            <button className="add-admin-btn" onClick={handleAdd}>
-              + Add Admin
-            </button>
-          </div>
-          
-          <div className="admins-table">
+          <div className="admin-roles-admins-table">
             <table>
               <thead>
                 <tr>
@@ -129,7 +134,7 @@ const {getAllAdmins}=useContext(LoginContext);
                       <td>{admin.adminID}</td>
                       <td>{admin.email}</td>
                       <td>{renderRoles(admin.roles)}</td>
-                      <td className="actions">
+                      <td className="admin-roles-actions">
                         <EditButton onClick={()=> handleEdit(admin)}/>
                         <DeleteButton onClick={()=> handleDelete(admin)}/>
                       </td>
@@ -137,7 +142,7 @@ const {getAllAdmins}=useContext(LoginContext);
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="no-results">
+                    <td colSpan="4" className="admin-roles-no-results">
                       {searchTerm ? 'No matching admins found' : 'No admins available'}
                     </td>
                   </tr>

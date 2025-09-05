@@ -1,4 +1,4 @@
-.modal-overlay {
+.add-admin-modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,7 +11,7 @@
   z-index: 1000;
 }
 
-.add-modal {
+.add-admin-add-modal {
   background-color: white;
   padding: 25px;
   border-radius: 8px;
@@ -20,52 +20,52 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.add-modal h5 {
+.add-admin-add-modal h5 {
   /* margin-top: 0; */
   color: #4CAF50;
   /* margin-bottom: 20px; */
 }
 
-.form-group {
-  margin-bottom: 5px;
-}
+/* .add-admin-form-group {
+  /* margin-bottom: 5px; */
 
-.form-group label {
+
+.add-admin-form-group label {
   display: block;
-  margin-bottom: 2px;
+  margin-bottom: -10px;
   font-weight: 500;
   color: #555;
   font-size: medium;
 }
 
-.form-group input,
-.form-group select {
+.add-admin-form-group input {
+  margin-top: 10px;
   width: 100%;
-  /* padding: 10px; */
+  padding: 6px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 16px;
 }
 
-.form-group input.error {
+.add-admin-form-group input.error {
   border-color: #f44336;
 }
 
-.error-message {
+.add-admin-error-message {
   color: #f44336;
   font-size: 14px;
   margin-top: 5px;
   display: block;
 }
 
-.modal-actions {
+.add-admin-modal-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   /* margin-top: 25px; */
 }
 
-.cancel-btn {
+.add-admin-cancel-btn {
   background-color: #f5f5f5;
   color: #333;
   border: 1px solid #ddd;
@@ -76,11 +76,11 @@
   transition: background-color 0.3s;
 }
 
-.cancel-btn:hover {
+.add-admin-cancel-btn:hover {
   background-color: #e0e0e0;
 }
 
-.save-btn {
+.add-admin-save-btn {
   background-color: #4CAF50;
   color: white;
   border: none;
@@ -91,11 +91,11 @@
   transition: background-color 0.3s;
 }
 
-.save-btn:hover {
+.add-admin-save-btn:hover {
   background-color: #45a049;
 }
 
-.roles-checkbox-group {
+.add-admin-roles-checkbox-group {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -103,25 +103,27 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   background-color: #f8f9fa;
+  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
-.roles-checkbox-group.error {
+.add-admin-roles-checkbox-group.error {
   border-color: #f44336;
 }
 
-.role-checkbox {
+.add-admin-role-checkbox {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.role-checkbox input[type="checkbox"] {
+.add-admin-role-checkbox input[type="checkbox"] {
   width: 16px;
   height: 16px;
   accent-color: #3498db;
 }
 
-.role-checkbox label {
+.add-admin-role-checkbox label {
   cursor: pointer;
   user-select: none;
 }

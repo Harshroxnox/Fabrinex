@@ -3,24 +3,32 @@ import VariantsList from './VariantsList';
 import EditProductDialog from './EditProductDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import './ProductsList.css';
-import { EditIcon, Trash2Icon } from 'lucide-react';
+import { EditIcon, PlusCircleIcon, Trash2Icon } from 'lucide-react';
 import { ProductContext } from '../../contexts/ProductContext';
+import AddProductDialog from './AddProductDialog';
+import AddVariantDialog from './AddVariantDialog';
 
-const ProductItem = ({ product, onUpdate }) => {
+const ProductItem = ({ product, onUpdate ,onAdd}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const {deleteProduct,error ,getVariantsByProduct} = useContext(ProductContext);
+  const {deleteProduct, getProductByIDByAdmin , createVariant} = useContext(ProductContext);
   // console.log(product);
   const toggleExpand = () => setIsExpanded(!isExpanded);
   const [loading,setLoading]=useState(false);
   const [variants,setVariants]= useState([]);
   useEffect(()=>{
+    let isMounted = true;
+
     const fetchVariants= async ()=>{
       setLoading(true);
       try {
-        const variantsData= await getVariantsByProduct(product.productID);
+        // console.log(product);
+        const productData= await getProductByIDByAdmin(product.productID);
+        const variantsData = productData.product.variants;
         setVariants(variantsData);
+        // console.log(variantsData);
       } catch (error) {
         console.error("error fetching variants:", error);
       }
@@ -29,16 +37,38 @@ const ProductItem = ({ product, onUpdate }) => {
       }
     };
     fetchVariants();
-  },[getVariantsByProduct]);
-  useEffect(()=>{
 
-      getVariantsByProduct(product.productID);
-  },[])
+    return ()=>{
+      isMounted = false;
+    }
+  },[]);
   // console.log(variants);
   const handleUpdate = (updatedProduct) => {
     onUpdate(updatedProduct);
     setIsEditDialogOpen(false);
   };
+
+  // const handleAdd = (updatedProduct) => {
+  //   onAdd(updatedProduct);
+  //   setIsAddDialogOpen(false);
+  // }
+
+   const handleAddVariant = async (variant) => {
+    // setVariants((prev) => [...prev, variant]);
+    // setShowVariantDialog(false);
+    // setError('');
+    setLoading(true);
+    try {
+      await createVariant(product.productID , variant);
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error('Error adding new variant', err);
+    }
+    finally{
+      setLoading(true);
+    }
+  };
+
 
   const handleDelete = async () => {
     setLoading(true);
@@ -93,6 +123,16 @@ const ProductItem = ({ product, onUpdate }) => {
         </div>
         <div className="product-actions">
           <button 
+            className="hover:bg-green" style={{padding:'0.5rem 0.75rem' , borderRadius:'50%',borderColor:'transparent',cursor:'pointer'}}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsAddDialogOpen(true);
+            }}
+            disabled={loading}
+          >
+            <PlusCircleIcon size={20} color="green"/>
+            </button>
+          <button 
             className="edit-btn"
             onClick={(e) => {
               e.stopPropagation();
@@ -103,7 +143,7 @@ const ProductItem = ({ product, onUpdate }) => {
             <EditIcon size={20} color="blue"/>
           </button>
           <button 
-            className="delete-btn"
+            className="delete-icon"
             onClick={(e) => {
               e.stopPropagation();
               setIsDeleteDialogOpen(true);
@@ -130,6 +170,12 @@ const ProductItem = ({ product, onUpdate }) => {
           )}
         </div>
       )}
+    
+      <AddVariantDialog
+      isOpen={isAddDialogOpen}
+      onClose={()=> setIsAddDialogOpen(false)}
+      onAdd={handleAddVariant}
+      />
 
       <EditProductDialog
         isOpen={isEditDialogOpen}

@@ -6,6 +6,7 @@
   border-radius: 2rem;
   width: 84vw;
   overflow: hidden;
+  height: inherit;
 }
 
 .mainContent {

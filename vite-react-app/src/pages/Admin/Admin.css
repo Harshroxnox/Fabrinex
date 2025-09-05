@@ -1,19 +1,18 @@
 .admin-container {
-    margin: 0;
-    height: 94vh;
-    width: 100vw;
-    /* padding-left: 1.5rem; */
+    height: 90vh;
+    width:99vw;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #e8e8e8, #ffffff);
 }
 
 .admin-main {
-    overflow: auto; 
-    max-height: 100vh;
+    height: 94vh;
+    overflow-y: auto;
     padding-left: 2rem;
     font-size: 3rem;
-    padding-top: 2rem;;
+    padding-top: 2rem;
+    background-color: #F1F5F9;
+    width:100%;
 }
 
 .admin-box {
@@ -26,13 +25,10 @@
     flex-basis: 12vw;
     display: flex;
     flex-direction: column;
-    /* padding: 2rem; */
-    /* padding-left: 2rem; */
     text-align: justify;
-    /* align-items: center; */
     border: 0.01rem solid #a2a2a2;
-    background-color: #373F4C;
-    /* border-radius: 1rem; */
+    background-color: #F1F5F9;
+    color:#0F172A;
 }
 
 .admin-title {
@@ -47,22 +43,20 @@
     font-weight: 400;
     text-decoration: none;
     border: none;
-    /* border-radius: 0.7rem; */
-    background-color: #373F4C;
-    color: whitesmoke;
+    background-color:#F1F5F9;
+    color: #0F172A;
     text-align: justify;
-    /* padding-left: 0.5rem; */
     padding: 1rem 1rem;
     width:100%;
 }
 
 .admin-sidebar button:hover {
     cursor: pointer;
-    background-color: #396AAC;
+    background-color: #E2E8F0;
 }
 
 .admin-sidebar .active-btn {
-    background-color: #396AAC;
+    background-color: #CBD5E1;
 }
 
 .admin-sidebar .home-btn {

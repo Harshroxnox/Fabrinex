@@ -129,8 +129,8 @@ const CustomerPage = () => {
     <div className="customer-page">
       <h5>Customer Management</h5>
       
-      <div className="controls">
-        <div className="search-bar">
+      <div className="customer-controls">
+        <div className="customer-search-bar">
           <input
             type="text"
             placeholder="Search customers..."
@@ -139,19 +139,19 @@ const CustomerPage = () => {
           />
         </div>
         
-        <div className="action-buttons">
-          <button onClick={downloadExcel} className="download-btn">
+        <div className="customer-action-buttons">
+          <button onClick={downloadExcel} className="customer-download-btn">
             Download as Excel
           </button>
         </div>
       </div>
       
-      <div className="notification-controls">
-        <div className="selection-info">
+      <div className="customer-notification-controls">
+        <div className="customer-selection-info">
           {selectedCustomers.length} customer(s) selected
         </div>
         
-        <div className="notification-method">
+        <div className="customer-notification-method">
           <label>
             <input
               type="radio"
@@ -183,7 +183,7 @@ const CustomerPage = () => {
             WhatsApp
           </label>
           
-          <button onClick={sendPromotions} className="send-promo-btn">
+          <button onClick={sendPromotions} className="customer-send-promo-btn">
             Send Promotions
           </button>
         </div>

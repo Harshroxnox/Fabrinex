@@ -19,6 +19,7 @@ export const ordersData = [
           { name: "Product 1",description: "Product 1 description", qty: 2, price: 500 },
           { name: "Product 2",description: "Product 2 description", qty: 1, price: 300 }
       ],
+      billedBy: 'salesperson'
     },
     {
       id: '#1002',
@@ -40,6 +41,8 @@ export const ordersData = [
           { name: "Product 1",description: "Product 1 description", qty: 2, price: 500 },
           { name: "Product 2",description: "Product 2 description", qty: 1, price: 300 }
         ],
+      billedBy: 'salesperson'
+
     },
     {
       id: '#1003',
@@ -59,6 +62,8 @@ export const ordersData = [
           { name: "Product 1",description: "Product 1 description", qty: 2, price: 500 },
           { name: "Product 2",description: "Product 2 description", qty: 1, price: 300 }
       ],
+      billedBy: 'salesperson'
+
     },
     ,
     {
@@ -79,6 +84,8 @@ export const ordersData = [
           { name: "Product 1",description: "Product 1 description", qty: 2, price: 500 },
           { name: "Product 2",description: "Product 2 description", qty: 1, price: 300 }
       ],
+      billedBy: 'salesperson'
+
     },
     {
       id: '#1005',
@@ -98,6 +105,8 @@ export const ordersData = [
           { name: "Product 1",description: "Product 1 description", qty: 2, price: 500 },
           { name: "Product 2",description: "Product 2 description", qty: 1, price: 300 }
       ],
+      billedBy: 'salesperson'
+
     },
     {
         id: "12345",
@@ -110,6 +119,7 @@ export const ordersData = [
           { name: "Product 2", qty: 1, price: 300 }
         ],
         total: 1300,
+        location: 'Bulandshahr',
         paymentMethod: "Credit Card",
         paymentStatus: "Success",
         tracking: [
@@ -119,6 +129,8 @@ export const ordersData = [
           { name: "Product 1",description: "Product 1 description", qty: 2, price: 500 },
           { name: "Product 2",description: "Product 2 description", qty: 1, price: 300 }
       ],
+      billedBy: 'salesperson'
+
     }
     // ... (other orders with similar structure)
   ];

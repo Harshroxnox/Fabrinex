@@ -2,7 +2,7 @@
 
 .loginContainer {
   min-height: 100vh;
-  background: linear-gradient(135deg, #6b46c1 0%, #9333ea 100%);
+  background: #7c3aed → #6d28d9;
   display: flex;
   align-items: center;
   justify-content: space-between;

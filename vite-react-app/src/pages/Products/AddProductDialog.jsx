@@ -10,7 +10,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
     description: {
       content: ''
     },
-    category: ''
+    category: '',
+    tax: 18
   });
 
   const [variants, setVariants] = useState([]);
@@ -89,7 +90,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
       setNewProduct({
         name: '',
         description: { content: '' },
-        category: ''
+        category: '',
+        tax:18
       });
       setVariants([]);
       setCurrentStep(1);
@@ -128,7 +130,7 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
         )}
 
       
-        (
+        
           <form onSubmit={handleSubmit}>
             {currentStep === 1 && (
               <div className="form-step">
@@ -158,7 +160,16 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
                     }
                   />
                 </div>
-
+                <div className="form-group">
+                  <label>Tax ( % )*</label>
+                  <input
+                    type="text"
+                    name="tax"
+                    value={newProduct.tax}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
                 <div className="form-group">
                   <label>Category*</label>
                   <input
@@ -188,14 +199,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
                   Each product must have at least one variant (color/size combination)
                 </p>
 
-                <button
-                  type="button"
-                  className="add-variant-btn"
-                  onClick={() => setShowVariantDialog(true)}
-                >
-                  + Add Variant
-                </button>
 
+              
                 {variants.length > 0 && (
                   <div className="variants-list">
                     <h4>Added Variants:</h4>
@@ -217,7 +222,13 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
                     </ul>
                   </div>
                 )}
-
+                <button
+                  type="button"
+                  className="add-variant-btn"
+                  onClick={() => setShowVariantDialog(true)}
+                >
+                  + Add Variant
+                </button>
                 <div className="form-actions">
                   <button type="button" className="back-btn" onClick={handleBack}>
                     Back
@@ -233,7 +244,7 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
               </div>
             )}
           </form>
-        )
+        
 
         <AddVariantDialog
           isOpen={showVariantDialog}

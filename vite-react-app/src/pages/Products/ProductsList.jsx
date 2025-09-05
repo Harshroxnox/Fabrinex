@@ -20,8 +20,9 @@ const ProductsList = () => {
       setLoading(true);
       try {
         const productsData = await getAllProducts();
-        setProducts(productsData);
-        setFilteredProducts(productsData);
+        setProducts(productsData.products); //give array of product objects
+        setFilteredProducts(productsData.products);
+        // console.log(productsData);
       } catch (err) {
         console.error('Error fetching products:', err);
       }
@@ -29,7 +30,7 @@ const ProductsList = () => {
     
     fetchProducts();
     setLoading(false);
-  }, [getAllProducts]);
+  }, []);
 
   const handleSearch = (searchTerm) => {
     if (!searchTerm.trim()) {
@@ -89,8 +90,8 @@ const ProductsList = () => {
     try {
       setIsAddDialogOpen(false);
       const productsData = await getAllProducts(); // Refresh the list
-      setProducts(productsData);
-      setFilteredProducts(productsData);
+      setProducts(productsData.products); //give array of product objects
+      setFilteredProducts(productsData.products);
     } catch (err) {
       console.error('Error refreshing products:', err);
     }
@@ -139,6 +140,7 @@ const ProductsList = () => {
                 key={product.productID}
                 product={product}
                 onUpdate={handleUpdateProduct}
+                onAdd = {handleAddProduct}
               />
             ))
           ) : (

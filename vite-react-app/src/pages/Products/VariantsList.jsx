@@ -90,7 +90,7 @@ const VariantsList = ({ variants, productId }) => {
                       <EditIcon size={18} color="blue" />
                     </button>
                     <button
-                      className="delete-btn"
+                      className="delete-icon m-2"
                       onClick={() => setDeletingVariant(variant)}
                       disabled={loading}
                     >
