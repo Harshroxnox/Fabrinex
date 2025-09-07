@@ -121,7 +121,7 @@ CREATE TABLE ProductVariants (
     cloudinary_id VARCHAR(255) NOT NULL,
     barcode CHAR(13) UNIQUE NOT NULL, -- EAN-13 format
     discount DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (discount >= 0 AND discount < 100),
-    stock INT NOT NULL DEFAULT 0,
+    stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
@@ -148,11 +148,25 @@ CREATE TABLE Addresses (
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
+INSERT INTO Addresses (
+    userID,
+    city,
+    pincode,
+    state,
+    address_line
+) VALUES (
+    1,
+    'Jammu',
+    '180001',
+    'Jammu and Kashmir',
+    'Shop No : 133, Jain Bazar Rd'
+);
+
 -- NOTE: amount is the sum total of all discountedPrice of variants excluding tax and promo discount
 CREATE TABLE Orders (
     orderID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
-    addressID INT,
+    addressID INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_method VARCHAR(50) NOT NULL,
     payment_status VARCHAR(40) NOT NULL DEFAULT 'pending',

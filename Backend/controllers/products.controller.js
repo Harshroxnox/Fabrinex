@@ -1,7 +1,7 @@
 import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
-import { generateUniqueBarcode } from '../utils/generateBarcode.js';
+import { generateUniqueBarcode, ValidEAN13 } from '../utils/generateBarcode.js';
 import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
 import logger from '../utils/logger.js';
@@ -1176,6 +1176,63 @@ export const getVariantByIdAdmin = async (req, res, next) => {
 
   } catch (error) {
     error.context = { variantID };
+    next(error);
+  }
+};
+
+
+export const getVariantByBarcodeAdmin = async (req, res, next) => {
+  const barcode = ValidEAN13(req.params.barcode);
+
+  try {
+    if (barcode === null) {
+      throw new AppError(400, "Invalid barcode");
+    }
+
+    // Get variant + product info
+    const [variants] = await db.execute(`
+      SELECT 
+        pv.variantID, 
+        pv.productID, 
+        pv.color, 
+        pv.size, 
+        pv.price, 
+        pv.my_wallet,
+        pv.profit,
+        pv.source,
+        pv.floor,
+        pv.main_image, 
+        pv.discount, 
+        pv.barcode,
+        pv.stock,
+        pv.created_at,
+        p.name AS product_name, 
+        p.category
+      FROM ProductVariants pv
+      JOIN Products p ON pv.productID = p.productID
+      WHERE pv.barcode = ? AND pv.is_active = TRUE
+    `, [barcode]);
+
+    // Return if variant not found
+    if (variants.length === 0) {
+      throw new AppError(404, "Variant not found.");
+    }
+    const variant = variants[0];
+
+    // Get secondary images for this variant
+    const [images] = await db.execute(
+      `SELECT variantImageID, image_url FROM VariantImages WHERE variantID = ?`,
+      [variant.variantID]
+    );
+    variant.secondary_images = images;
+
+    res.status(200).json({
+      message: "Fetched variant successfully",
+      variant
+    });
+
+  } catch (error) {
+    error.context = { barcode };
     next(error);
   }
 };

@@ -261,14 +261,15 @@ export const createOrderOffline = async (req, res, next) => {
     const [orderResult] = await conn.execute(
       `INSERT INTO Orders (
         userID, 
+        addressID,
         payment_method, 
         payment_status, 
         amount,
         order_location, 
         order_status, 
         promo_discount
-      ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [userID, payment_method, 'completed', 0.1, constants.SHOP_LOCATION, 'delivered', promo_discount]
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userID, 1, payment_method, 'completed', 0.1, constants.SHOP_LOCATION, 'delivered', promo_discount]
     );
 
     const orderID = orderResult.insertId;
@@ -390,8 +391,9 @@ export const getOrder = async (req, res, next) => {
     }
 
     const [orderRows] = await db.execute(
-      `SELECT o.*, u.name AS customer_name
+      `SELECT o.*, a.city, a.state, a.pincode, a.address_line, u.name AS customer_name
        FROM Orders o
+       JOIN Addresses a ON o.addressID = a.addressID
        JOIN Users u ON o.userID = u.userID
        WHERE o.orderID = ?`,
       [orderID]
