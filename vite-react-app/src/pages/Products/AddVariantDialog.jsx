@@ -11,6 +11,10 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
     discount: '0',
     stock: '',
     main_image: null,
+    myWallet:'0',
+    profit: '0',
+    source: '0',
+    floor: '0',
     barcode: Math.random().toString().slice(2, 15) // Generate random barcode
   });
 
@@ -67,7 +71,11 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       ...variant,
       price: parseFloat(variant.price).toFixed(2),
       discount: parseFloat(variant.discount).toFixed(2),
-      stock: parseInt(variant.stock)
+      stock: parseInt(variant.stock),
+      myWallet: parseFloat(variant.myWallet).toFixed(2),
+      profit: parseFloat(variant.profit).toFixed(2),
+      source: variant.source,
+      floor: parseFloat(variant.floor)
     });
 
     // Reset form
@@ -78,6 +86,10 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       discount: '0',
       stock: '',
       main_image: null,
+      myWallet:'0',
+      profit: '0',
+      source: '',
+      floor: '0',
       barcode: Math.random().toString().slice(2, 15)
     });
     onClose();
@@ -143,7 +155,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 onChange={handleChange}
                 min="0"
                 max="100"
-                // disabled={loading}
               />
             </div>
           </div>
@@ -158,7 +169,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 onChange={handleChange}
                 min="1"
                 required
-                // disabled={loading}
               />
             </div>
 
@@ -174,6 +184,52 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
             </div>
           </div>
 
+           <div className="form-row">
+            <div className="form-group">
+              <label>My Wallet</label>
+              <input
+                type="number"
+                name="myWallet"
+                value={variant.myWallet}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Profit</label>
+              <input
+                type="number"
+                name="profit"
+                value={variant.profit}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Source*</label>
+              <input
+                type="text"
+                name="source"
+                value={variant.source}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Floor No </label>
+              <input
+                type="number"
+                name="floor"
+                value={variant.floor}
+                onChange={handleChange}
+                min="0"
+                max="100"
+              />
+            </div>
+          </div>
           <div className="form-group-image">
             <label>Image*</label>
             <input
@@ -182,7 +238,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               accept="image/*"
               onChange={handleFileChange}
               required
-              // disabled={loading}
             />
             {/* <Upload /> */}
           </div>

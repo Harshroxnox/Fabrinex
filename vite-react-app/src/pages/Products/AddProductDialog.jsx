@@ -114,14 +114,14 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
         <h2>Add New Product</h2>
         
         {/* Progress indicator */}
-        <div className="form-progress">
+        {/* <div className="form-progress">
           <div className={`progress-step ${currentStep === 1 ? 'active' : ''}`}>
             1. Product Details
           </div>
           <div className={`progress-step ${currentStep === 2 ? 'active' : ''}`}>
             2. Variants
           </div>
-        </div>
+        </div> */}
 
         {(error || contextError) && (
           <div className="error-message">

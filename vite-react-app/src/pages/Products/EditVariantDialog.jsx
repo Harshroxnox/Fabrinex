@@ -6,7 +6,11 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
   const [editedVariant, setEditedVariant] = useState({
     price: '',
     discount: '0',
-    main_image: null
+    main_image: null,
+    myWallet:'0',
+    profit: '0',
+    source: '0',
+    floor: '0'
   });
   const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState('');
@@ -17,7 +21,11 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
       setEditedVariant({
         price: variant.price || '',
         discount: variant.discount || '0',
-        main_image: null
+        main_image: null ,
+        myWallet: variant.myWallet || '0',
+        profit: variant.profit || '0',
+        source: variant.source || '0',
+        floor: variant.floor || '0'
       });
       setPreviewUrl(variant.main_image || null);
     }
@@ -56,7 +64,11 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
       clearError();
       const updateData = {
         price: parseFloat(editedVariant.price).toFixed(2),
-        discount: parseFloat(editedVariant.discount).toFixed(2)
+        discount: parseFloat(editedVariant.discount).toFixed(2),
+        myWallet: parseFloat(editedVariant.myWallet).toFixed(2),
+        profit: parseFloat(editedVariant.profit).toFixed(2),
+        source: editedVariant.source,
+        floor: parseFloat(editedVariant.floor)
       };
       
       if (editedVariant.main_image) {
@@ -109,6 +121,56 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
                 type="number"
                 name="discount"
                 value={editedVariant.discount}
+                onChange={handleChange}
+                min="0"
+                max="100"
+                disabled={loading}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>My Wallet</label>
+              <input
+                type="number"
+                name="myWallet"
+                value={editedVariant.myWallet}
+                onChange={handleChange}
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Profit</label>
+              <input
+                type="number"
+                name="profit"
+                value={editedVariant.profit}
+                onChange={handleChange}
+                disabled={loading}
+              />
+            </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Source*</label>
+              <input
+                type="text"
+                name="source"
+                value={editedVariant.source}
+                onChange={handleChange}
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Floor No </label>
+              <input
+                type="number"
+                name="floor"
+                value={editedVariant.floor}
                 onChange={handleChange}
                 min="0"
                 max="100"

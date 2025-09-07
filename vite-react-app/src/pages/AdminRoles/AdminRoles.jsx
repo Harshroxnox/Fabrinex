@@ -93,7 +93,7 @@ const {getAllAdmins}=useContext(LoginContext);
     <div className="admin-roles-container">
        <div className="salespersons-header">
           <h5>Admin Roles</h5>
-          <button className="add-salesperson-btn" >
+          <button className="add-salesperson-btn" onClick={()=> setShowAddModal(true)}  >
             <Plus size={18} color="white" />
             Add Admin
           </button>

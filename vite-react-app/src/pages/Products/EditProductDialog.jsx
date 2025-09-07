@@ -84,8 +84,12 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
           <div className="form-group">
             <label>Description</label>
             <TextEditor
-              value={editedProduct.description?.content || ''}
+              value={''}
               onChange={handleDescriptionChange}
+              />
+              <label> Preview </label>
+            <div className='product-preview'
+              dangerouslySetInnerHTML={{ __html: editedProduct.description.content }}
             />
           </div>
 

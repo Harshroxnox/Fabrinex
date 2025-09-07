@@ -318,5 +318,89 @@ export const styles = {
       borderRadius: '9999px',
       fontSize: '0.75rem',
       fontWeight: '500'
+    },
+    LoyaltyButton:{
+      backgroundColor: "#2563eb",
+      color: "white",
+      padding: "1rem 1.2rem",
+      borderRadius: "2rem",
+      border: "none",
+      fontSize: "0.80rem",
+      fontWeight: "500",
+      marginTop:'0.5rem',
+      cursor: "pointer",
+      marginLeft: "auto" // 
+    },
+    LoyaltyButtonDiv : {
+      display:'flex'
+    },
+    modalOverlay:{
+      position:'fixed',
+      top:'0',
+      left:'0',
+      width:'100%',
+      height:'100%',
+      background:'rgba(0, 0, 0, 0.3)',
+      backdropFilter:'blur(3px)',
+      display:'flex',
+      justifyContent:'center',
+      alignItems:'center',
+      zIndex:'999'
+    },
+    modal: {
+      background: "#fff",
+      padding: "2rem",
+      borderRadius: "1rem",
+      width: "350px",
+      maxWidth: "90%",
+      boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+      textAlign: "center",
+    },
+    modalTitle: {
+      marginBottom: "1.5rem",
+      fontSize: "1.25rem",
+      color: "#333",
+    },
+    modalInput: {
+      width: "100%",
+      padding: "0.75rem",
+      marginBottom: "1.5rem",
+      border: "1px solid #ccc",
+      borderRadius: "0.5rem",
+      fontSize: "1rem",
+    },
+    modalActions: {
+      display: "flex",
+      justifyContent: "flex-end",
+      gap: "1rem",
+    },
+    modalButton: {
+      padding: "0.6rem 1.2rem",
+      border: "none",
+      borderRadius: "0.5rem",
+      fontSize: "1rem",
+      cursor: "pointer",
+    },
+    cancelButton: {
+      backgroundColor: '#dc2626',
+      color: 'white',
+      border: 'none',
+      borderRadius: '2rem',
+      padding: '0.55rem 0.8rem',
+      fontSize: '1rem',
+      fontWeight:'500',
+      cursor: 'pointer',
+      marginLeft: 'auto'
+    },
+    applyButton: {
+      backgroundColor: '#16a34a',
+      color: 'white',
+      border: 'none',
+      borderRadius: '2rem',
+      padding: '0.55rem 1.3rem',
+      fontSize: '1rem',
+      fontWeight:'500',
+      cursor: 'pointer',
+      // marginLeft: 'auto'
     }
   };

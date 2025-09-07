@@ -54,6 +54,10 @@ const VariantsList = ({ variants, productId }) => {
               <th>Color</th>
               <th>Size</th>
               <th>Price</th>
+              <th>My Wallet</th>
+              <th>Profit</th>
+              <th>Source</th>
+              <th>Floor No</th>
               <th>Discount</th>
               <th>Stock</th>
               <th>Barcode</th>
@@ -77,6 +81,10 @@ const VariantsList = ({ variants, productId }) => {
                 <td>{variant.color}</td>
                 <td>{variant.size}</td>
                 <td>₹{variant.price}</td>
+                <td>₹{variant.my_wallet}</td>
+                <td>₹{variant.profit}</td>
+                <td>{variant.source}</td>
+                <td>{variant.floor}</td>
                 <td>{variant.discount}%</td>
                 <td>{variant.stock}</td>
                 <td>{variant.barcode}</td>

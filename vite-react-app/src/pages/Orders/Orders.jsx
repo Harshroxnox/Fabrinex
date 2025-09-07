@@ -1,41 +1,16 @@
-
-
-
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback,useEffect, useState } from 'react';
 import { ChevronDown, Search, MapPin, Calendar, DollarSign, CreditCard, CheckCircle, XCircle, Clock, Filter, Plus, Scan, Minus, ShoppingCart, ArrowLeft, Package, X, FileInput } from 'lucide-react';
 import Invoice from '../../components/Invoice/Invoice';
-import { ordersData } from '../../constants/ordersData';
-import { productData } from '../../constants/ProductsData';
 import { styles } from './Orders';
-import { getAllOrders } from '../../contexts/api/orders';
+import { createOrderOffline, getAllOrders } from '../../contexts/api/orders';
 import { paymentStatusColor, paymentStatusIcon, statusColor } from '../../utils/colorSelection.jsx';
-// Sample products database
-const productsDB = productData;
-// Initial orders data (your existing data)
-const initialOrdersData = ordersData;
+import { getVariantBarcodeAdmin } from '../../contexts/api/products.js';
+import { getDiscountByBarcode } from '../../contexts/api/loyaltyCards.js';
+
 const OrderCreationCRM = () => {
   const [currentView, setCurrentView] = useState('orders'); // 'orders' or 'create'
   const [ordersData, setOrdersData] = useState([]);
   const [loading , setLoading] = useState(true);
-    // Fetch orders
-  const fetchOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await getAllOrders();
-      console.log(res);
-      setOrdersData(res.orders || []);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Fetch orders on mount
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
-
   // Orders page filters
   const [statusFilter, setStatusFilter] = useState('All');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('All');
@@ -52,57 +27,102 @@ const OrderCreationCRM = () => {
   const [barcodeInput, setBarcodeInput] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [customerInfo, setCustomerInfo] = useState({
-    userID: '',
-    customer_name: '',
+    name: '',
+    phone_number: '',
     location: 'noor',
-    payment_method: 'Credit Card'
+    payment_method: ''
   }); 
+  const [product, setProduct] = useState({});
+  const [items , setItems] = useState([]);
   const [salesperson , setSalesperson] = useState("");
-  const [scanMode, setScanMode] = useState(false);
-  const [invoice, setInvoice] = useState(null);
-  const [orderchoose,setOrderChoose]=useState([]);
 
+  //invoice states
+  const [invoice, setInvoice] = useState(null);
+  const [orderchoose,setOrderChoose]=useState(0);
+
+  //loyaltycard states
+  const [isOpen , setIsOpen] =useState(false);
+  const [barcode , setBarcode] = useState("");
+  const [discount, setDiscount] = useState(0);
+  const [showDiscount , setShowDiscount] = useState(false);
+
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getAllOrders();
+      console.log(res);
+      setOrdersData(res.orders || []);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  useEffect(() => { fetchOrders()}, [fetchOrders]);
+
+  //get colors
   const getStatusColor =(status) => statusColor(status);
   const getPaymentStatusColor = (status) => paymentStatusColor(status);
-
-  useEffect(()=>{
-    console.log(orderchoose);
-  },[orderchoose])
   const getPaymentStatusIcon = (status) => paymentStatusIcon(status);
 
-  // Order creation functions
-  const handleBarcodeSubmit = () => {
-    if (!barcodeInput.trim()) return;
-    
-    const product = productsDB.find(p => p.barcode === barcodeInput.trim());
-    if (product) {
-      const existingProduct = selectedProducts.find(p => p.id === product.id);
-      if (existingProduct) {
-        if (existingProduct.quantity < product.stock) {
-          setSelectedProducts(prev => 
-            prev.map(p => 
-              p.id === product.id 
-                ? { ...p, quantity: p.quantity + 1 }
-                : p
-            )
-          );
-        } else {
-          alert(`Cannot add more. Stock limit: ${product.stock}`);
-        }
-      } else {
-        setSelectedProducts(prev => [...prev, { ...product, quantity: 1 }]);
-      }
-      setBarcodeInput('');
-    } else {
-      alert('Product not found with this barcode!');
+  // --- order total
+  const getDiscount = useCallback(async (discountBarcode) => {
+    try {
+      setLoading(true);
+      const res = await getDiscountByBarcode(discountBarcode);
+      // setDiscount(res.data.discount);
+      return res.data.discount;
+    } catch (error) {
+      console.log("Error fetching discount of loyalty card");
+      return null;
     }
+    finally{
+      setLoading(false);
+    }
+  });
+
+  const handleDiscountApply = async (barcode)=>{
+    console.log(barcode);
+    const LoyaltyCardDiscount = await getDiscount(barcode);
+    setDiscount(LoyaltyCardDiscount);
+    setShowDiscount(true);
+    setIsOpen(false);
+  }
+
+  const calculateTotalAfterDiscount = (total, disc) => {
+    return (disc * total)/100;
+  }
+  // -- order total
+
+
+  const fetchVariantByBarcode = useCallback(async (barcode) => {
+    try {
+      setLoading(true);
+      const res = await getVariantBarcodeAdmin(barcode);
+      setProduct(res.data.variant);
+      return res.data.variant;
+    } catch (error) {
+      console.log("Error fetching product by barcode");
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Order creation functions
+  const handleBarcodeSubmit = async () => {
+    if (!barcodeInput.trim()) return;
+    const product = await fetchVariantByBarcode(barcodeInput);
+    if (!product) return;
+    setSelectedProducts(prev => [...prev, { ...product, quantity: 1 }]);
   };
 
-  const updateQuantity = (productId, newQuantity) => {
-    const product = productsDB.find(p => p.id === productId);
-    if (newQuantity <= 0) {
-      removeProduct(productId);
-      return;
+
+  const updateQuantity = (variantID, newQuantity) => {
+    const product = selectedProducts.find(p => p.variantID === variantID);
+    if (newQuantity < 0) {
+      return ;
     }
     if (newQuantity > product.stock) {
       alert(`Cannot exceed stock limit: ${product.stock}`);
@@ -110,10 +130,13 @@ const OrderCreationCRM = () => {
     }
     setSelectedProducts(prev =>
       prev.map(p =>
-        p.id === productId ? { ...p, quantity: newQuantity } : p
+        p.variantID === variantID ? { ...p, quantity: newQuantity } : p
       )
     );
   };
+
+
+  
 
   const removeProduct = (productId) => {
     setSelectedProducts(prev => prev.filter(p => p.id !== productId));
@@ -125,62 +148,52 @@ const OrderCreationCRM = () => {
     ).toFixed(2);
   };
 
-  const generateOrderId = () => {
-    const lastOrder = ordersData.sort((a, b) => 
-      parseInt(b.id.substring(1)) - parseInt(a.id.substring(1))
-    )[0];
-    const lastId = lastOrder ? parseInt(lastOrder.id.substring(1)) : 1000;
-    return `#${lastId + 1}`;
-  }; // no need ,,, will remove
+const handleAdd = async (newOrder) => {
+  try {
+    await createOrderOffline(newOrder);
+    return true;  // signal success
+  } catch (error) {
+    console.error("Error creating order:", error);
+    return false; // signal failure
+  }
+};
 
-  const handleCreateOrder = () => {
-    if (!customerInfo.userID || !customerInfo.customer_name || selectedProducts.length === 0) {
-      alert('Please fill all customer information and add at least one product');
-      return;
-    }
+const handleCreateOrder = async () => {
+  if (!customerInfo.phone || !customerInfo.name || selectedProducts.length === 0 || !customerInfo.payment_method) {
+    alert('Please fill all customer information and add at least one product');
+    return;
+  }
 
-    const newOrder = {
-      orderID: generateOrderId(),
-      userID: customerInfo.userID,
-      customer_name: customerInfo.customer_name,
-      amount: parseFloat(calculateTotal()),
-      order_status: 'pending',
-      payment_status: 'pending',
-      payment_method: customerInfo.paymentMethod,
-      location: customerInfo.location || 'Store Location',
-      date: new Date().toISOString().split('T')[0],
-      items: selectedProducts.map(p => ({
-        id: p.id,
-        name: p.name,
-        price: p.price,
-        quantity: p.quantity
-      })),
-      tracking: [
-        {
-          location: 'Order Placed',
-          date: new Date().toISOString().split('T')[0],
-          status: 'Confirmed'
-        }
-      ]
-    }; //need to update
+  const newOrder = {
+    name: customerInfo.name,
+    phone_number: customerInfo.phone,
+    payment_method: customerInfo.payment_method,
+    items: selectedProducts.map(p => ({
+      barcode: p.barcode,
+      quantity: p.quantity,
+    })),
+    salespersonID: salesperson
+  };
 
+  const success = await handleAdd(newOrder);
+
+  if (success) {
     console.log(newOrder);
-
-    setOrdersData(prev => [newOrder, ...prev]);
-    
-    // Reset form
     setSelectedProducts([]);
     setCustomerInfo({
-      userID: '',
-      customer_name: '',
+      phone: '',
+      name: '',
       location: '',
-      payment_method: 'Credit Card'
+      payment_method: '',
     });
     setBarcodeInput('');
-    
     alert('Order created successfully!');
     setCurrentView('orders');
-  };
+  } else {
+    alert('Failed to create order. Please try again.');
+  }
+};
+
 
   // Orders page functions
   const filteredOrders = ordersData.filter(order => {
@@ -253,9 +266,9 @@ const OrderCreationCRM = () => {
             </h2>
             <div style={styles.formGrid}>
               <div style = {styles.formGroup}>
-                <label style={styles.label}> Salesperson name *</label>
+                <label style={styles.label}> Salesperson ID *</label>
                 <input
-                type="text"
+                type="number"
                 style={styles.input}
                 value = {salesperson}
                 onChange={(e)=>  setSalesperson(e.target.value)}
@@ -271,24 +284,25 @@ const OrderCreationCRM = () => {
               Customer Information
             </h2>
             <div style={styles.formGrid}>
-              <div style={styles.formGroup}>
-                <label style={styles.label}>Customer ID *</label>
-                <input
-                  type="text"
-                  style={styles.input}
-                  value={customerInfo.userID}
-                  onChange={(e) => setCustomerInfo(prev => ({...prev, userID: e.target.value}))}
-                  placeholder="Enter customer ID"
-                />
-              </div>
+              
               <div style={styles.formGroup}>
                 <label style={styles.label}>Customer Name *</label>
                 <input
                   type="text"
                   style={styles.input}
-                  value={customerInfo.customerName}
-                  onChange={(e) => setCustomerInfo(prev => ({...prev, customerName: e.target.value}))}
+                  value={customerInfo.name}
+                  onChange={(e) => setCustomerInfo(prev => ({...prev, name: e.target.value}))}
                   placeholder="Enter customer name"
+                />
+              </div>
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Customer Phone No. *</label>
+                <input
+                  type="text"
+                  style={styles.input}
+                  value={customerInfo.phone}
+                  onChange={(e) => setCustomerInfo(prev => ({...prev, phone: e.target.value}))}
+                  placeholder="Enter customer Phone No."
                 />
               </div>
               <div style={styles.formGroup}>
@@ -305,14 +319,21 @@ const OrderCreationCRM = () => {
                 <label style={styles.label}>Payment Method</label>
                 <select
                   style={styles.select}
-                  value={customerInfo.paymentMethod}
-                  onChange={(e) => setCustomerInfo(prev => ({...prev, paymentMethod: e.target.value}))}
+                  value={customerInfo.payment_method}
+                  onChange={(e) => {
+                    const value = e.target.value; 
+                    setCustomerInfo(prev => ({ ...prev, payment_method: value })); 
+                    console.log(value);
+                  }}
                 >
-                  <option value="Credit Card">Credit Card</option>
-                  <option value="Debit Card">Debit Card</option>
-                  <option value="PayPal">PayPal</option>
-                  <option value="Cash">Cash</option>
+                  <option value="" disabled>Select Payment Method</option>
+                  <option value="card">Card</option>
+                  <option value="upi">Upi</option>
+                  <option value="netbanking">Net Banking</option>
+                  <option value="wallet">Wallet</option>
+                  <option value="cash-on-delivery">Cash On Delivery</option>
                 </select>
+
               </div>
             </div>
           </div>
@@ -336,31 +357,12 @@ const OrderCreationCRM = () => {
                 />
               </div>
               <button
-                style={styles.scanButton}
-                onClick={() => setScanMode(!scanMode)}
-              >
-                <Scan size={16} />
-                {scanMode ? 'Stop Scan' : 'Start Scan'}
-              </button>
-              <button
                 style={{...styles.scanButton, backgroundColor: '#2563eb'}}
                 onClick={handleBarcodeSubmit}
               >
                 Add Product
               </button>
             </div>
-            {scanMode && (
-              <div style={{
-                padding: '1rem',
-                backgroundColor: '#f0f9ff',
-                borderRadius: '0.5rem',
-                border: '2px dashed #3b82f6',
-                textAlign: 'center',
-                color: '#1d4ed8'
-              }}>
-                📷 Camera scanning mode active - Point camera at barcode
-              </div>
-            )}
           </div>
 
           {/* Selected Products */}
@@ -374,17 +376,18 @@ const OrderCreationCRM = () => {
                 <div key={product.id} style={styles.productCard}>
                   <div style={styles.productHeader}>
                     <div>
-                      <div style={styles.productName}>{product.name}</div>
+                      <div style={styles.productName}>{product.product_name}</div>
                       <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
-                        ID: {product.id} | Stock: {product.stock}
+                        ID: {product.variantID} | Stock: {product.stock}
                       </div>
                     </div>
-                    <div style={styles.productPrice}>Subtotal: ${(product.price * product.quantity).toFixed(2)}</div>
+                    <div style={styles.productPrice}>Subtotal: ₹{(product.price * product.quantity).toFixed(2)}</div>
                   </div>
                   <div style={styles.quantityControls}>
                     <button
                       style={styles.quantityButton}
-                      onClick={() => updateQuantity(product.id, product.quantity - 1)}
+                      onClick={() => updateQuantity(product.variantID, product.quantity - 1)}
+                      disabled = {(product.quantity === 0)}
                     >
                       <Minus size={16} />
                     </button>
@@ -392,18 +395,18 @@ const OrderCreationCRM = () => {
                       type="number"
                       style={styles.quantityInput}
                       value={product.quantity}
-                      onChange={(e) => updateQuantity(product.id, parseInt(e.target.value) || 0)}
+                      onChange={(e) => updateQuantity(product.variantID, parseInt(e.target.value) || 0)}
                       min="1"
                       max={product.stock}
                     />
                     <button
                       style={styles.quantityButton}
-                      onClick={() => updateQuantity(product.id, product.quantity + 1)}
+                      onClick={() => updateQuantity(product.variantID, product.quantity + 1)}
                     >
                       <Plus size={16} />
                     </button>
                     <span style={{marginLeft: '1rem', color: '#6b7280', fontSize: '0.875rem'}}>
-                      <div>Product price: ${product.price}</div>
+                      <div>Product price: ₹{product.price}</div>
                     </span>
                     <button
                       style={styles.removeButton}
@@ -424,12 +427,25 @@ const OrderCreationCRM = () => {
                 </div>
                 <div style={styles.summaryRow}>
                   <span>Subtotal:</span>
-                  <span>${calculateTotal()}</span>
-                </div>
-                <div style={styles.totalRow}>
-                  <span>Total Amount:</span>
                   <span>₹{calculateTotal()}</span>
                 </div>
+                {showDiscount &&
+                <div style={styles.summaryRow}>
+                  <span> Loyalty Discount ( {discount} % ):</span>
+                  <span>₹{calculateTotalAfterDiscount(calculateTotal(), discount)}</span>
+                </div>
+                }
+                <div style={styles.totalRow}>
+                  <span>Total Amount:</span>
+                  <span>{calculateTotal() - calculateTotalAfterDiscount(calculateTotal(), discount)}</span>
+                </div>
+              </div>
+
+
+              <div style={styles.LoyaltyButtonDiv}>
+                <button style={styles.LoyaltyButton}
+                        onClick={() => setIsOpen(true)}> 
+                 Add Loyalty Card </button>
               </div>
 
               <button
@@ -442,6 +458,32 @@ const OrderCreationCRM = () => {
             </div>
           )}
         </div>
+         {isOpen && (
+        <div style={styles.modalOverlay}>
+          <div style={styles.modal}>
+            <h2 style={styles.modalTitle}>Add loyalty Cards into order</h2>
+            <input
+              type="text"
+              placeholder="Enter loyalty card barcode"
+              value={barcode}
+              onChange={(e) => setBarcode(e.target.value)}
+              style={styles.modalInput}
+            />
+            <div style={styles.modalActions}>
+              <button style={styles.cancelButton} onClick={() => setIsOpen(false)}>
+                Cancel
+              </button>
+              <button
+                style={styles.applyButton}
+                onClick={() => handleDiscountApply(barcode)}
+              >
+                Apply
+              </button>
+
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     );
   }
@@ -659,7 +701,7 @@ const OrderCreationCRM = () => {
                       <span style={{color: '#2c2c2c', fontWeight: '300'}}>{order.created_at}</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: '#2c2c2c', fontWeight: '300'}} onClick={()=> {setInvoice(true);setOrderChoose(order.orderID) }}><FileInput style={{color: '#2c2c2c', fontWeight: '300',alignContent: 'center',cursor: 'pointer'}}/></span>
+                      <span style={{color: '#2c2c2c', fontWeight: '300'}} onClick={()=> {setInvoice(true);setOrderChoose(order.orderID);console.log(order.orderID) }}><FileInput style={{color: '#2c2c2c', fontWeight: '300',alignContent: 'center',cursor: 'pointer'}}/></span>
                     </td>
                     <td style = {styles.td}>
                       <span style= {{ color:'#2c2c2c', fontWeight: '300'}}> salesperson</span> 

@@ -1,10 +1,18 @@
 import React, { useContext } from 'react';
 import './DeleteAdmin.css';
 import { LoginContext } from '../../contexts/LoginContext';
+import { useNavigate } from 'react-router-dom';
 
 const DeleteAdmin = ({ admin, onClose, onConfirm }) => {
-  const {deleteAdmin}= useContext(LoginContext);
+  const {deleteAdmin, logout}= useContext(LoginContext);
+  
+  const navigate = useNavigate();
+
   const handleConfirm = () => {
+    if(localStorage.getItem("admin") === admin.email){
+      logout();
+      navigate('/');
+    }
     deleteAdmin(admin.adminID);
     onConfirm(admin.adminID);
   };
