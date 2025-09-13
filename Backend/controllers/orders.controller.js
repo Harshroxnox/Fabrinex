@@ -457,6 +457,7 @@ export const getAllOrders = async (req, res, next) => {
         o.payment_method, 
         o.payment_status, 
         o.order_status, 
+        o.order_location,
         o.amount,
         u.userID, 
         u.name AS customer_name, 

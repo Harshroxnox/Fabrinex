@@ -1,6 +1,6 @@
 import { db } from '../index.js';
 import AppError from "../errors/appError.js";
-import { validID, validWholeNo, validString, validPhoneNumber } from "../utils/validators.utils.js";
+import { validID, validWholeNo, validString, validPhoneNumber, validDecimal } from "../utils/validators.utils.js";
 
 export const addSalesperson = async (req, res, next) => {
     try {
@@ -41,7 +41,7 @@ export const addSalesperson = async (req, res, next) => {
 
 export const updateCommission = async (req, res, next) => {
     const salesPersonID = validID(req.params.salesPersonID);
-    const commission = validWholeNo(req.body.commission);
+    const commission = validDecimal(req.body.commission);
 
     try {
         if (salesPersonID == null) {

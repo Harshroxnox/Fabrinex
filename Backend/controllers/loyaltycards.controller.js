@@ -1,5 +1,6 @@
+import AppError from "../errors/appError.js";
 import { db } from "../index.js";
-import { generateUniqueBarcode } from "../utils/generateBarcode.js";
+import { generateUniqueBarcode, ValidEAN13 } from "../utils/generateBarcode.js";
 import { validWholeNo } from "../utils/validators.utils.js";
 
 export const createLoyaltyCard = async (req, res, next) => {
@@ -67,3 +68,24 @@ export const getLoyaltyCards = async (req, res, next) => {
         next(error);
     }
 }
+
+export const getDiscountByBarcode = async (req, res, next) => {
+  try {
+    const barcode = ValidEAN13(req.params.barcode);
+    if (barcode === null) {
+      throw new AppError(400, "Invalid barcode");
+    }
+
+    const [rows] = await db.execute(
+      "SELECT discount FROM LoyaltyCards WHERE barcode = ?",
+      [barcode]
+    );
+
+    if (rows.length === 0) {
+      throw new AppError(400, "Loyalty Card does not exist");
+    }
+    res.json({ discount: rows[0].discount });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -1,12 +1,9 @@
 export const constants = {
   PRODUCT_CATEGORIES: [
-    'tshirt',
-    'jeans',
-    'shirts',
-    'hoodies',
-    'jackets',
-    'shoes',
-    'accessories',
+    'Suits - stitched',
+    'Suits - unstitched',
+    'Bridal',
+    'Other'
   ],
 
   PAYMENT_METHODS: [
@@ -41,7 +38,7 @@ export const constants = {
     'marketing'
   ],
 
-  SHOP_LOCATION: "Noor Store, Jammu",
+  SHOP_LOCATION: "Noor Creations, Jammu",
 
   MAX_LIMIT: 50
 };
