@@ -4,15 +4,15 @@ import { upload } from "../middleware/multer.middleware.js";
 
 const router = Router();
 
-//Main Banner
+// Main Banner
 router.route("/add-main-banner").post(upload.single("banner_img"), addMainBanner);
 router.route("/update-main-banner/:bannerID").put(updateMainBanner);
 
-//Side Banner
+// Side Banner
 router.route("/add-side-banner").post(upload.single("banner_img"), addSideBanner);
 router.route("/update-side-banner/:bannerID").put(updateSideBanner);
 
-//Common
+// Common
 router.route("/get-banner/:bannerID").get(getBanner);
 router.route("/get-all-banners").get(getAllBanners);
 router.route("/delete-banner/:bannerID").delete(deleteBanner);
