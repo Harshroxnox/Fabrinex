@@ -192,3 +192,27 @@ export const getMetrics = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getBestSellingPricePerVariant = async (req, res, next) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT t.variantID , t.price_at_purchase , t.total_sold
+      FROM(
+        SELECT 
+          variantID , 
+          price_At_purchase,
+          SUM(quantity) AS total_sold,
+          ROW_NUMBER() OVER (PARTITION BY variantID ORDER BY SUM(quantity) DESC) AS rn
+        FROM OrderItems
+        GROUP BY variantID , price_at_purchase
+      ) t
+       WHERE t.rn = 1;
+    `);
+    res.status(200).json({
+      message: "Best selling price per variant fetched successfully",
+      data: rows,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
