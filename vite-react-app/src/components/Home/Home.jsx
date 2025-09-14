@@ -1,8 +1,9 @@
 import React from 'react'
 import { LineChart, PieChart, BarChart } from 'react-chartkick';
 import 'chartkick/chart.js';
-import ProductCard from '../ProductCard';
+// import ProductCard from '../ProductCard';
 import "./Home.css"
+import BestSellingPricesChart from '../Dashboard/BestSellingPricesChart';
 
 const Home = () => {
   const piechartColors = ["#ACD3A8","#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7",  "#E69DB8"];
@@ -270,6 +271,7 @@ const Home = () => {
           </table>
         </div>
       </div>
+      <BestSellingPricesChart/>
       
     </div>
   )

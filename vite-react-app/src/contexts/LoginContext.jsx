@@ -111,10 +111,10 @@ export const LoginProvider = ({ children }) => {
   };
 
   // 🔒 Get all users (customers)
-  const getAllUsers = async () => {
+  const getAllUsers = async (page,limit) => {
     try {
-      const res = await axiosInstance.get("/users/get-all-users");
-      return res.data.users;
+      const res = await axiosInstance.get(`/users/get-all-users?page=${page}&limit=${limit}`);
+      return res.data;
     } catch (err) {
       console.error("Error fetching users:", err.response?.data || err.message);
     }

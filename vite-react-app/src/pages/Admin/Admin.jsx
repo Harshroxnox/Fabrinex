@@ -1,14 +1,10 @@
+import './Admin.css';
 import React, { useState } from 'react';
 import Home from '../../components/Home/Home';
-// import OrdersCrea from '../Orders';
-// import ProductsPage from '../Products/Products.jsx';
-// import CustomersPage from '../../pages/Customers/Customers.jsx';
 import MessagingSection from '../Messages/Messages.jsx';
 import WebPage from '../Web/Web.jsx';
 import PromotionsPage from '../Promotions/Promotions.jsx';
 import Settings from '../Settings/Settings';
-import './Admin.css';
-// import UserRolesPage from '../UserRoles/UserRoles.jsx';
 import IntegrationsPage from '../Integrations/Integrations.jsx';
 import OrderCreationCRM from '../Orders/Orders.jsx';
 import AdminRoles from '../AdminRoles/AdminRoles.jsx';
@@ -16,8 +12,6 @@ import CustomerPage from '../Customers/CustomerPage.jsx';
 import ProductsList from '../Products/ProductsList.jsx';
 import SalesPersons from '../Salespersons/Salespersons.jsx';
 import LoyaltyCards from '../LoyaltyCards/LoyaltyCards.jsx';
-// import ProductsPage from '../Products/ProductsPage.jsx';
-// import MainContainer from '../Products/MainContainer.jsx';
 
 const Admin = () => {
   const [activeBtn, setActiveBtn] = useState("Dashboard");

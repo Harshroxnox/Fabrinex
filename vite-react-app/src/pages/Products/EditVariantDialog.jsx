@@ -7,9 +7,9 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
     price: '',
     discount: '0',
     main_image: null,
-    myWallet:'0',
+    my_wallet:'0',
     profit: '0',
-    source: '0',
+    source: '',
     floor: '0'
   });
   const [previewUrl, setPreviewUrl] = useState(null);
@@ -22,9 +22,9 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
         price: variant.price || '',
         discount: variant.discount || '0',
         main_image: null ,
-        myWallet: variant.myWallet || '0',
+        my_wallet: variant.my_wallet ,
         profit: variant.profit || '0',
-        source: variant.source || '0',
+        source: variant.source || '',
         floor: variant.floor || '0'
       });
       setPreviewUrl(variant.main_image || null);
@@ -65,7 +65,7 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
       const updateData = {
         price: parseFloat(editedVariant.price).toFixed(2),
         discount: parseFloat(editedVariant.discount).toFixed(2),
-        myWallet: parseFloat(editedVariant.myWallet).toFixed(2),
+        my_wallet: parseFloat(editedVariant.my_wallet).toFixed(2),
         profit: parseFloat(editedVariant.profit).toFixed(2),
         source: editedVariant.source,
         floor: parseFloat(editedVariant.floor)
@@ -133,8 +133,8 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
               <label>My Wallet</label>
               <input
                 type="number"
-                name="myWallet"
-                value={editedVariant.myWallet}
+                name="my_wallet"
+                value={editedVariant.my_wallet}
                 onChange={handleChange}
                 required
                 disabled={loading}

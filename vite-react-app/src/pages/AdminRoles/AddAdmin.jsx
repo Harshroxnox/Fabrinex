@@ -65,7 +65,7 @@ const AddAdmin = ({ onClose, onSave }) => {
         return;
       }
 
-      onSave(adminToSave); // call parent callback
+      onSave(adminToSave);
     } catch (err) {
       console.error('Register error:', err);
       setErrors({ api: 'Something went wrong. Please try again.' });

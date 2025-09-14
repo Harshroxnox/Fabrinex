@@ -62,49 +62,93 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
     setError('');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (variants.length === 0) {
-      setError('At least one variant is required.');
-      return;
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      clearError(); // Clear any previous errors
-      setLoading(true);
-      // Create product first
-      const res = await createProduct(newProduct);
-      console.log(newProduct);
-      console.log(res);
-      const productID = res.productID;
+  if (variants.length === 0) {
+    setError("At least one variant is required.");
+    return;
+  }
 
-      // Then create all variants
-      const variantPromises = variants.map(variant => 
-        createVariant(productID, variant)
+  try {
+    clearError(); // Clear any previous errors
+    setLoading(true);
+
+    // Step 1: Create product first
+    const res = await createProduct(newProduct);
+    console.log("New product:", newProduct);
+    console.log("Product response:", res);
+
+    const productID = res.productID;
+
+    // Step 2: Create all variants
+    const variantPromises = variants.map(async (variant) => {
+      const formData = new FormData();
+      for (let key in variant) {
+        if (key !== "main_image" && key !== "secondaryImages") {
+          formData.append(key, variant[key]);
+        }
+      }
+      formData.append("main_image", variant.main_image);
+
+      const response = await fetch(
+        `http://localhost:5000/api/v1/products/create-variant/${productID}`,
+        {
+          method: "POST",
+          body: formData,
+        }
       );
-      
-      await Promise.all(variantPromises);
 
-      // Reset form on success
-      setNewProduct({
-        name: '',
-        description: { content: '' },
-        category: '',
-        tax:18
-      });
-      setVariants([]);
-      setCurrentStep(1);
-      
-      onSave?.(); // Notify parent if callback exists
-      onClose();
-    } catch (err) {
-      console.error('Error saving product or variants:', err);
-      setError(contextError || 'Failed to save product. Please try again.');
-    } finally{
-      setLoading(false);
-    }
-  };
+      if (!response.ok) throw new Error("Failed to create variant");
+
+      const data = await response.json();
+      console.log("Variant created:", data);
+
+      const variantID = data.variantID;
+
+      // Step 3: Upload secondary images if any
+      if (variant.secondaryImages && variant.secondaryImages.length > 0) {
+        const secondaryImagesForm = new FormData();
+        variant.secondaryImages.forEach((file) => {
+          secondaryImagesForm.append("images", file);
+        });
+
+        const secImageRes = await fetch(
+          `http://localhost:5000/api/v1/products/upload-secondary-images/${variantID}`,
+          {
+            method: "POST",
+            body: secondaryImagesForm,
+          }
+        );
+
+        if (!secImageRes.ok) throw new Error("Failed to upload secondary images");
+
+        const secImageData = await secImageRes.json();
+        console.log("Secondary images uploaded:", secImageData);
+      }
+    });
+
+    await Promise.all(variantPromises);
+
+    // Step 4: Reset form on success
+    setNewProduct({
+      name: "",
+      description: { content: "" },
+      category: "",
+      tax: 18,
+    });
+    setVariants([]);
+    setCurrentStep(1);
+
+    onSave?.(); // Notify parent if callback exists
+    onClose();
+  } catch (err) {
+    console.error("Error saving product or variants:", err);
+    setError("Failed to save product. Please try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!isOpen) return null;
 

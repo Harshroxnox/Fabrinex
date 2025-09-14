@@ -18,6 +18,8 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
     barcode: Math.random().toString().slice(2, 15) // Generate random barcode
   });
 
+  const [secondaryImages,setSecondaryImages] = useState([]);
+  const [secondaryPreviews, setSecondaryPreviews] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState('');
   const { error: contextError, clearError } = useContext(ProductContext);
@@ -31,12 +33,24 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      setVariant((prev) => ({
-        ...prev,
-        main_image: file
-      }));
+    const files = Array.from(e.target.files);
+
+    if(files.length > 0){
+      //first file is main_image
+      if(!variant.main_image){
+        setVariant((prev) => ({
+          ...prev,
+          main_image:files[0]
+        }));
+        //remaining_files are secondary images
+        if (files.length > 1) {
+          setSecondaryImages( (prev) => [...prev , ...files.slice(1)]);
+        }
+      }
+      else {
+        //if main image is set , all new images are secondary
+        setSecondaryImages( (prev) => [...prev , ...files]);
+      }
     }
   };
 
@@ -49,6 +63,24 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       setPreviewUrl(null);
     } 
   }, [variant.main_image]);
+
+  useEffect( () => {
+    if(secondaryImages.length > 0) {
+      const urls = secondaryImages.map( img => URL.createObjectURL(img));
+      setSecondaryPreviews(urls);
+      //clean up
+      return () => {
+        urls.forEach( url => URL.revokeObjectURL(url));
+      }
+    }
+    else{
+      setSecondaryPreviews([]);
+    }
+  } , [ secondaryImages]);
+
+  const removeSecondaryImage = (index) => {
+    setSecondaryImages( (prev) => prev.filter( (_,i) => i !== index));
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -63,9 +95,10 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       setError('Discount must be between 0 and 100');
       return;
     }
-
+    console.log(secondaryImages); 
     clearError();
     setError('');
+
     
     onAdd({
       ...variant,
@@ -75,9 +108,10 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       myWallet: parseFloat(variant.myWallet).toFixed(2),
       profit: parseFloat(variant.profit).toFixed(2),
       source: variant.source,
-      floor: parseFloat(variant.floor)
+      floor: parseFloat(variant.floor),
+      secondaryImages:secondaryImages
     });
-
+    console.log(variant);
     // Reset form
     setVariant({
       color: '',
@@ -92,6 +126,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       floor: '0',
       barcode: Math.random().toString().slice(2, 15)
     });
+    setSecondaryImages([]);
     onClose();
   };
 
@@ -237,13 +272,14 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               name="main_image"
               accept="image/*"
               onChange={handleFileChange}
-              required
+              required= {!variant.main_image}
             />
             {/* <Upload /> */}
           </div>
 
           {previewUrl && (
             <div className="image-preview-container">
+              <h5>Main Image</h5>
               <img
                 src={previewUrl}
                 alt="Preview"
@@ -251,22 +287,40 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               />
             </div>
           )}
+          {/* //secondary image */}
+          {secondaryPreviews.length > 0 && (
+            <div className='secondary-images-containter'>
+              <h4>Secondary Images</h4>
+              <div className='secondary-images-grid'>
+                {secondaryPreviews.map((url, index) => (
+                  <div key={index} className='secondary-image-wrapper'> 
+                    <img src={url} alt={`Secondary ${index}`} className='secondary-preview'/>
+                    <button
+                      type="button"
+                      className='remove-btn'
+                      onClick={() => removeSecondaryImage(index)}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
 
           <div className="dialog-actions">
             <button 
               type="button" 
               className="cancel-btn" 
               onClick={onClose}
-              // disabled={loading}
             >
               Cancel
             </button>
             <button 
               type="submit" 
               className="save-btn"
-              // disabled={loading}
             >
-              {/* {loading ? 'Adding...' : 'Add Variant'} */}
               Add Variant
             </button>
           </div>

@@ -33,7 +33,7 @@ const ProductFilters = ({ onSearch, onVariantSearch, onReset }) => {
         <button type="submit">Search Products</button>
       </form>
 
-      <form onSubmit={handleVariantSearch} className="search-form">
+      {/* <form onSubmit={handleVariantSearch} className="search-form">
         <input
           type="text"
           placeholder="Search variants by color or size..."
@@ -41,7 +41,7 @@ const ProductFilters = ({ onSearch, onVariantSearch, onReset }) => {
           onChange={(e) => setVariantSearchTerm(e.target.value)}
         />
         <button type="submit">Search Variants</button>
-      </form>
+      </form> */}
 
       <button 
         className="reset-btn"

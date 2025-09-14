@@ -402,5 +402,37 @@ export const styles = {
       fontWeight:'500',
       cursor: 'pointer',
       // marginLeft: 'auto'
+    },
+    orderPreviousBtn:{
+      backgroundColor: 'black',
+      color: 'white',
+      border: 'none',
+      borderRadius: '2rem',
+      padding: '0.55rem 0.8rem',
+      fontSize: '1rem',
+      fontWeight:'500',
+      cursor: 'pointer',
+      marginLeft: 'auto'
+    },
+    orderPageText:{
+      margin: "1.5rem",
+      fontSize: "1.25rem",
+      color: "#333",
+      margin: "0 10px"
+    },
+    orderNextBtn:{
+      backgroundColor: 'black',
+      color: 'white',
+      border: 'none',
+      borderRadius: '2rem',
+      padding: '0.55rem 0.8rem',
+      fontSize: '1rem',
+      fontWeight:'500',
+      cursor: 'pointer',
+      marginLeft: 'auto'
+    },
+    PageDiv:{
+      width:'400px',
+      margin:'0 auto'
     }
   };

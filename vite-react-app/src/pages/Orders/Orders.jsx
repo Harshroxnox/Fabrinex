@@ -1,11 +1,12 @@
 import React, { useCallback,useEffect, useState } from 'react';
-import { ChevronDown, Search, MapPin, Calendar, DollarSign, CreditCard, CheckCircle, XCircle, Clock, Filter, Plus, Scan, Minus, ShoppingCart, ArrowLeft, Package, X, FileInput } from 'lucide-react';
+import { ChevronDown, Search, MapPin, Calendar, DollarSign, CreditCard, CheckCircle, XCircle, Clock, Filter, Plus, Scan, Minus, ShoppingCart, ArrowLeft, Package, X, FileInput, UserCheck2Icon } from 'lucide-react';
 import Invoice from '../../components/Invoice/Invoice';
 import { styles } from './Orders';
 import { createOrderOffline, getAllOrders } from '../../contexts/api/orders';
 import { paymentStatusColor, paymentStatusIcon, statusColor } from '../../utils/colorSelection.jsx';
 import { getVariantBarcodeAdmin } from '../../contexts/api/products.js';
 import { getDiscountByBarcode } from '../../contexts/api/loyaltyCards.js';
+import { formatDate } from '../../utils/dateFormatter.js';
 
 const OrderCreationCRM = () => {
   const [currentView, setCurrentView] = useState('orders'); // 'orders' or 'create'
@@ -20,6 +21,7 @@ const OrderCreationCRM = () => {
   const [dateFromFilter, setDateFromFilter] = useState('');
   const [dateToFilter, setDateToFilter] = useState('');
   const [trackingOrderId, setTrackingOrderId] = useState('');
+  const [salesPersonIdFilter ,setSalesPersonIdFilter] = useState('');
   const [trackedOrder, setTrackedOrder] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -29,7 +31,7 @@ const OrderCreationCRM = () => {
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone_number: '',
-    location: 'noor',
+    location: 'Noor Creations',
     payment_method: ''
   }); 
   const [product, setProduct] = useState({});
@@ -46,21 +48,35 @@ const OrderCreationCRM = () => {
   const [discount, setDiscount] = useState(0);
   const [showDiscount , setShowDiscount] = useState(false);
 
+  //pagination
+  const [page,setPage] = useState(1); // current page
+  const [limit,setLimit] = useState(10); //items per page
+  const [totalPages , setTotalPages] = useState(1);
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (page,limit) => {
     try {
       setLoading(true);
-      const res = await getAllOrders();
+      const res = await getAllOrders(page,limit);
       console.log(res);
       setOrdersData(res.orders || []);
+      setTotalPages(Math.ceil(res.total/limit));
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
     }
   }, []);
-  useEffect(() => { fetchOrders()}, [fetchOrders]);
+  useEffect(() => { fetchOrders(page,limit)}, [ page,limit,fetchOrders]);
 
+
+  //handle prev
+  const handlePrev = () => {
+    if(page > 1) setPage(page - 1);
+  }
+  //handle next button
+  const handleNext = () => {
+    if(page < totalPages) setPage(page + 1);
+  }
   //get colors
   const getStatusColor =(status) => statusColor(status);
   const getPaymentStatusColor = (status) => paymentStatusColor(status);
@@ -166,7 +182,7 @@ const handleCreateOrder = async () => {
 
   const newOrder = {
     name: customerInfo.name,
-    phone_number: customerInfo.phone,
+    phone_number: '+91' + customerInfo.phone,
     payment_method: customerInfo.payment_method,
     items: selectedProducts.map(p => ({
       barcode: p.barcode,
@@ -189,6 +205,7 @@ const handleCreateOrder = async () => {
     setBarcodeInput('');
     alert('Order created successfully!');
     setCurrentView('orders');
+    fetchOrders(page,limit);
   } else {
     alert('Failed to create order. Please try again.');
   }
@@ -242,6 +259,7 @@ const handleCreateOrder = async () => {
   const uniqueLocations = [...new Set(ordersData.map(order => order.location))];
   const uniquePaymentMethods = [...new Set(ordersData.map(order => order.payment_method))];
 
+  const uniqueSalesPersons = ['Virat' , 'Louis Litt' , 'Rachel Zane' , 'Anurag'];
   if (currentView === 'create') {
     return (
       <div style={styles.container}>
@@ -296,7 +314,7 @@ const handleCreateOrder = async () => {
                 />
               </div>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Customer Phone No. *</label>
+                <label style={styles.label}>Customer Phone No. (+91)*</label>
                 <input
                   type="text"
                   style={styles.input}
@@ -615,6 +633,22 @@ const handleCreateOrder = async () => {
                       ))}
                     </select>
                   </div>
+                  <div style={styles.filterGroup}>
+                    <label style={styles.filterLabel}>
+                      <UserCheck2Icon size={14}/>
+                      SalesPerson
+                    </label>
+                    {/* <select 
+                    value = {salesPersonIdFilter}
+                    onChange={(e)=> setSalesPersonIdFilter(e.target.value)}
+                    style={styles.select}
+                    >
+                      <option value = "All" > All Salespersons</option>
+                      {uniqueSalesPersons.map(method)}
+                      <option key={method} value={method} ></option>
+            
+                    </select> */}
+                    </div>
                 </div>
               )}
             </div>
@@ -635,7 +669,7 @@ const handleCreateOrder = async () => {
               <thead style={{backgroundColor: '#FDFDFD'}}>
                 <tr>
                   <th style={styles.th}>Order ID</th>
-                  <th style={styles.th}>Customer ID</th>
+                  {/* <th style={styles.th}>Customer ID</th> */}
                   <th style={styles.th}>Customer Name</th>
                   <th style={styles.th}>Total Amount</th>
                   <th style={styles.th}>Order Status</th>
@@ -661,11 +695,11 @@ const handleCreateOrder = async () => {
                     <td style={styles.td}>
                       <span style={{fontWeight: '600', color: 'black'}}>{order.orderID}</span>
                     </td>
-                    <td style={styles.td}>
+                    {/* <td style={styles.td}>
                       <span style={{color: 'black', fontWeight: '300'}}>{order.userID}</span>
-                    </td>
+                    </td> */}
                     <td style={styles.td}>
-                      <span style={{color: 'black', fontWeight: '300'}}>{order.customer_name}</span>
+                      <span style={{color: 'black', fontWeight: '400',fontSize:'15px'}}>{order.customer_name}</span>
                     </td>
                     <td style={styles.td}>
                       <span style={{fontWeight: '600', color: 'black'}}>₹{order.amount}</span>
@@ -695,10 +729,10 @@ const handleCreateOrder = async () => {
                       <span style={{color: '#2c2c2c', fontWeight: '300'}}>{order.payment_method}</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: 'black', fontWeight: '300'}}>noor</span>
+                      <span style={{color: 'black', fontWeight: '300'}}>{order.order_location}</span>
                     </td>
                     <td style={styles.td}>
-                      <span style={{color: '#2c2c2c', fontWeight: '300'}}>{order.created_at}</span>
+                      <span style={{color: '#2c2c2c', fontWeight: '300'}}>{formatDate(order.created_at)}</span>
                     </td>
                     <td style={styles.td}>
                       <span style={{color: '#2c2c2c', fontWeight: '300'}} onClick={()=> {setInvoice(true);setOrderChoose(order.orderID);console.log(order.orderID) }}><FileInput style={{color: '#2c2c2c', fontWeight: '300',alignContent: 'center',cursor: 'pointer'}}/></span>
@@ -714,6 +748,17 @@ const handleCreateOrder = async () => {
           </div>
         </div>
         }
+            <div style={styles.PageDiv}>
+              <button onClick={handlePrev} disabled={page ===1} style={styles.orderPreviousBtn}>
+                Previous
+              </button>
+              <span style={styles.orderPageText}>
+                Page {page} of {totalPages}
+              </span>
+              <button onClick={handleNext} disabled={page === totalPages} style={styles.orderNextBtn}>
+                Next
+              </button>
+            </div>
 
         <div style={styles.section}>
           <h2 style={{fontSize: '1rem', fontWeight: '600', marginBottom: '1rem', color: 'black'}}>

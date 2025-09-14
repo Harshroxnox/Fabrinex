@@ -7,6 +7,7 @@ import { EditIcon, PlusCircleIcon, Trash2Icon } from 'lucide-react';
 import { ProductContext } from '../../contexts/ProductContext';
 import AddProductDialog from './AddProductDialog';
 import AddVariantDialog from './AddVariantDialog';
+import { uploadSecondaryImages } from '../../contexts/api/products';
 
 const ProductItem = ({ product, onUpdate ,onAdd}) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -48,26 +49,62 @@ const ProductItem = ({ product, onUpdate ,onAdd}) => {
     setIsEditDialogOpen(false);
   };
 
-  // const handleAdd = (updatedProduct) => {
-  //   onAdd(updatedProduct);
-  //   setIsAddDialogOpen(false);
-  // }
-
-   const handleAddVariant = async (variant) => {
-    // setVariants((prev) => [...prev, variant]);
-    // setShowVariantDialog(false);
-    // setError('');
+const handleAddVariant = async (variant) => {
+  try {
     setLoading(true);
-    try {
-      await createVariant(product.productID , variant);
-      setIsAddDialogOpen(false);
-    } catch (error) {
-      console.error('Error adding new variant', err);
+
+    // STEP 1: Create variant (with main image + fields)
+    const formData = new FormData();
+    for (let key in variant) {
+      if (key !== "main_image" && key !== "secondaryImages") {
+        formData.append(key, variant[key]);
+      }
     }
-    finally{
-      setLoading(true);
+    formData.append("main_image", variant.main_image);
+
+    const response = await fetch(
+      `http://localhost:5000/api/v1/products/create-variant/${product.productID}`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    if (!response.ok) throw new Error("Failed to create variant");
+
+    const data = await response.json();
+    console.log("Variant created:", data);
+
+    const variantID = data.variantID;
+
+    // STEP 2: Upload secondary images (if any)
+    if (variant.secondaryImages && variant.secondaryImages.length > 0) {
+      const secondaryImagesForm = new FormData();
+      variant.secondaryImages.forEach((file) => {
+        secondaryImagesForm.append("images", file);
+      });
+
+      const secImageRes = await fetch(
+        `http://localhost:5000/api/v1/products/upload-secondary-images/${variantID}`,
+        {
+          method: "POST",
+          body: secondaryImagesForm,
+        }
+      );
+
+      if (!secImageRes.ok) throw new Error("Failed to upload secondary images");
+
+      const secImageData = await secImageRes.json();
+      console.log("Secondary images uploaded:", secImageData);
     }
-  };
+
+    setIsAddDialogOpen(false);
+  } catch (error) {
+    console.error("Error adding new variant:", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
 
   const handleDelete = async () => {

@@ -21,14 +21,8 @@
 }
 
 .add-admin-add-modal h5 {
-  /* margin-top: 0; */
   color: #4CAF50;
-  /* margin-bottom: 20px; */
 }
-
-/* .add-admin-form-group {
-  /* margin-bottom: 5px; */
-
 
 .add-admin-form-group label {
   display: block;
@@ -53,7 +47,7 @@
 
 .add-admin-error-message {
   color: #f44336;
-  font-size: 14px;
+  font-size: 16px;
   margin-top: 5px;
   display: block;
 }
@@ -62,7 +56,6 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  /* margin-top: 25px; */
 }
 
 .add-admin-cancel-btn {
@@ -72,7 +65,8 @@
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 16px;
   transition: background-color 0.3s;
 }
 
@@ -87,7 +81,8 @@
   padding: 8px 16px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 16px;
+  font-weight: 500;
   transition: background-color 0.3s;
 }
 

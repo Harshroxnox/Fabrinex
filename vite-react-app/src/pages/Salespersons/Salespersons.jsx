@@ -46,6 +46,7 @@ const Salespersons = () => {
 
   // Add salesperson
   const handleAdd = async () => {
+
     if (!newSalesperson.name || !newSalesperson.commission || !newSalesperson.phone_number) {
       alert("Please fill all fields.");
       return;
@@ -78,14 +79,14 @@ const Salespersons = () => {
   // Update commission
   const handleUpdateCommission = async () => {
     if (!selectedSalesperson) return;
-
+    
     try {
       await updateCommission(selectedSalesperson.salesPersonID, {
         commission: newCommission,
       });
       // Refresh the list after updating
-      fetchSalespersons();
       setIsUpdateDialogOpen(false);
+      fetchSalespersons();
       setSelectedSalesperson(null);
       setNewCommission("");
     } catch (error) {

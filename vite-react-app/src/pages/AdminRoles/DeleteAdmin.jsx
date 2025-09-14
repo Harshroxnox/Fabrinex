@@ -24,8 +24,8 @@ const DeleteAdmin = ({ admin, onClose, onConfirm }) => {
         <p>Are you sure you want to delete admin <strong>{admin.email}</strong>?</p>
         <p>This action cannot be undone.</p>
         
-        <div className="modal-actions">
-          <button className="cancel-btn" onClick={onClose}>
+        <div className="delete-modal-actions">
+          <button className="delete-cancel-btn" onClick={onClose}>
             Cancel
           </button>
           <button className="confirm-delete-btn" onClick={handleConfirm}>

@@ -8,18 +8,18 @@
   position: relative;
 }
 
-.navbarBrand {
+.navbar-brand {
   color: white;
   font-size: 1.2rem;
   font-weight: bold;
   letter-spacing: 1px;
 }
 
-.navbarUser {
+.navbar-user {
   position: relative;
 }
 
-.userButton {
+.navbar-user-button {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -33,19 +33,19 @@
   transition: all 0.2s ease;
 }
 
-.userButton:hover {
+.navbar-user-button:hover {
   background-color: #f8f9fa;
 }
 
-.chevron {
+.navbar-chevron {
   transition: transform 0.2s ease;
 }
 
-.rotated {
+.navbar-rotated {
   transform: rotate(180deg);
 }
 
-.dropdown {
+.navbar-dropdown {
   position: absolute;
   top: 100%;
   right: 0;
@@ -58,7 +58,7 @@
   z-index: 1000;
 }
 
-.logoutButton {
+.navbar-logout-button {
   width: 100%;
   padding: 12px 16px;
   background: none;
@@ -70,7 +70,7 @@
   transition: background-color 0.2s ease;
 }
 
-.logoutButton:hover {
+.navbar-logout-button:hover {
   background-color: #f8f9fa;
 }
 
@@ -78,8 +78,8 @@
   .navbar {
     padding: 0 1rem;
   }
-  
-  .navbarBrand {
+
+  .navbar-brand {
     font-size: 1.25rem;
   }
 }

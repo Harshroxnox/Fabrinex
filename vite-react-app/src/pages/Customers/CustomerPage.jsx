@@ -18,28 +18,47 @@ const CustomerPage = () => {
   });
   const [notificationMethod, setNotificationMethod] = useState('email');
 
+  //pagination
+  const [page,setPage] = useState(1);
+  const [limit, setLimit] = useState(1);
+  const [totalPages, setTotalPages] = useState(5);
+
   const {getAllUsers}= useContext(LoginContext);
-  // Sample data - in a real app, you would fetch this from your API
   useEffect(() => {
     const fetchData= async ()=>{
-      const sampleData =await  getAllUsers();
-      setCustomers(sampleData);
-      setFilteredCustomers(sampleData);
+      const sampleData =await getAllUsers(page,limit);
+      const users = sampleData.users;
+      console.log(users);
+      setCustomers(users);
+      setTotalPages(Math.ceil(sampleData.total/limit));
+      setFilteredCustomers(users);
     };
     fetchData();
     
-  }, [getAllUsers]);
+  }, [getAllUsers , page,limit]);
+  
+  const handlePrev = () => {
+    if (page > 1) setPage(page - 1);
+  };
 
-  // Apply search and filters whenever they change
+  const handleNext = () => {
+    if (page < totalPages) setPage(page + 1);
+  };
+  const handleLimitChange = (e) => {
+    const value = Number(e.target.value);
+    if (value > 0) {
+      setLimit(value);
+      setPage(1); // reset to page 1 when limit changes
+    }
+  }
+  
   useEffect(() => {
     let result = [...customers];
     
-    // Apply search
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       result = result.filter(customer => 
         customer.name.toLowerCase().includes(term) ||
-        customer.email.toLowerCase().includes(term) ||
         customer.phone_number.includes(term) ||
         customer.whatsapp_number.includes(term)
       );
@@ -236,6 +255,32 @@ const CustomerPage = () => {
             ))}
           </tbody>
         </table>
+
+        <div className='customer-page-div'>
+          <button onClick={handlePrev} disabled={page === 1} className='customer-previous-btn'>
+            Previous
+          </button>
+          <span className='customer-page-text'>
+            Page {page} of {totalPages}
+          </span>
+          <button onClick={handleNext} disabled={page === totalPages} className='customer-next-btn'>
+            Next
+          </button>
+        </div>
+
+        {/* Limit input  */}
+        <div className='customer-page-div'>
+          <label>
+            Items per page: {" "}
+            <input
+              type = "number"
+              value = {limit}
+              onChange = {handleLimitChange}
+              min = "1"
+              style = {{width: "60px", padding: "5px"}}
+            />
+          </label>
+        </div>
       </div>
     </div>
   );

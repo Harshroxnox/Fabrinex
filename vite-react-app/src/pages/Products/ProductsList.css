@@ -63,6 +63,7 @@
 }
 
 .search-form {
+  width:30%;
   display: flex;
   flex: 1;
 }
@@ -568,4 +569,62 @@
   border-radius: 1rem;
   overflow-y:auto;
   max-height: 10rem;
+}
+
+.secondary-images-container {
+  margin-top: 20px;
+}
+
+.secondary-images-container h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.secondary-images-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 12px;
+}
+
+.secondary-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 100px;
+}
+
+.secondary-preview {
+  width: 100%;
+  height: 90px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  object-fit: cover;
+  display: block;
+}
+
+/* === Remove Button for Secondary Images === */
+.remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: background 0.2s ease-in-out;
+}
+
+.remove-btn:hover {
+  background: #e60000;
 }

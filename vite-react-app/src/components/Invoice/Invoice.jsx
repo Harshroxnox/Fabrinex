@@ -1,10 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import html2pdf from "html2pdf.js";
-import styles from "./Invoice.module.css";
 import { getOrder } from "../../contexts/api/orders";
-
+import './Invoice.css';
 const Invoice = ({ order }) => {
-  const id = order; // parent must pass <Invoice order={id} />
+  const id = order;
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -18,7 +17,7 @@ const Invoice = ({ order }) => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getOrder(id); // ✅ res is already the response body
+      const res = await getOrder(id);
       console.log(res);
       setOrderData(res);
     } catch (error) {
@@ -36,49 +35,64 @@ const Invoice = ({ order }) => {
   if (!orderData) return <p>No invoice found.</p>;
 
   // Prepare totals
-  const subtotal = orderData.items?.reduce(
-    (sum, item) => sum + item.quantity * parseFloat(item.price_at_purchase),
-    0
-  ) || 0;
+  const subtotal =
+    orderData.items?.reduce(
+      (sum, item) => sum + item.quantity * parseFloat(item.price_at_purchase),
+      0
+    ) || 0;
 
   const taxRate = orderData.items?.[0]?.tax
     ? parseFloat(orderData.items[0].tax) / 100
     : 0;
 
   const tax = subtotal * taxRate;
-  const deliveryCharge = 0; // your API didn’t send this
+  const deliveryCharge = 0;
   const total = parseFloat(orderData.order.amount);
 
   return (
-    <div className={styles.invoiceContainer}>
-      <div id="invoice" className={styles.invoiceBox}>
-        {/* Header */}
-        <div className={styles.invoiceHeader}>
-          <div className={styles.billTo}>
+    <div className="invoice-container">
+      <div id="invoice" className="invoice-box">
+        <div className="invoice-header">
+          <div className="invoice-bill-to">
             <h4>Bill To:</h4>
             <p>{orderData.order.customer_name}</p>
             <p>{orderData.order.address_line}</p>
-            <p>{orderData.order.city}, {orderData.order.state} - {orderData.order.pincode}</p>
+            <p>
+              {orderData.order.city}, {orderData.order.state} -{" "}
+              {orderData.order.pincode}
+            </p>
             <p>{orderData.order.order_location}</p>
           </div>
-          <div className={styles.invoiceDetails}>
-            <p><strong>Invoice #</strong> {orderData.order.orderID}</p>
-            <p><strong>Invoice Date:</strong> {new Date(orderData.order.created_at).toLocaleDateString()}</p>
-            <p><strong>Payment Method:</strong> {orderData.order.payment_method}</p>
-            <p><strong>Payment Status:</strong> {orderData.order.payment_status}</p>
-            <p><strong>Order Status:</strong> {orderData.order.order_status}</p>
-            <p className={styles.amountDue}><strong>Amount Due:</strong> ₹{total.toFixed(2)}</p>
+
+          <div className="invoice-details">
+            <p>
+              <strong>Invoice #</strong> {orderData.order.orderID}
+            </p>
+            <p>
+              <strong>Invoice Date:</strong>{" "}
+              {new Date(orderData.order.created_at).toLocaleDateString()}
+            </p>
+            <p>
+              <strong>Payment Method:</strong>{" "}
+              {orderData.order.payment_method}
+            </p>
+            <p>
+              <strong>Payment Status:</strong>{" "}
+              {orderData.order.payment_status}
+            </p>
+            <p>
+              <strong>Order Status:</strong> {orderData.order.order_status}
+            </p>
+            <p className="invoice-amount-due">
+              <strong>Amount Due:</strong> ₹{total.toFixed(2)}
+            </p>
           </div>
         </div>
-
-        {/* Seller Info */}
-        <div className={styles.billTo} style={{ marginBottom: "10px" }}>
+        <div className="invoice-bill-to" style={{ marginBottom: "10px" }}>
           <p style={{ fontSize: "15px", fontWeight: "500" }}>Billed By:</p>
           <p style={{ fontSize: "15px", fontWeight: "350" }}>Rahul</p>
         </div>
-
-        {/* Items Table */}
-        <table className={styles.itemsTable}>
+        <table className="invoice-items-table">
           <thead>
             <tr>
               <th>Item</th>
@@ -99,22 +113,34 @@ const Invoice = ({ order }) => {
                 <td>{item.size}</td>
                 <td>{item.quantity}</td>
                 <td>₹{parseFloat(item.price_at_purchase).toFixed(2)}</td>
-                <td>₹{(item.quantity * parseFloat(item.price_at_purchase)).toFixed(2)}</td>
+                <td>
+                  ₹
+                  {(
+                    item.quantity * parseFloat(item.price_at_purchase)
+                  ).toFixed(2)}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
-
-        {/* Summary */}
-        <div className={styles.summary}>
-          <p><strong>Subtotal:</strong> ₹{subtotal.toFixed(2)}</p>
-          <p><strong>Tax ({orderData.items?.[0]?.tax || 0}%):</strong> ₹{tax.toFixed(2)}</p>
-          <p><strong>Delivery Charge:</strong> ₹{deliveryCharge.toFixed(2)}</p>
-          <p className={styles.total}><strong>Total:</strong> ₹{total.toFixed(2)}</p>
+        <div className="invoice-summary">
+          <p>
+            <strong>Subtotal:</strong> ₹{subtotal.toFixed(2)}
+          </p>
+          <p>
+            <strong>Tax ({orderData.items?.[0]?.tax || 0}%):</strong> ₹
+            {tax.toFixed(2)}
+          </p>
+          <p>
+            <strong>Delivery Charge:</strong> ₹{deliveryCharge.toFixed(2)}
+          </p>
+          <p className="invoice-total">
+            <strong>Total:</strong> ₹{total.toFixed(2)}
+          </p>
         </div>
       </div>
 
-      <button onClick={downloadPDF} className={styles.downloadBtn}>
+      <button onClick={downloadPDF} className="invoice-download-btn">
         Download Invoice
       </button>
     </div>

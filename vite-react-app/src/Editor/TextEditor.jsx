@@ -26,14 +26,9 @@ const TextEditor = ({ value, onChange }) => {
 
       quillInstance.current.on('text-change', () => {
         const html = quillInstance.current.root.innerHTML;
-        onChange(html); // Call parent's handler
+        onChange(html);
       });
     }
-
-    // Set initial content (optional)
-    // if (quillInstance.current && value) {
-    //   quillInstance.current.root.innerHTML = value;
-    // }
   }, [value, onChange]);
 
   return (

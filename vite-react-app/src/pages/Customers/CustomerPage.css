@@ -210,3 +210,27 @@
     padding: 0.5rem;
   }
 }
+.customer-page-div {
+  width:400px;
+  margin:10px auto;
+  margin-top: 20px
+}
+.customer-previous-btn,
+.customer-next-btn{
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 2rem;
+  padding: 0.55rem 0.8rem;
+  font-size: 1rem;
+  font-weight:500;
+  cursor: pointer;
+  margin-left: auto
+}
+
+.customer-page-text {
+  margin: 1.5rem;
+  font-size:1.25rem;
+  color: #333;
+  margin: 0 10px
+}

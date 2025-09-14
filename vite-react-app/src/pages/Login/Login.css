@@ -1,22 +1,19 @@
-/* Login.module.css */
-
-.loginContainer {
+.login-container {
   min-height: 100vh;
-  background: #7c3aed → #6d28d9;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 2rem;
 }
 
-.leftSection {
+.login-left-section {
   flex: 1;
   max-width: 600px;
   color: white;
   padding-right: 4rem;
 }
 
-.logo {
+.login-logo {
   display: flex;
   align-items: center;
   margin-bottom: 4rem;
@@ -24,12 +21,12 @@
   font-weight: bold;
 }
 
-.logoDots {
+.login-logo-dots {
   display: flex;
   margin-right: 0.5rem;
 }
 
-.dot {
+.login-dot {
   width: 8px;
   height: 8px;
   background: white;
@@ -37,20 +34,20 @@
   margin-right: 4px;
 }
 
-.mainHeading {
+.login-main-heading {
   font-size: 3rem;
   font-weight: bold;
   line-height: 1.2;
   margin-bottom: 1.5rem;
 }
 
-.subtitle {
+.login-subtitle {
   font-size: 1.1rem;
   opacity: 0.9;
   line-height: 1.6;
 }
 
-.loginCard {
+.login-card {
   background: white;
   border-radius: 20px;
   padding: 2rem;
@@ -60,7 +57,7 @@
   margin-left: 2rem;
 }
 
-.cardTitle {
+.login-card-title {
   font-size: 2rem;
   font-weight: bold;
   color: #1f2937;
@@ -68,11 +65,11 @@
   text-align: left;
 }
 
-.formGroup {
+.login-form-group {
   margin-bottom: 1.5rem;
 }
 
-.formInput {
+.login-form-input {
   width: 100%;
   padding: 1rem;
   border: none;
@@ -83,17 +80,17 @@
   outline: none;
 }
 
-.formInput:focus {
+.login-form-input:focus {
   background: #e5e7eb;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.formInput::placeholder {
+.login-form-input::placeholder {
   color: #9ca3af;
 }
 
-.loginButton {
+.login-button {
   width: 100%;
   padding: 1rem;
   background: #374151;
@@ -107,34 +104,34 @@
   margin-top: 1rem;
 }
 
-.loginButton:hover {
+.login-button:hover {
   background: #1f2937;
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
-.loginButton:active {
+.login-button:active {
   transform: translateY(0);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .loginContainer {
+  .login-container {
     flex-direction: column;
     padding: 1rem;
   }
 
-  .leftSection {
+  .login-left-section {
     text-align: center;
     padding-right: 0;
     margin-bottom: 2rem;
   }
 
-  .mainHeading {
+  .login-main-heading {
     font-size: 2rem;
   }
 
-  .loginCard {
+  .login-card {
     margin-left: 0;
     max-width: 100%;
   }

@@ -102,6 +102,7 @@
 .salesperson-list {
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .salesperson-list th {
@@ -111,7 +112,6 @@
   font-weight: 500;
   color: #374151;
   border-bottom: 1px solid #e5e7eb;
-  justify-content: space-around;
 }
 
 .salesperson-list td {

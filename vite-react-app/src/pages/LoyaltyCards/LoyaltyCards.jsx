@@ -2,8 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Trash, Search, Plus } from "lucide-react";
 import "./LoyaltyCards.css";
 import { createLoyaltyCards, deleteLoyaltyCards, getAllLoyaltyCards } from "../../contexts/api/loyaltyCards";
-// Mock API functions (replace with your actual API calls)
-
 
 const LoyaltyCards = () => {
   const [loyaltyCards, setLoyaltyCards] = useState([]);
@@ -14,7 +12,7 @@ const LoyaltyCards = () => {
     discount: ""
   });
 
-  // Fetch loyalty cards
+
   const fetchLoyaltyCards = useCallback(async () => {
     try {
       setLoading(true);
@@ -27,12 +25,10 @@ const LoyaltyCards = () => {
     }
   }, []);
 
-  // Fetch loyalty cards on mount
   useEffect(() => {
     fetchLoyaltyCards();
   }, [fetchLoyaltyCards]);
 
-  // Add loyalty card
   const handleAdd = async () => {
     if (!newLoyaltyCard.discount) {
       alert("Please enter a discount value.");
@@ -41,7 +37,6 @@ const LoyaltyCards = () => {
 
     try {
       const res = await createLoyaltyCards(newLoyaltyCard);
-      // Refresh the list after adding
       fetchLoyaltyCards();
       setNewLoyaltyCard({ discount: "" });
       setIsAddDialogOpen(false);
@@ -56,19 +51,16 @@ const LoyaltyCards = () => {
 
     try {
       await deleteLoyaltyCards(barcode);
-      // Refresh the list after deleting
       fetchLoyaltyCards();
     } catch (error) {
       console.error("Error deleting loyalty card:", error);
     }
   };
 
-  // Filter loyalty cards by barcode
   const filteredLoyaltyCards = loyaltyCards.filter((card) =>
     card.barcode.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Format date for display
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -86,14 +78,12 @@ const LoyaltyCards = () => {
           className="add-loyalty-card-btn"
           onClick={() => setIsAddDialogOpen(true)}
         >
-          {/* <Plus size={18} color="white" /> */}
           Add Loyalty Card
         </button>
       </div>
       
       <div className="loyalty-cards-search-div">
         <div className="loyalty-card-search-input-wrapper">
-          {/* <Search size={18} className="search-icon" /> */}
           <input
             type="text"
             placeholder="Search by barcode..."

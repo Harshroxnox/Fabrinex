@@ -51,11 +51,11 @@ const EditAdmin = ({ admin, onClose, onSave }) => {
   onSave(editedAdmin);//if you intend to submit editedAdmin separately
 };
 return(
-    <div className="modal-overlay">
-      <div className="edit-modal">
-        <h2>Edit Admin</h2>
+    <div className="edit-admin-modal-overlay">
+      <div className="edit-admin-modal">
+        <h5>Edit Admin</h5>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
+          <div className="edit-admin-form-group">
             <label>Admin ID</label>
             <input
               type="text"
@@ -63,7 +63,7 @@ return(
               disabled
             />
           </div>
-          <div className="form-group">
+          <div className="edit-admin-form-group">
             <label>Password</label>
             <input
               type="password" 
@@ -73,7 +73,7 @@ return(
               required
             />
           </div>
-          <div className='form-group'>
+          <div className='edit-admin-form-group'>
             <label>Confirm Password</label>
             <input
               type="password" 
@@ -84,28 +84,28 @@ return(
             />
           </div>
           
-          <div className="form-group">
+          <div className="edit-admin-form-group">
             <label>Roles</label>
-            <div className="roles-checkbox-group">
+            <div className="edit-admin-roles-checkbox-group">
               {availableRoles.map(role => (
-                <div key={role} className="role-checkbox">
+                <div key={role} className="edit-admin-role-checkbox">
                   <input
                     type="checkbox"
                     id={`role-${role}`}
                     checked={editedAdmin.roles.includes(role)}
                     onChange={() => handleRoleChange(role)}
                   />
-                  <label htmlFor={`role-${role}`}>{role}</label>
+                  <label className='edit-admin-checkbox-labels' htmlFor={`role-${role}`}>{role}</label>
                 </div>
               ))}
             </div>
           </div>
           
-          <div className="modal-actions">
-            <button type="button" className="cancel-btn" onClick={onClose}>
+          <div className="edit-admin-modal-actions">
+            <button type="button" className="edit-admin-cancel-btn" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="save-btn">
+            <button type="submit" className="edit-admin-save-btn">
               Save Changes
             </button>
           </div>

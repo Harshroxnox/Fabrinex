@@ -100,7 +100,6 @@ const {getAllAdmins}=useContext(LoginContext);
         </div>
         <div className="salesperson-search-div">
           <div className="search-input-wrapper">
-            {/* <Search size={18} className="search-icon" /> */}
             <input
               type="text"
               placeholder="Search by admin name..."
