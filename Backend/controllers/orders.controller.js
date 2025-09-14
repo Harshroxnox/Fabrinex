@@ -249,12 +249,6 @@ export const createOrderOffline = async (req, res, next) => {
       }
 
       promo_discount = barcodeRow[0].discount;
-
-      // After applying remove
-      await conn.execute(
-        `DELETE FROM LoyaltyCards WHERE barcode = ?`,
-        [loyalty_barcode]
-      );
     }
 
     // Creating order
