@@ -162,7 +162,8 @@ INSERT INTO Addresses (
     'Shop No : 133, Jain Bazar Rd'
 );
 
--- NOTE: amount is the sum total of all discountedPrice of variants excluding tax and promo discount
+-- NOTE: amount is inclusive of all discount and taxes
+-- NOTE: profit does not include tax
 CREATE TABLE Orders (
     orderID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
@@ -173,11 +174,14 @@ CREATE TABLE Orders (
     order_location VARCHAR(255) NOT NULL,
     order_status VARCHAR(40) NOT NULL DEFAULT 'pending',
     amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
+    profit DECIMAL(10, 2) NOT NULL CHECK (profit > 0),
+    tax DECIMAL(10, 2) NOT NULL CHECK (tax >= 0),
     promo_discount DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (promo_discount >= 0 AND promo_discount < 100),
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
 );
 
+-- NOTE: price_at_purchase is exclusive of promo_discount and tax
 CREATE TABLE OrderItems (
     orderItemID INT AUTO_INCREMENT PRIMARY KEY,
     orderID INT NOT NULL,

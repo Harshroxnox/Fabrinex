@@ -48,14 +48,16 @@ export const createOrder = async (req, res, next) => {
 
     // Creating order
     const [orderResult] = await conn.execute(
-      `INSERT INTO Orders (userID, addressID, payment_method, amount, order_location) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [userID, addressID, payment_method, 0.1, constants.SHOP_LOCATION]
+      `INSERT INTO Orders (userID, addressID, payment_method, amount, profit, tax, order_location) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [userID, addressID, payment_method, 0.1, 0.1, 0.1, constants.SHOP_LOCATION]
     );
 
     const orderID = orderResult.insertId;
 
     let amount = 0;
+    let profit = 0;
+    let tax = 0;
 
     // Inserting into OrderItems using items
     for (const item of cartItems) {
@@ -65,7 +67,8 @@ export const createOrder = async (req, res, next) => {
           variantID, 
           productID, 
           color, 
-          size, 
+          size,
+          my_wallet, 
           main_image, 
           price, 
           discount 
@@ -88,9 +91,16 @@ export const createOrder = async (req, res, next) => {
         [variantRow[0].productID]
       );
 
+      const productTax  = productRow[0].tax;
       const { price, discount } = variantRow[0];
-      const discountedPrice = price - (price * (discount / 100));
-      amount = amount + (discountedPrice * item.quantity);
+      // applied variant discount 
+      const actualPrice = price - (price * (discount / 100));
+      // applied tax 
+      const taxedPrice = actualPrice + (actualPrice * (productTax/100));
+
+      amount = amount + (taxedPrice * item.quantity);
+      profit = profit + (actualPrice - variantRow[0].my_wallet) * item.quantity;
+      tax = tax + actualPrice * (productTax/100) * item.quantity;
 
       await conn.execute(`
         INSERT INTO OrderItems (
@@ -115,15 +125,15 @@ export const createOrder = async (req, res, next) => {
           variantRow[0].main_image, 
           variantRow[0].size, 
           item.quantity, 
-          discountedPrice
+          actualPrice
         ]
       );
     }
 
-    // Set order amount
+    // Set order amount, profit, tax
     await conn.execute(
-      "UPDATE Orders SET amount = ? WHERE orderID = ?",
-      [amount, orderID]
+      "UPDATE Orders SET amount = ?, profit = ?, tax = ? WHERE orderID = ?",
+      [amount, profit, tax, orderID]
     );
 
     // Clearing the cart
@@ -259,11 +269,13 @@ export const createOrderOffline = async (req, res, next) => {
         payment_method, 
         payment_status, 
         amount,
+        profit,
+        tax,
         order_location, 
         order_status, 
         promo_discount
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userID, 1, payment_method, 'completed', 0.1, constants.SHOP_LOCATION, 'delivered', promo_discount]
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userID, 1, payment_method, 'completed', 0.1, 0.1, 0.1, constants.SHOP_LOCATION, 'delivered', promo_discount]
     );
 
     const orderID = orderResult.insertId;
@@ -287,6 +299,8 @@ export const createOrderOffline = async (req, res, next) => {
     }
     
     let amount = 0;
+    let profit = 0;
+    let tax = 0;
 
     // Inserting into OrderItems using items
     for (const item of items) {
@@ -297,6 +311,7 @@ export const createOrderOffline = async (req, res, next) => {
           productID, 
           color, 
           size, 
+          my_wallet,
           main_image, 
           price, 
           discount 
@@ -320,9 +335,18 @@ export const createOrderOffline = async (req, res, next) => {
         [variantRow[0].productID]
       );
 
+      const productTax  = productRow[0].tax;
       const { price, discount } = variantRow[0];
-      const discountedPrice = price - (price * (discount / 100));
-      amount = amount + (discountedPrice * item.quantity);
+      // applied variant discount 
+      const actualPrice = price - (price * (discount / 100));
+      // applied promo discount if any
+      const discountedPrice = actualPrice - (actualPrice * (promo_discount / 100));
+      // applied tax 
+      const taxedPrice = discountedPrice + (discountedPrice * (productTax/100));
+
+      amount = amount + (taxedPrice * item.quantity);
+      profit = profit + (discountedPrice - variantRow[0].my_wallet) * item.quantity;
+      tax = tax + discountedPrice * (productTax/100) * item.quantity;
 
       await conn.execute(`
         INSERT INTO OrderItems (
@@ -347,15 +371,15 @@ export const createOrderOffline = async (req, res, next) => {
           variantRow[0].main_image, 
           variantRow[0].size, 
           item.quantity, 
-          discountedPrice
+          actualPrice
         ]
       );
     }
 
-    // Set order amount
+    // Set order amount, profit, tax
     await conn.execute(
-      "UPDATE Orders SET amount = ? WHERE orderID = ?",
-      [amount, orderID]
+      "UPDATE Orders SET amount = ?, profit = ?, tax = ? WHERE orderID = ?",
+      [amount, profit, tax, orderID]
     );
 
     // Commit database changes
@@ -465,6 +489,8 @@ export const getAllOrders = async (req, res, next) => {
         o.order_status, 
         o.order_location,
         o.amount,
+        o.profit,
+        o.tax,
         u.userID, 
         u.name AS customer_name, 
         u.email
