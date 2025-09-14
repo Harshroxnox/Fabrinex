@@ -750,7 +750,7 @@ export const updateVariant = async (req, res, next) => {
     }
 
     if (sourceRaw) {
-      const source = validDecimal(sourceRaw);
+      const source = validString(sourceRaw,0,254);
       if (source === null) {
         throw new AppError(400, "Invalid source");
       }
