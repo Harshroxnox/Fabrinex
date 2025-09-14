@@ -444,6 +444,18 @@ export const getOrdersByUser = async (req, res, next) => {
 
 export const getAllOrders = async (req, res, next) => {
   try {
+    const limit = validID(req.query.limit);
+    const page = validID(req.query.page);
+
+    if (limit === null || limit > constants.MAX_LIMIT){
+      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
+    }
+
+    if(page === null){
+      throw new AppError(400, "Page must be a valid number");
+    }
+
+    const offset = (page - 1) * limit;
     const [orders] = await db.execute(`
       SELECT 
         o.orderID, 
@@ -459,10 +471,18 @@ export const getAllOrders = async (req, res, next) => {
       FROM Orders o
       JOIN Users u ON o.userID = u.userID
       ORDER BY o.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [`${limit}`, `${offset}`]);
+
+    const [count] = await db.execute(`
+      SELECT COUNT(*) AS count
+      FROM Orders o
+      JOIN Users u ON o.userID = u.userID
     `);
 
     return res.status(200).json({ 
       message: 'All orders fetched successfully',
+      total: count[0].count,
       orders 
     });
 

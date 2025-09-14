@@ -7,6 +7,7 @@ import { isOTPVerified } from "../utils/otp.helper.js";
 import { deleteTempImg } from "../utils/deleteTempImg.js";
 import { razorpay } from "../utils/razorpay.utils.js";
 import { generateTokens, blacklistToken } from "../utils/jwt.utils.js";
+import { constants } from '../config/constants.js';
 import { validEmail, validID, validPassword, validPhoneNumber, validString, validStringChar, validStringNum, validWholeNo } from "../utils/validators.utils.js";
 import logger from "../utils/logger.js";
 import AppError from "../errors/appError.js";
@@ -227,6 +228,18 @@ export const logoutUser = async (req, res, next) => {
 
 export const getAllUsers = async (req, res, next) => {
   try {
+    const limit = validID(req.query.limit);
+    const page = validID(req.query.page);
+
+    if (limit === null || limit > constants.MAX_LIMIT){
+      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
+    }
+
+    if(page === null){
+      throw new AppError(400, "Page must be a valid number");
+    }
+
+    const offset = (page - 1) * limit;
     const [users] = await db.execute(`
       SELECT 
         u.userID,
@@ -238,10 +251,16 @@ export const getAllUsers = async (req, res, next) => {
         COUNT(o.orderID) AS order_count
       FROM Users u
       LEFT JOIN Orders o ON u.userID = o.userID
-      GROUP BY u.userID, u.name, u.email, u.phone_number, u.whatsapp_number, u.created_at;
-    `);
+      GROUP BY u.userID, u.name, u.email, u.phone_number, u.whatsapp_number, u.created_at
+      ORDER BY u.created_at DESC
+      LIMIT ? OFFSET ?
+    `, [`${limit}`, `${offset}`]);
+
+    const [count] = await db.execute(`SELECT COUNT(*) AS count FROM Users`);
+
     res.status(200).json({
       message: "All users fetched successfully",
+      total: count[0].count,
       users: users 
     });
   } catch (error) {
