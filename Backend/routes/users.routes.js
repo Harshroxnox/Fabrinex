@@ -6,6 +6,7 @@ import {
     logoutUser, 
     getProfile, 
     getAllUsers,
+    getUserByName,
     addAddress,
     getAddress,
     updateAddress,
@@ -29,6 +30,7 @@ router.route("/get-profile").get(authMiddleware('user'), getProfile);
 
 // admin routes 
 router.route("/get-all-users").get(getAllUsers);
+router.route("/get-user-by-name").get(getUserByName);
 
 // user address routes (user must be logged in)
 router.route("/add-address").post(authMiddleware('user'), addAddress);

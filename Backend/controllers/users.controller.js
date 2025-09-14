@@ -268,6 +268,40 @@ export const getAllUsers = async (req, res, next) => {
   }
 };
 
+export const getUserByName = async (req, res, next) => {
+  const name = validStringChar(req.query.name);
+
+  try {
+    if(name === null){
+      throw new AppError(400, "Given search term(name) must be valid");
+    }
+
+    const [users] = await db.execute(`
+      SELECT 
+        u.userID,
+        u.name,
+        u.email,
+        u.phone_number,
+        u.whatsapp_number,
+        u.created_at,
+        COUNT(o.orderID) AS order_count
+      FROM Users u
+      LEFT JOIN Orders o ON u.userID = o.userID
+      WHERE u.name LIKE ?
+      GROUP BY u.userID
+      ORDER BY u.created_at DESC
+    `, [`%${name}%`]);
+
+    res.status(200).json({
+      message: "User search successfull",
+      users: users 
+    });
+
+  } catch (error){
+    next(error);
+  }
+}
+
 
 export const getProfile = async (req, res, next) => {
   const userID = req.userID;
