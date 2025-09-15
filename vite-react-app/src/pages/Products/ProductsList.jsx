@@ -4,34 +4,32 @@ import ProductFilters from './ProductFilters';
 import AddProductDialog from './AddProductDialog';
 import './ProductsList.css';
 import { ProductContext } from '../../contexts/ProductContext';
+import { getAllProducts } from '../../contexts/api/products';
 
 const ProductsList = () => {
-  const { 
-    getAllProducts, 
-    createProduct,
-    error 
-  } = useContext(ProductContext);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading,setLoading]=useState(false);
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      try {
-        const productsData = await getAllProducts();
-        setProducts(productsData.products); //give array of product objects
-        setFilteredProducts(productsData.products);
-        // console.log(productsData);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-      }
-    };
-    
-    fetchProducts();
-    setLoading(false);
-  }, []);
+  const [error, setError] = useState('');
 
+  const fetchProducts = async () => {
+    setLoading(true);
+    try {
+      const {data,error} = await getAllProducts();
+      if(error) throw new Error(error);
+      setProducts(data.products);
+      setFilteredProducts(data.products);
+    } catch (err) {
+      console.error("Error fetching products:", err);
+    }
+    finally{
+      setLoading(false);
+    }
+  };
+  useEffect( () => {
+    fetchProducts();
+  }, []);
   const handleSearch = (searchTerm) => {
     if (!searchTerm.trim()) {
       setFilteredProducts(products);
@@ -89,11 +87,15 @@ const ProductsList = () => {
     setLoading(true);
     try {
       setIsAddDialogOpen(false);
-      const productsData = await getAllProducts(); // Refresh the list
-      setProducts(productsData.products); //give array of product objects
-      setFilteredProducts(productsData.products);
+      const {data, error} = await getAllProducts();
+      if(error) {
+        console.error("Error refreshing products:" , error);
+        return ;
+      }
+      setProducts(data.products);
+      setFilteredProducts(data.products);
     } catch (err) {
-      console.error('Error refreshing products:', err);
+      console.error('Unexpected error refreshing products:', err);
     }
     finally{
       setLoading(false);
@@ -141,6 +143,7 @@ const ProductsList = () => {
                 product={product}
                 onUpdate={handleUpdateProduct}
                 onAdd = {handleAddProduct}
+                onDeleted = {fetchProducts}
               />
             ))
           ) : (

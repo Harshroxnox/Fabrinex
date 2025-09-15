@@ -1,22 +1,19 @@
 import React, { createContext, useState } from "react";
 import Cookies from "js-cookie";
-import axiosInstance from "../utils/axiosInstance"; // ✅ Your axiosInstance with interceptors
+import axiosInstance from "../utils/axiosInstance";
 
-// Step 1: Create context
 export const LoginContext = createContext();
 
-// Step 2: Create provider
 export const LoginProvider = ({ children }) => {
+  const [isAuthenticated , setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ Register (public)
   const register = async (formData) => {
     try {
       setLoading(true);
       setError("");
       const res = await axiosInstance.post("/admins/register", formData, { noAuth: true });
-      console.log("Registration successful:", res.data.message);
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
     } finally {
@@ -24,21 +21,15 @@ export const LoginProvider = ({ children }) => {
     }
   };
 
-  // ✅ Login (public)
+
   const login = async (formData) => {
     try {
       setLoading(true);
       setError("");
       const res = await axiosInstance.post("/admins/login", formData, { noAuth: true });
-
       localStorage.setItem("admin", formData.email);
-      // 🔒 Fetch role (protected)
       await GetRole();
-
-      console.log(
-        `User with email ${localStorage.getItem("admin")} and role ${localStorage.getItem("role")} logged in.`
-      );
-
+      setIsAuthenticated(true);
       return { message: "success" };
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");
@@ -47,16 +38,14 @@ export const LoginProvider = ({ children }) => {
     }
   };
 
-  // ✅ Logout (public)
   const logout = async () => {
     try {
       setLoading(true);
       setError("");
       const res = await axiosInstance.post("/admins/logout");
-
-      console.log("Logout successful:", res.data.message);
       localStorage.removeItem("admin");
       localStorage.removeItem("role");
+      setIsAuthenticated(false);
       Cookies.remove("accessToken");
     } catch (err) {
       setError(err.response?.data?.message || "Logout failed");
@@ -65,13 +54,11 @@ export const LoginProvider = ({ children }) => {
     }
   };
 
-  // 🔒 Get current role
   const GetRole = async () => {
     try {
       const res = await axiosInstance.get("/admins/get-roles");
       const roles = res.data;
       localStorage.setItem("role", roles);
-    //   console.log(roles);
       return roles;
     } catch (err) {
       console.log("Error getting roles:", err.response?.data || err.message);
@@ -79,17 +66,14 @@ export const LoginProvider = ({ children }) => {
     }
   };
 
-  // 🔒 Delete admin
   const deleteAdmin = async (adminID) => {
     try {
       const res = await axiosInstance.delete(`/admins/delete/${adminID}`);
-      console.log("Admin deleted:", res.data.message);
     } catch (err) {
       console.error("Delete admin error:", err.response?.data || err.message);
     }
   };
 
-  // 🔒 Get all admins
   const getAllAdmins = async () => {
     try {
       const res = await axiosInstance.get("/admins/get-all-admins");
@@ -99,7 +83,6 @@ export const LoginProvider = ({ children }) => {
     }
   };
 
-  // 🔒 Update admin
   const updateAdmin = async (adminID, formData) => {
     try {
       const res = await axiosInstance.put(`/admins/update/${adminID}`, formData);
@@ -110,7 +93,6 @@ export const LoginProvider = ({ children }) => {
     }
   };
 
-  // 🔒 Get all users (customers)
   const getAllUsers = async (page,limit) => {
     try {
       const res = await axiosInstance.get(`/users/get-all-users?page=${page}&limit=${limit}`);
@@ -133,6 +115,7 @@ export const LoginProvider = ({ children }) => {
         getAllAdmins,
         updateAdmin,
         getAllUsers,
+        isAuthenticated
       }}
     >
       {children}

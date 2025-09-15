@@ -1,6 +1,6 @@
 import './Admin.css';
 import React, { useState } from 'react';
-import Home from '../../components/Home/Home';
+// import Home from '../../components/Home/Home';
 import MessagingSection from '../Messages/Messages.jsx';
 import WebPage from '../Web/Web.jsx';
 import PromotionsPage from '../Promotions/Promotions.jsx';
@@ -12,6 +12,7 @@ import CustomerPage from '../Customers/CustomerPage.jsx';
 import ProductsList from '../Products/ProductsList.jsx';
 import SalesPersons from '../Salespersons/Salespersons.jsx';
 import LoyaltyCards from '../LoyaltyCards/LoyaltyCards.jsx';
+import Home from '../../components/Dashboard/Home.jsx';
 
 const Admin = () => {
   const [activeBtn, setActiveBtn] = useState("Dashboard");

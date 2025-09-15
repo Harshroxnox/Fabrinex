@@ -4,55 +4,51 @@ import EditProductDialog from './EditProductDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import './ProductsList.css';
 import { EditIcon, PlusCircleIcon, Trash2Icon } from 'lucide-react';
-import { ProductContext } from '../../contexts/ProductContext';
-import AddProductDialog from './AddProductDialog';
 import AddVariantDialog from './AddVariantDialog';
-import { uploadSecondaryImages } from '../../contexts/api/products';
+import { deleteProduct, getProductByIDByAdmin, uploadSecondaryImages } from '../../contexts/api/products';
 
-const ProductItem = ({ product, onUpdate ,onAdd}) => {
+const ProductItem = ({ product, onUpdate ,onAdd , onDeleted}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const {deleteProduct, getProductByIDByAdmin , createVariant} = useContext(ProductContext);
-  // console.log(product);
+
   const toggleExpand = () => setIsExpanded(!isExpanded);
   const [loading,setLoading]=useState(false);
   const [variants,setVariants]= useState([]);
-  useEffect(()=>{
-    let isMounted = true;
 
-    const fetchVariants= async ()=>{
-      setLoading(true);
-      try {
-        // console.log(product);
-        const productData= await getProductByIDByAdmin(product.productID);
-        const variantsData = productData.product.variants;
-        setVariants(variantsData);
-        // console.log(variantsData);
-      } catch (error) {
-        console.error("error fetching variants:", error);
+  const fetchVariants = async () => {
+    setLoading(true);
+    try {
+      const {data, error} = await getProductByIDByAdmin(product.productID);
+      if(error) {
+        console.error("Error fetching variants:", error);
+        return ;
       }
-      finally{
-        setLoading(false);
-      }
-    };
-    fetchVariants();
-
-    return ()=>{
-      isMounted = false;
+      setVariants(data.product.variants);
+    } catch (err) {
+      console.error("Unexpected error fetching variants:", err);
     }
-  },[]);
-  // console.log(variants);
+    finally{
+      setLoading(false);
+    }
+  };
+
+  useEffect( ()=>{
+    fetchVariants();
+  }, [product.productID]);
+
   const handleUpdate = (updatedProduct) => {
     onUpdate(updatedProduct);
     setIsEditDialogOpen(false);
+    if(onDeleted) onDeleted();
   };
 
 const handleAddVariant = async (variant) => {
   try {
     setLoading(true);
 
+    
     // STEP 1: Create variant (with main image + fields)
     const formData = new FormData();
     for (let key in variant) {
@@ -97,7 +93,7 @@ const handleAddVariant = async (variant) => {
       const secImageData = await secImageRes.json();
       console.log("Secondary images uploaded:", secImageData);
     }
-
+    fetchVariants();
     setIsAddDialogOpen(false);
   } catch (error) {
     console.error("Error adding new variant:", error);
@@ -110,13 +106,15 @@ const handleAddVariant = async (variant) => {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      await deleteProduct(product.productID);
+      const {data,error } = await deleteProduct(product.productID);
+
+      if(error) throw new Error(error);
       setIsDeleteDialogOpen(false);
+      if(onDeleted) onDeleted();
     } catch (err) {
-      console.error('Error deleting product:', err);
-    }
-    finally{
-      setLoading(true);
+      console.error("Error deleting product :",err);
+    }finally{
+      setLoading(false);
     }
   };
 
@@ -201,6 +199,7 @@ const handleAddVariant = async (variant) => {
             <VariantsList
               productId={product.productID}
               variants={variants}
+              onDeleted={fetchVariants}
             />
           ) : (
             <p className="no-variants-message">No variants available for this product</p>

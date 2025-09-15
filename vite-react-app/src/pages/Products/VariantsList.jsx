@@ -4,11 +4,12 @@ import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import './VariantsList.css';
 import { EditIcon, Trash2Icon } from 'lucide-react';
 import { ProductContext } from '../../contexts/ProductContext';
+import { deleteVariant } from '../../contexts/api/products';
 
-const VariantsList = ({ variants, productId }) => {
+const VariantsList = ({ variants, productId , onDeleted}) => {
   const [editingVariant, setEditingVariant] = useState(null);
   const [deletingVariant, setDeletingVariant] = useState(null);
-  const { updateVariant, deleteVariant,error } = useContext(ProductContext);
+  const { updateVariant,error } = useContext(ProductContext);
   const [loading,setLoading]=useState(false);
   const handleUpdate = async (updatedVariant) => {
     setLoading(true);
@@ -16,9 +17,12 @@ const VariantsList = ({ variants, productId }) => {
       await updateVariant(updatedVariant.variantID, {
         price: updatedVariant.price,
         discount: updatedVariant.discount,
-        main_image: updatedVariant.main_image
-      });
+        main_image: updatedVariant.main_image,
+        stock: updateVariant.stock,
+        my_wallet: updateVariant.my_wallet
+      }); 
       setEditingVariant(null);
+      if(onDeleted) onDeleted();
     } catch (err) {
       console.error('Error updating variant:', err);
     }
@@ -30,12 +34,14 @@ const VariantsList = ({ variants, productId }) => {
   const handleDelete = async (variantId) => {
     setLoading(true);
     try {
-      await deleteVariant(variantId);
+      const {data,error} = await deleteVariant(variantId);
+      if(error) throw new Error(error);
       setDeletingVariant(null);
+      if(onDeleted) onDeleted();
+    
     } catch (err) {
-      console.error('Error deleting variant:', err);
-    }
-    finally{
+      console.error("Error deleting variant: ", err);
+    }finally{
       setLoading(false);
     }
   };
