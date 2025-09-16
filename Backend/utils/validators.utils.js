@@ -257,3 +257,20 @@ export const validURL = (url) => {
     return null;
   }
 }
+
+
+export const validDate = (str) => {
+  if (typeof str !== "string") {
+    return null;
+  }
+  str = str.trim();
+
+  //basic regex for date validation
+  const regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+  //if it doesnot match the pattern ,it is invalid
+  if (!regex.test(str)) {
+    return null;
+  }
+  return str;
+}

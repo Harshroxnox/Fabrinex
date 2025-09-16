@@ -4,7 +4,8 @@ import {
     getOrder,
     getOrdersByUser,
     getAllOrders,
-    createOrderOffline
+    createOrderOffline,
+    filter
 } from '../controllers/orders.controller.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
@@ -18,5 +19,6 @@ router.route("/get-orders-user").get(authMiddleware('user'), getOrdersByUser);
 
 // admin specific
 router.route("/get-all-orders").get(getAllOrders);
+router.route("/filter").get(filter);
 
 export default router;

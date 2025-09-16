@@ -1,6 +1,6 @@
 import { db } from '../index.js';
 import { constants } from '../config/constants.js';
-import { validID, validStringChar, validPhoneNumber } from '../utils/validators.utils.js';
+import { validID, validStringChar, validPhoneNumber, validDate, validDecimal } from '../utils/validators.utils.js';
 import { ValidEAN13 } from '../utils/generateBarcode.js';
 import AppError from "../errors/appError.js";
 
@@ -396,6 +396,97 @@ export const createOrderOffline = async (req, res, next) => {
 
   } finally {
     if (conn) conn.release(); // always release connection
+  }
+};
+
+
+export const filter = async (req, res, next) => {
+  try {
+    // NOTE: Date format must be YYYY-MM-DD
+    let {
+      date_from,
+      date_to,
+      order_status,
+      payment_status,
+      payment_method,
+      amount_from,
+      amount_to,
+    } = req.query;
+
+
+    let sql = `SELECT * FROM Orders WHERE 1=1`;
+    const params = [];
+
+    if(date_from){
+      date_from = validDate(date_from);
+      if(date_from === null){
+        throw new AppError(400, "Invalid Date From");
+      }
+      sql += " AND created_at >= ?";
+      params.push(date_from);
+    }
+
+    if(date_to){
+      date_to = validDate(date_to);
+      if(date_to === null){
+        throw new AppError(400, "Invalid Date To");
+      }
+      sql += " AND created_at < DATE_ADD(?, INTERVAL 1 DAY)";
+      params.push(date_to);
+    }
+
+    if(order_status){
+      if(!constants.ORDER_STATUSES.includes(order_status)){
+        throw new AppError(400, 'Invalid order status');
+      }
+      sql += " AND order_status = ?";
+      params.push(order_status);
+    }
+
+    if(payment_status){
+      if(!constants.PAYMENT_STATUSES.includes(payment_status)){
+        throw new AppError(400, 'Invalid payment status');
+      }
+      sql += " AND payment_status = ?";
+      params.push(payment_status);
+    }
+
+    if(payment_method){
+      if(!constants.PAYMENT_METHODS.includes(payment_method)){
+        throw new AppError(400, 'Invalid order status');
+      }
+      sql += " AND payment_method = ?";
+      params.push(payment_method);
+    }
+
+    if(amount_from){
+      amount_from = validDecimal(amount_from);
+      if(amount_from === null){
+        throw new AppError(400, "Invalid Amount From");
+      }
+      sql += " AND amount >= ?";
+      params.push(amount_from);
+    }
+
+    if(amount_to){
+      amount_to = validDecimal(amount_to);
+      if(amount_to === null){
+        throw new AppError(400, "Invalid Amount To");
+      }
+      sql += " AND amount <= ?";
+      params.push(amount_to);
+    }
+
+    const [orders] = await db.execute(sql, params);
+
+    return res.status(200).json({
+      message: 'Filtered orders fetched successfully',
+      orders 
+    });
+
+
+  } catch(error) {
+    next(error);
   }
 };
 

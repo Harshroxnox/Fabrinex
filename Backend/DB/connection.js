@@ -13,6 +13,7 @@ export const connectDB = async () => {
       database: "ecommerce",
       waitForConnections: true,
       connectionLimit: process.env.MYSQL_CONNECTION_LIMIT, // or more depending on expected load
+      dateStrings: true
     });
 
     logger.info(`MySQL connected successfully!`);
