@@ -59,8 +59,14 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
     }
   };
 
+  
+    const PRODUCT_CATEGORIES = [
+    'Suits - stitched',
+    'Suits - unstitched',
+    'Bridal',
+    'Other'
+  ];
   if (!isOpen) return null;
-
   return (
     <div className="dialog-overlay">
       <div className="dialog-content">
@@ -95,14 +101,20 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
 
           <div className="form-group">
             <label>Category*</label>
-            <input
-              type="text"
+            <select
               name="category"
               value={editedProduct.category}
               onChange={handleChange}
               required
               disabled={loading}
-            />
+            >
+              <option value="">Select Category</option>
+              {PRODUCT_CATEGORIES.map((category, index) => (
+                <option key={index} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="dialog-actions">

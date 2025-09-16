@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import html2pdf from "html2pdf.js";
 import { getOrder } from "../../contexts/api/orders";
-import './Invoice.css';
+import "./Invoice.css";
+
 const Invoice = ({ order }) => {
   const id = order;
   const [orderData, setOrderData] = useState(null);
@@ -18,7 +19,6 @@ const Invoice = ({ order }) => {
     try {
       setLoading(true);
       const res = await getOrder(id);
-      console.log(res);
       setOrderData(res);
     } catch (error) {
       console.error("error fetching order data", error);
@@ -34,20 +34,44 @@ const Invoice = ({ order }) => {
   if (loading) return <p>Loading invoice...</p>;
   if (!orderData) return <p>No invoice found.</p>;
 
-  // Prepare totals
-  const subtotal =
-    orderData.items?.reduce(
-      (sum, item) => sum + item.quantity * parseFloat(item.price_at_purchase),
-      0
-    ) || 0;
+  const promoDiscount = parseFloat(orderData.order.promo_discount || 0);
 
-  const taxRate = orderData.items?.[0]?.tax
-    ? parseFloat(orderData.items[0].tax) / 100
-    : 0;
+  // --- Billing calculations ---
+  const itemsWithTotals = orderData.items.map((item) => {
+    const price = parseFloat(item.price_at_purchase);
+    const qty = parseInt(item.quantity);
+    const taxRate = parseFloat(item.tax) / 100;
 
-  const tax = subtotal * taxRate;
+    // proportional discount (split equally across items)
+    const discountPerItem =
+      promoDiscount / orderData.items.length / qty || 0;
+
+    const discountedPrice = price - discountPerItem;
+
+    const baseTotal = discountedPrice * qty;
+    const taxAmt = baseTotal * taxRate;
+    const lineTotal = baseTotal + taxAmt;
+
+    return {
+      ...item,
+      discountedPrice,
+      taxAmt,
+      lineTotal,
+    };
+  });
+
+  const subtotal = itemsWithTotals.reduce(
+    (sum, item) => sum + item.discountedPrice * item.quantity,
+    0
+  );
+
+  const totalTax = itemsWithTotals.reduce(
+    (sum, item) => sum + item.taxAmt,
+    0
+  );
+
   const deliveryCharge = 0;
-  const total = parseFloat(orderData.order.amount);
+  const grandTotal = subtotal + totalTax + deliveryCharge;
 
   return (
     <div className="invoice-container">
@@ -84,14 +108,16 @@ const Invoice = ({ order }) => {
               <strong>Order Status:</strong> {orderData.order.order_status}
             </p>
             <p className="invoice-amount-due">
-              <strong>Amount Due:</strong> ₹{total.toFixed(2)}
+              <strong>Amount Due:</strong> ₹{grandTotal.toFixed(2)}
             </p>
           </div>
         </div>
+
         <div className="invoice-bill-to" style={{ marginBottom: "10px" }}>
           <p style={{ fontSize: "15px", fontWeight: "500" }}>Billed By:</p>
           <p style={{ fontSize: "15px", fontWeight: "350" }}>Rahul</p>
         </div>
+
         <table className="invoice-items-table">
           <thead>
             <tr>
@@ -100,12 +126,14 @@ const Invoice = ({ order }) => {
               <th>Color</th>
               <th>Size</th>
               <th>Quantity</th>
-              <th>Unit Cost</th>
+              <th>Unit Price</th>
+              <th>Discounted Price</th>
+              <th>Tax</th>
               <th>Line Total</th>
             </tr>
           </thead>
           <tbody>
-            {orderData.items?.map((item, index) => (
+            {itemsWithTotals.map((item, index) => (
               <tr key={index}>
                 <td>{item.name}</td>
                 <td>{item.category}</td>
@@ -113,29 +141,26 @@ const Invoice = ({ order }) => {
                 <td>{item.size}</td>
                 <td>{item.quantity}</td>
                 <td>₹{parseFloat(item.price_at_purchase).toFixed(2)}</td>
-                <td>
-                  ₹
-                  {(
-                    item.quantity * parseFloat(item.price_at_purchase)
-                  ).toFixed(2)}
-                </td>
+                <td>₹{item.discountedPrice.toFixed(2)}</td>
+                <td>₹{item.taxAmt.toFixed(2)}</td>
+                <td>₹{item.lineTotal.toFixed(2)}</td>
               </tr>
             ))}
           </tbody>
         </table>
+
         <div className="invoice-summary">
           <p>
             <strong>Subtotal:</strong> ₹{subtotal.toFixed(2)}
           </p>
           <p>
-            <strong>Tax ({orderData.items?.[0]?.tax || 0}%):</strong> ₹
-            {tax.toFixed(2)}
+            <strong>Total Tax:</strong> ₹{totalTax.toFixed(2)}
           </p>
           <p>
             <strong>Delivery Charge:</strong> ₹{deliveryCharge.toFixed(2)}
           </p>
           <p className="invoice-total">
-            <strong>Total:</strong> ₹{total.toFixed(2)}
+            <strong>Total:</strong> ₹{grandTotal.toFixed(2)}
           </p>
         </div>
       </div>

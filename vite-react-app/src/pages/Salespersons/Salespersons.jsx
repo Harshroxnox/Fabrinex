@@ -7,6 +7,7 @@ import {
   addSalesPerson,
 } from "../../contexts/api/salespersons";
 import { Trash, Search, Plus } from "lucide-react";
+import SalespersonOrders from "./SalespersonOrders";
 
 const Salespersons = () => {
   const [salespersons, setSalespersons] = useState([]);
@@ -173,6 +174,7 @@ const Salespersons = () => {
           </table>
         </div>
       )}
+      <SalespersonOrders/>
 
       {/* Add Salesperson Dialog */}
       {isAddDialogOpen && (

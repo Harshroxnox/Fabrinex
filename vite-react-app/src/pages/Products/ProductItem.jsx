@@ -69,8 +69,6 @@ const handleAddVariant = async (variant) => {
     if (!response.ok) throw new Error("Failed to create variant");
 
     const data = await response.json();
-    console.log("Variant created:", data);
-
     const variantID = data.variantID;
 
     // STEP 2: Upload secondary images (if any)
@@ -91,7 +89,7 @@ const handleAddVariant = async (variant) => {
       if (!secImageRes.ok) throw new Error("Failed to upload secondary images");
 
       const secImageData = await secImageRes.json();
-      console.log("Secondary images uploaded:", secImageData);
+      // console.log("Secondary images uploaded:", secImageData);
     }
     fetchVariants();
     setIsAddDialogOpen(false);

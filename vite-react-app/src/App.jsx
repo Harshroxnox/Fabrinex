@@ -11,15 +11,15 @@ const App = () => {
 <LoginProvider>
   <ProductProvider>
     <Navbar/>
-    <Routes >
-      <Route path="/" element={<Login />}/>
-      <Route path="/admin" element= {
-        <ProtectedRoute>
-          <Admin/>
-        </ProtectedRoute>
-      }
-      />
-    </Routes>
+      <Routes >
+        <Route path="/" element={<Login />}/>
+        <Route path="/admin" element= {
+          <ProtectedRoute>
+            <Admin/>
+          </ProtectedRoute>
+        }
+        />
+      </Routes>
   </ProductProvider>
 
 </LoginProvider>

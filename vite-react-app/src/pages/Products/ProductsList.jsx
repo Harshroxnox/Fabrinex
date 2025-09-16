@@ -13,6 +13,11 @@ const ProductsList = () => {
   const [loading,setLoading]=useState(false);
   const [error, setError] = useState('');
 
+
+  //roles of the admin
+  const roles = localStorage.getItem("role");
+  const canCreateProduct = roles.includes("superadmin") || roles.includes("admin") || roles.includes("inventory-manager");
+
   const fetchProducts = async () => {
     setLoading(true);
     try {
@@ -118,7 +123,7 @@ const ProductsList = () => {
         <button
           className="add-product-btn"
           onClick={() => setIsAddDialogOpen(true)}
-          // disabled={loading}
+          disabled={!canCreateProduct}
         >
           Add New Product
         </button>

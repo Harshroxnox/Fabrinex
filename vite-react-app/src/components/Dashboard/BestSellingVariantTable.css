@@ -1,0 +1,63 @@
+.variant-container {
+  flex-grow: 1;
+    border: 0.01rem solid #a2a2a2;
+    padding: 2rem;
+    border-radius: 2rem;
+    background-color: #FDFDFD;
+    color: #6ba1a9;
+    font-size: medium;
+}
+
+.title {
+  font-size: larger;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.subtitle {
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.search-input {
+  padding: 8px 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 250px;
+  font-size: 14px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.variant-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+  background: #fff;
+}
+
+.variant-table th,
+.variant-table td {
+  padding: 10px 12px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.variant-table th {
+  background: #f3f3f3;
+  font-weight: bold;
+  color: #333;
+}
+
+.variant-table tr:hover {
+  background: #f9f9f9;
+}
+
+.no-data {
+  padding: 15px;
+  color: #777;
+  text-align: center;
+}

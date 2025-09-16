@@ -5,7 +5,9 @@
   align-items: center;
   padding: 0 2rem;
   height: 50px;
-  position: relative;
+  position: fixed;
+  width:100%;
+  z-index: 10;
 }
 
 .navbar-brand {

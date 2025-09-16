@@ -30,8 +30,11 @@ const Home = () => {
   const piechartColors = ["#ACD3A8","#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7",  "#E69DB8"];
   const piechartData = metrics.productSalesCategory.map(cat => [cat.category, parseInt(cat.total_units_sold)]);
 
+  const now = new Date();
+  const currentMonth = now.toLocaleDateString("default", {month:"short"});
+  // const currentMonth = now.getMonth() + 1;
   const dailySalesData = metrics.monthSalesChart.reduce((acc, cur) => {
-    acc[`May ${cur.day}`] = cur.sales;
+    acc[`${currentMonth} ${cur.day}`] = cur.sales;
     return acc;
   }, {});
 
@@ -73,8 +76,8 @@ const Home = () => {
 
       {/* ------------------ 2nd row: Sales Charts ------------------- */}
       <div className="row-graphs">
-        <div className="admin-graphs">
-          <h1>Monthly Sales</h1>
+        <div className="admin-graphs-monthly">
+          <p style={{fontSize:'2rem'}}>Monthly Sales</p>
           <LineChart 
             colors={["#373F4C"]}
             curve={false}
@@ -100,6 +103,8 @@ const Home = () => {
       {/* ------------------ 3rd row: Product Category Pie ------------------- */}
       <div className="admin-graphs">
         <h1>Product Sales Category Wise</h1>
+        <div className='admin-piecharts'>
+
         <PieChart 
           donut={true}
           colors={piechartColors}
@@ -117,6 +122,8 @@ const Home = () => {
             </div>
           ))}
         </div>
+        </div>
+
       </div>
 
       {/* ------------------ 4th row: Hot Selling Products ------------------- */}

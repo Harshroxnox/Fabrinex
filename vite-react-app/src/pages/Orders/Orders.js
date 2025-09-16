@@ -46,6 +46,11 @@ export const styles = {
       alignItems: 'center',
       gap: '0.5rem'
     },
+    disabledButton:{
+      backgroundColor:"#9ca3af",
+      color:"#e5e7eb",
+      cursor:"not-allowed"
+    },
     backButton: {
       backgroundColor: '#6b7280',
       color: 'white',

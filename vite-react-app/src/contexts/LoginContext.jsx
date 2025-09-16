@@ -57,8 +57,9 @@ export const LoginProvider = ({ children }) => {
   const GetRole = async () => {
     try {
       const res = await axiosInstance.get("/admins/get-roles");
-      const roles = res.data;
+      const roles = res.data.roleNames;
       localStorage.setItem("role", roles);
+      console.log(roles);
       return roles;
     } catch (err) {
       console.log("Error getting roles:", err.response?.data || err.message);

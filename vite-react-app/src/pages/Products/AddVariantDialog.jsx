@@ -12,8 +12,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
     stock: '',
     main_image: null,
     myWallet:'0',
-    profit: '0',
-    source: '0',
+    source: '',
     floor: '0',
     barcode: Math.random().toString().slice(2, 15) // Generate random barcode
   });
@@ -95,7 +94,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       setError('Discount must be between 0 and 100');
       return;
     }
-    console.log(secondaryImages); 
+    // console.log(secondaryImages); 
     clearError();
     setError('');
 
@@ -106,12 +105,10 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       discount: parseFloat(variant.discount).toFixed(2),
       stock: parseInt(variant.stock),
       myWallet: parseFloat(variant.myWallet).toFixed(2),
-      profit: parseFloat(variant.profit).toFixed(2),
       source: variant.source,
       floor: parseFloat(variant.floor),
       secondaryImages:secondaryImages
     });
-    console.log(variant);
     // Reset form
     setVariant({
       color: '',
@@ -121,7 +118,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       stock: '',
       main_image: null,
       myWallet:'0',
-      profit: '0',
       source: '',
       floor: '0',
       barcode: Math.random().toString().slice(2, 15)
@@ -219,35 +215,15 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
             </div>
           </div>
 
-           <div className="form-row">
+           
+          <div className="form-row">
             <div className="form-group">
+              
               <label>My Wallet</label>
               <input
                 type="number"
                 name="myWallet"
                 value={variant.myWallet}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Profit</label>
-              <input
-                type="number"
-                name="profit"
-                value={variant.profit}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Source*</label>
-              <input
-                type="text"
-                name="source"
-                value={variant.source}
                 onChange={handleChange}
                 required
               />
@@ -264,6 +240,19 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 max="100"
               />
             </div>
+          </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Source*</label>
+              <input
+                type="text"
+                name="source"
+                value={variant.source}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            
           </div>
           <div className="form-group-image">
             <label>Image*</label>

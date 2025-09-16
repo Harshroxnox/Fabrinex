@@ -76,8 +76,6 @@ const handleSubmit = async (e) => {
 
     // Step 1: Create product first
     const res = await createProduct(newProduct);
-    console.log("New product:", newProduct);
-    console.log("Product response:", res);
 
     const productID = res.productID;
 
@@ -102,7 +100,6 @@ const handleSubmit = async (e) => {
       if (!response.ok) throw new Error("Failed to create variant");
 
       const data = await response.json();
-      console.log("Variant created:", data);
 
       const variantID = data.variantID;
 
@@ -124,7 +121,6 @@ const handleSubmit = async (e) => {
         if (!secImageRes.ok) throw new Error("Failed to upload secondary images");
 
         const secImageData = await secImageRes.json();
-        console.log("Secondary images uploaded:", secImageData);
       }
     });
 
@@ -151,6 +147,12 @@ const handleSubmit = async (e) => {
 };
 
   if (!isOpen) return null;
+const PRODUCT_CATEGORIES = [
+  'Suits - stitched',
+  'Suits - unstitched',
+  'Bridal',
+  'Other'
+];
 
   return (
     <div className="dialog-overlay">
@@ -214,16 +216,22 @@ const handleSubmit = async (e) => {
                     required
                   />
                 </div>
-                <div className="form-group">
-                  <label>Category*</label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={newProduct.category}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
+               <div className="form-group">
+                <label>Category*</label>
+                <select
+                  name="category"
+                  value={newProduct.category}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {PRODUCT_CATEGORIES.map((category, index) => (
+                    <option key={index} value={category}>
+                      {category}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
                 <div className="form-actions">
                   <button type="button" className="cancel-btn" onClick={onClose}>

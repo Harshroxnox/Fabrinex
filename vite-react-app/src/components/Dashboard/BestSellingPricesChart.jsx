@@ -1,63 +1,79 @@
 import React, { useEffect, useState } from "react";
-import { BarChart } from "react-chartkick";
-import "chartkick/chart.js"; // required for chartkick
 import { getBestSellingPrices } from "../../contexts/api/products";
+import "./BestSellingVariantTable.css"; // Import CSS
 
-const BestSellingVariantChart = () => {
-  const [chartData, setChartData] = useState([]);
+const BestSellingVariantTable = () => {
+  const [variants, setVariants] = useState([]);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetchChartData = async () => {
+    const fetchData = async () => {
       const res = await getBestSellingPrices();
-      const result = res.data;
-
-      if (result.data) {
-        // Transform into [["Variant X (₹price)", itemsSold], ...]
-        const transformed = result.data.map((item) => [
-          `${item.name} (${item.size} , ${item.color}) -₹${item.price_at_purchase} `,
-          item.total_sold,
-        ]);
-        setChartData(transformed);
+      if (res?.data?.data) {
+        setVariants(res.data.data);
       }
     };
-
-    fetchChartData();
+    fetchData();
   }, []);
 
-  return (
-    <div className="admin-graphs">
-      <h1>Best Selling Price per Variant</h1>
-      <h3>At which price each variant sold the most</h3>
+  // Filtered data based on search
+  const filteredVariants = variants.filter((variant) =>
+    `${variant.name} ${variant.size} ${variant.color}`
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
-      <BarChart
-        data={chartData}
-        colors={["#6ba1a9", "#547792"]}
-        height="25vh"
-        width="40vw"
-        download={{ background: "#fff" }}
-        library={{
-            scales: {
-            y: {
-                ticks: {
-                font: {
-                    size: 14,
-                    weight: "bold",
-                },
-                color: "#1f2937",
-                },
-            },
-            x: {
-                ticks: {
-                font: {
-                    size: 14,
-                },
-                },
-            },
-            },
-        }}
+  return (
+    <div className="variant-container">
+      <h1 className="title">Best Selling Price per Variant</h1>
+      <h4 className="subtitle">At which price each variant sold the most</h4>
+
+      {/* Search Input */}
+      <input
+        type="text"
+        placeholder="Search variant..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="search-input"
       />
+
+      {/* Table */}
+      <div className="table-wrapper">
+        <table className="variant-table">
+          <thead>
+            <tr>
+              <th>Variant ID</th>
+              <th>Name</th>
+              <th>Size</th>
+              <th>Color</th>
+              <th>Price at Purchase (₹)</th>
+              <th>Total Sold</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredVariants.length > 0 ? (
+              filteredVariants.map((variant) => (
+                <tr key={variant.variantID}>
+                  <td>{variant.variantID}</td>
+                  <td>{variant.name}</td>
+                  <td>{variant.size}</td>
+                  <td>{variant.color}</td>
+                  <td>₹{variant.price_at_purchase}</td>
+                  <td>{variant.total_sold}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="no-data">
+                  No variants found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-export default BestSellingVariantChart;
+export default BestSellingVariantTable;

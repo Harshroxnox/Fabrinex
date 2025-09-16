@@ -8,7 +8,6 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
     discount: '0',
     main_image: null,
     my_wallet:'0',
-    profit: '0',
     source: '',
     floor: '0'
   });
@@ -23,7 +22,6 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
         discount: variant.discount || '0',
         main_image: null ,
         my_wallet: variant.my_wallet ,
-        profit: variant.profit || '0',
         source: variant.source || '',
         floor: variant.floor || '0'
       });
@@ -66,7 +64,6 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
         price: parseFloat(editedVariant.price).toFixed(2),
         discount: parseFloat(editedVariant.discount).toFixed(2),
         my_wallet: parseFloat(editedVariant.my_wallet).toFixed(2),
-        profit: parseFloat(editedVariant.profit).toFixed(2),
         source: editedVariant.source,
         floor: parseFloat(editedVariant.floor)
       };
@@ -140,17 +137,19 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
                 disabled={loading}
               />
             </div>
-
-            <div className="form-group">
-              <label>Profit</label>
+          <div className="form-group">
+              <label>Floor No </label>
               <input
                 type="number"
-                name="profit"
-                value={editedVariant.profit}
+                name="floor"
+                value={editedVariant.floor}
                 onChange={handleChange}
+                min="0"
+                max="100"
                 disabled={loading}
               />
-            </div>
+          </div>
+            
           </div>
           <div className="form-row">
             <div className="form-group">
@@ -165,18 +164,7 @@ const EditVariantDialog = ({ isOpen, onClose, variant, productId, onSave }) => {
               />
             </div>
 
-            <div className="form-group">
-              <label>Floor No </label>
-              <input
-                type="number"
-                name="floor"
-                value={editedVariant.floor}
-                onChange={handleChange}
-                min="0"
-                max="100"
-                disabled={loading}
-              />
-            </div>
+            
           </div>
 
           <div className="form-group">

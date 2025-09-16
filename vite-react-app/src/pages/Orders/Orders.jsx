@@ -7,21 +7,30 @@ import { paymentStatusColor, paymentStatusIcon, statusColor } from '../../utils/
 import { getVariantBarcodeAdmin } from '../../contexts/api/products.js';
 import { getDiscountByBarcode } from '../../contexts/api/loyaltyCards.js';
 import { formatDate } from '../../utils/dateFormatter.js';
+import axios from 'axios';
 
 const OrderCreationCRM = () => {
   const [currentView, setCurrentView] = useState('orders'); // 'orders' or 'create'
   const [ordersData, setOrdersData] = useState([]);
   const [loading , setLoading] = useState(true);
   // Orders page filters
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [paymentStatusFilter, setPaymentStatusFilter] = useState('All');
-  const [totalAmountFilter, setTotalAmountFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("All");
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState("All");
+  const [totalAmountFrom, setTotalAmountFrom] = useState("");
+  const [totalAmountTo, setTotalAmountTo] = useState("");
+  const [dateFromFilter, setDateFromFilter] = useState("");
+  const [dateToFilter, setDateToFilter] = useState("");
+  
   const [locationFilter, setLocationFilter] = useState('All');
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState('All');
-  const [dateFromFilter, setDateFromFilter] = useState('');
-  const [dateToFilter, setDateToFilter] = useState('');
+
   const [trackingOrderId, setTrackingOrderId] = useState('');
+
+
   const [salesPersonIdFilter ,setSalesPersonIdFilter] = useState('');
+
+
+
   const [trackedOrder, setTrackedOrder] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
@@ -36,7 +45,7 @@ const OrderCreationCRM = () => {
   }); 
   const [product, setProduct] = useState({});
   const [items , setItems] = useState([]);
-  const [salesperson , setSalesperson] = useState("");
+  const [salesPerson , setSalesperson] = useState("");
 
   //invoice states
   const [invoice, setInvoice] = useState(null);
@@ -44,7 +53,7 @@ const OrderCreationCRM = () => {
 
   //loyaltycard states
   const [isOpen , setIsOpen] =useState(false);
-  const [barcode , setBarcode] = useState("");
+  const [barcode , setBarcode] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [showDiscount , setShowDiscount] = useState(false);
 
@@ -53,6 +62,9 @@ const OrderCreationCRM = () => {
   const [limit,setLimit] = useState(10); //items per page
   const [totalPages , setTotalPages] = useState(1);
 
+  //roles of the admin
+  const roles = localStorage.getItem("role");
+  const canCreateOrder = roles.includes("superadmin") || roles.includes("admin");
   const fetchOrders = useCallback(async (page,limit) => {
     try {
       setLoading(true);
@@ -154,8 +166,10 @@ const OrderCreationCRM = () => {
 
   
 
-  const removeProduct = (productId) => {
-    setSelectedProducts(prev => prev.filter(p => p.id !== productId));
+  const removeProduct = (variantId) => {
+    console.log(selectedProducts);
+    console.log(variantId);
+    setSelectedProducts(prev => prev.filter(p => p.variantID !== variantId));
   };
 
   const calculateTotal = () => {
@@ -175,22 +189,30 @@ const handleAdd = async (newOrder) => {
 };
 
 const handleCreateOrder = async () => {
-  if (!customerInfo.phone || !customerInfo.name || selectedProducts.length === 0 || !customerInfo.payment_method) {
+  if (selectedProducts.length === 0 || !customerInfo.payment_method) {
     alert('Please fill all customer information and add at least one product');
     return;
   }
 
+
   const newOrder = {
-    name: customerInfo.name,
-    phone_number: '+91' + customerInfo.phone,
+
     payment_method: customerInfo.payment_method,
     items: selectedProducts.map(p => ({
       barcode: p.barcode,
       quantity: p.quantity,
     })),
-    salespersonID: salesperson
+    salesPersonID: salesPerson
   };
 
+  if(customerInfo.phone && customerInfo.name){
+
+    order.name = customerInfo.name,
+    order.phone_number = '+91' + customerInfo.phone
+  }
+  if(barcode !== 0){
+    newOrder.loyalty_barcode = barcode;
+  }
   const success = await handleAdd(newOrder);
 
   if (success) {
@@ -212,44 +234,64 @@ const handleCreateOrder = async () => {
 };
 
 
-  // Orders page functions
-  const filteredOrders = ordersData.filter(order => {
-    const statusMatch = statusFilter === 'All' || order.status === statusFilter;
-    const paymentStatusMatch = paymentStatusFilter === 'All' || order.payment_status === paymentStatusFilter;
-    const locationMatch = locationFilter === 'All' || order.location === locationFilter;
-    const paymentMethodMatch = paymentMethodFilter === 'All' || order.payment_method === paymentMethodFilter;
+  // // Orders page functions
+  // const filteredOrders = ordersData.filter(order => {
+  //   const statusMatch = statusFilter === 'All' || order.status === statusFilter;
+  //   const paymentStatusMatch = paymentStatusFilter === 'All' || order.payment_status === paymentStatusFilter;
+  //   const locationMatch = locationFilter === 'All' || order.location === locationFilter;
+  //   const paymentMethodMatch = paymentMethodFilter === 'All' || order.payment_method === paymentMethodFilter;
     
-    const totalAmountMatch = (() => {
-      switch (totalAmountFilter) {
-        case 'Under $150':
-          return order.total < 150;
-        case '$150 - $200':
-          return order.total >= 150 && order.total <= 200;
-        case 'Over $200':
-          return order.total > 200;
-        default:
-          return true;
-      }
-    })();
+  //   const totalAmountMatch = (() => {
+  //     switch (totalAmountFilter) {
+  //       case 'Under $150':
+  //         return order.total < 150;
+  //       case '$150 - $200':
+  //         return order.total >= 150 && order.total <= 200;
+  //       case 'Over $200':
+  //         return order.total > 200;
+  //       default:
+  //         return true;
+  //     }
+  //   })();
 
-    const dateMatch = (() => {
-      if (!dateFromFilter && !dateToFilter) return true;
-      const orderDate = new Date(order.created_at);
-      const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
-      const toDate = dateToFilter ? new Date(dateToFilter) : null;
+  //   const dateMatch = (() => {
+  //     if (!dateFromFilter && !dateToFilter) return true;
+  //     const orderDate = new Date(order.created_at);
+  //     const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
+  //     const toDate = dateToFilter ? new Date(dateToFilter) : null;
       
-      if (fromDate && toDate) {
-        return orderDate >= fromDate && orderDate <= toDate;
-      } else if (fromDate) {
-        return orderDate >= fromDate;
-      } else if (toDate) {
-        return orderDate <= toDate;
-      }
-      return true;
-    })();
+  //     if (fromDate && toDate) {
+  //       return orderDate >= fromDate && orderDate <= toDate;
+  //     } else if (fromDate) {
+  //       return orderDate >= fromDate;
+  //     } else if (toDate) {
+  //       return orderDate <= toDate;
+  //     }
+  //     return true;
+  //   })();
 
-    return statusMatch && paymentStatusMatch && locationMatch && paymentMethodMatch && totalAmountMatch && dateMatch;
-  });
+  //   return statusMatch && paymentStatusMatch && locationMatch && paymentMethodMatch && totalAmountMatch && dateMatch;
+  // });
+
+  const fetchFilteredOrders = async () => {
+    try {
+      const params = {};
+      if (statusFilter !== "All") params.order_status = statusFilter;
+      if (paymentStatusFilter !== "All") params.payment_status = paymentStatusFilter;
+      if (paymentMethodFilter !== "All") params.payment_method = paymentMethodFilter;
+      if (dateFromFilter) params.date_from = dateFromFilter;
+      if (dateToFilter) params.date_to = dateToFilter;
+      if (totalAmountFrom) params.amount_from = totalAmountFrom;
+      if (totalAmountTo) params.amount_to = totalAmountTo;
+      const res = await axios.get("http://localhost:5000/api/v1/orders/filter", {params});
+      setOrdersData(res.data.orders || []);
+    } catch (err) {
+      console.error("Error fetching filtered orders:" ,err);
+    }
+  }
+  useEffect( () => {
+    fetchFilteredOrders();
+  }, [statusFilter, paymentStatusFilter, paymentMethodFilter , totalAmountFrom , totalAmountTo ,dateFromFilter , dateToFilter]);
 
   const handleTrackOrder = () => {
     const order = ordersData.find(o => o.id.toLowerCase() === trackingOrderId.toLowerCase());
@@ -276,7 +318,7 @@ const handleCreateOrder = async () => {
           </div>
 
 
-{/* salespersons information */}
+{/* salesPersons information */}
           <div style={styles.section}>
             <h2 style={styles.sectionTitle}>
               <Package size= {20}/>
@@ -288,7 +330,7 @@ const handleCreateOrder = async () => {
                 <input
                 type="number"
                 style={styles.input}
-                value = {salesperson}
+                value = {salesPerson}
                 onChange={(e)=>  setSalesperson(e.target.value)}
                 placeholder='Enter Salesperson Name'
                 />
@@ -391,10 +433,10 @@ const handleCreateOrder = async () => {
                 Selected Products ({selectedProducts.length})
               </h2>
               {selectedProducts.map(product => (
-                <div key={product.id} style={styles.productCard}>
+                <div key={product.productID} style={styles.productCard}>
                   <div style={styles.productHeader}>
                     <div>
-                      <div style={styles.productName}>{product.product_name}</div>
+                      <div style={styles.productName}>{product.product_name}({product.color}, {product.size})</div>
                       <div style={{fontSize: '0.875rem', color: '#6b7280'}}>
                         ID: {product.variantID} | Stock: {product.stock}
                       </div>
@@ -428,7 +470,7 @@ const handleCreateOrder = async () => {
                     </span>
                     <button
                       style={styles.removeButton}
-                      onClick={() => removeProduct(product.id)}
+                      onClick={() => removeProduct(product.variantID)}
                     >
                       
                       Remove
@@ -488,7 +530,7 @@ const handleCreateOrder = async () => {
               style={styles.modalInput}
             />
             <div style={styles.modalActions}>
-              <button style={styles.cancelButton} onClick={() => setIsOpen(false)}>
+              <button style={styles.cancelButton} onClick={() => {setIsOpen(false); setBarcode(0);}}>
                 Cancel
               </button>
               <button
@@ -566,6 +608,7 @@ const handleCreateOrder = async () => {
                       <option value="pending">Pending</option>
                       <option value="shipped">Shipped</option>
                       <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
                     </select>
                   </div>
 
@@ -577,30 +620,44 @@ const handleCreateOrder = async () => {
                       style={styles.select}
                     >
                       <option value="All">All Payment Status</option>
-                      <option value="Success">Success</option>
-                      <option value="Pending">Pending</option>
-                      <option value="Failed">Failed</option>
+                      <option value="completed">Completed</option>
+                      <option value="refunded">Refunded</option>
+                      <option value="failed">Failed</option>
                     </select>
                   </div>
 
-                  <div style={styles.filterGroup}>
-                    <label style={styles.filterLabel}>
-                      <DollarSign size={14} />
-                      Total Amount
-                    </label>
-                    <select
-                      value={totalAmountFilter}
-                      onChange={(e) => setTotalAmountFilter(e.target.value)}
-                      style={styles.select}
-                    >
-                      <option value="All">All Amounts</option>
-                      <option value="Under ₹1500">Under ₹1500</option>
-                      <option value="₹1500 - ₹2000">₹1500 - ₹2000</option>
-                      <option value="Over ₹2000">Over ₹2000</option>
-                    </select>
-                  </div>
+                 {/* Total Amount From */}
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>
+                    <DollarSign size={14} />
+                    Amount From
+                  </label>
+                  <input
+                    type="number"
+                    value={totalAmountFrom}
+                    onChange={(e) => setTotalAmountFrom(e.target.value)}
+                    style={styles.input}
+                    placeholder="Min Amount"
+                  />
+                </div>
 
-                  <div style={styles.filterGroup}>
+                {/* Total Amount To */}
+                <div style={styles.filterGroup}>
+                  <label style={styles.filterLabel}>
+                    <DollarSign size={14} />
+                    Amount To
+                  </label>
+                  <input
+                    type="number"
+                    value={totalAmountTo}
+                    onChange={(e) => setTotalAmountTo(e.target.value)}
+                    style={styles.input}
+                    placeholder="Max Amount"
+                  />
+                </div>
+
+
+                  {/* <div style={styles.filterGroup}>
                     <label style={styles.filterLabel}>
                       <MapPin size={14} />
                       Location
@@ -615,7 +672,7 @@ const handleCreateOrder = async () => {
                         <option key={location} value={location}>{location}</option>
                       ))}
                     </select>
-                  </div>
+                  </div> */}
 
                   <div style={styles.filterGroup}>
                     <label style={styles.filterLabel}>
@@ -627,13 +684,15 @@ const handleCreateOrder = async () => {
                       onChange={(e) => setPaymentMethodFilter(e.target.value)}
                       style={styles.select}
                     >
-                      <option value="All">All Methods</option>
-                      {uniquePaymentMethods.map(method => (
-                        <option key={method} value={method}>{method}</option>
-                      ))}
+                      <option value="All">All Payment Method</option>
+                      <option value="card">Card</option>
+                      <option value="upi">UPI</option>
+                      <option value="netbanking">NetBanking</option>
+                      <option value="wallet">Wallet</option>
+                      <option value="cash-on-delivery">Cash On Delivery</option>
                     </select>
                   </div>
-                  <div style={styles.filterGroup}>
+                  {/* <div style={styles.filterGroup}>
                     <label style={styles.filterLabel}>
                       <UserCheck2Icon size={14}/>
                       SalesPerson
@@ -648,14 +707,18 @@ const handleCreateOrder = async () => {
                       <option key={method} value={method} ></option>
             
                     </select> */}
-                    </div>
+                    {/* </div> */}
                 </div>
               )}
             </div>
             
             <button 
-              style={styles.createButton}
+              style={{
+                ...styles.createButton,
+                ...(canCreateOrder ? {} : styles.disabledButton)
+              }}
               onClick={() => setCurrentView('create')}
+              disabled = {!canCreateOrder}
             >
               <Plus size={16} color="white" />
               Create Order
@@ -682,7 +745,7 @@ const handleCreateOrder = async () => {
                 </tr>
               </thead>
               <tbody style={{backgroundColor: '#FDFDFD'}}>
-                {filteredOrders.map((order, index) => (
+                {ordersData.map((order, index) => (
                   <tr 
                     key={order.id} 
                     style={{
@@ -738,7 +801,7 @@ const handleCreateOrder = async () => {
                       <span style={{color: '#2c2c2c', fontWeight: '300'}} onClick={()=> {setInvoice(true);setOrderChoose(order.orderID);console.log(order.orderID) }}><FileInput style={{color: '#2c2c2c', fontWeight: '300',alignContent: 'center',cursor: 'pointer'}}/></span>
                     </td>
                     <td style = {styles.td}>
-                      <span style= {{ color:'#2c2c2c', fontWeight: '300'}}> salesperson</span> 
+                      <span style= {{ color:'#2c2c2c', fontWeight: '300'}}> salesPerson</span> 
                     </td>
                   </tr>
                           
