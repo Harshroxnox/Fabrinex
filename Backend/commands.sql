@@ -230,16 +230,6 @@ CREATE TABLE Transactions (
     FOREIGN KEY (orderID) REFERENCES Orders(orderID)
 );
 
-CREATE TABLE Cards (
-    cardID INT AUTO_INCREMENT PRIMARY KEY,
-    userID INT NOT NULL,
-    last4_card_no CHAR(4) NOT NULL,
-    expiration CHAR(7) NOT NULL,  -- YYYY-MM format ex 2027-09
-    payment_network VARCHAR(40) NOT NULL,
-    razorpay_token VARCHAR(255) NOT NULL,  -- Store a secure token from payment gateway
-    FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
-);
-
 CREATE TABLE CartItems (
     cartItemID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
