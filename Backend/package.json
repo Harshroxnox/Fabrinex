@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "bcrypt": "^5.1.1",
+    "bwip-js": "^4.7.0",
     "cloudinary": "^1.41.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -24,6 +25,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "mysql2": "^3.14.0",
     "nodemailer": "^6.10.0",
+    "pdfkit": "^0.17.2",
     "razorpay": "^2.9.6",
     "twilio": "^5.5.1",
     "winston": "^3.17.0",

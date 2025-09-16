@@ -16,7 +16,8 @@ import {
     deleteSecondaryImage,
     getProductByIdAdmin,
     getVariantByIdAdmin,
-    getVariantByBarcodeAdmin
+    getVariantByBarcodeAdmin,
+    getLabels
 } from '../controllers/products.controller.js';
 import { authMiddleware, checkAdminRoles } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/multer.middleware.js';
@@ -47,5 +48,8 @@ router.route('/delete-secondary-image/:variantImageID').delete(deleteSecondaryIm
 router.route("/get-product-admin/:productID").get(authMiddleware('admin'), checkAdminRoles(['superadmin']), getProductByIdAdmin);
 router.route('/get-variant-admin/:variantID').get(authMiddleware('admin'), checkAdminRoles(['superadmin']), getVariantByIdAdmin);
 router.route('/get-variant-barcode-admin/:barcode').get(authMiddleware('admin'), checkAdminRoles(['superadmin']), getVariantByBarcodeAdmin);
+
+// download barcode
+router.route("/get-labels").get(authMiddleware('admin'), getLabels);
 
 export default router

@@ -4,6 +4,8 @@ import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js
 import { generateUniqueBarcode, ValidEAN13 } from '../utils/generateBarcode.js';
 import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
+import PDFDocument from 'pdfkit';
+import bwipjs from 'bwip-js';
 import logger from '../utils/logger.js';
 import AppError from '../errors/appError.js';
 
@@ -1237,3 +1239,69 @@ export const getVariantByBarcodeAdmin = async (req, res, next) => {
   }
 };
 
+
+export const getLabels = async (req, res, next) => {
+  try {
+    // Fetch product variants with product info
+    const [variants] = await db.execute(`
+      SELECT pv.barcode, pv.color, pv.size, pv.price, pv.floor,
+      p.name AS product_name, p.category
+      FROM ProductVariants pv
+      JOIN Products p ON pv.productID = p.productID
+      WHERE pv.is_active = 1 AND p.is_active = 1
+    `);
+
+    // Create a PDF document
+    const doc = new PDFDocument({ margin: 30 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=barcodes.pdf');
+    doc.pipe(res);
+
+    const labelWidth = 250;
+    const labelHeight = 100;
+    const margin = 10;
+    let x = margin;
+    let y = margin;
+
+    for (const v of variants) {
+      // Generate barcode as PNG buffer
+      const png = await bwipjs.toBuffer({
+        bcid: 'ean13',       // Barcode type
+        text: v.barcode,     // Barcode value
+        scale: 3,
+        height: 10,
+        includetext: true,
+        textxalign: 'center',
+      });
+
+      // Draw a rectangle for label
+      doc.rect(x, y, labelWidth, labelHeight).stroke();
+
+      // Draw product info
+      doc.fontSize(10).text(`Name: ${v.product_name}`, x + 5, y + 5);
+      doc.text(`Category: ${v.category}`, x + 5, y + 20);
+      doc.text(`Color: ${v.color}`, x + 5, y + 35);
+      doc.text(`Size: ${v.size}`, x + 5, y + 50);
+      doc.text(`Price: ${v.price}`, x + 5, y + 65);
+      doc.text(`Floor: ${v.floor}`, x + 5, y + 80);
+
+      // Add barcode image
+      doc.image(png, x + 140, y + 25, { width: 90, height: 55 });
+
+      // Move to next label position
+      x += labelWidth + margin;
+      if (x + labelWidth > doc.page.width - margin) {
+        x = margin;
+        y += labelHeight + margin;
+        if (y + labelHeight > doc.page.height - margin) {
+          doc.addPage();
+          y = margin;
+        }
+      }
+    }
+
+    doc.end();
+  } catch(error){
+    next(error);
+  }
+}
