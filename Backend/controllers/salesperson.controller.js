@@ -1,6 +1,6 @@
 import { db } from '../index.js';
 import AppError from "../errors/appError.js";
-import { validID, validWholeNo, validString, validPhoneNumber, validDecimal } from "../utils/validators.utils.js";
+import { validID, validWholeNo, validString, validPhoneNumber, validDecimal, validDate } from "../utils/validators.utils.js";
 
 export const addSalesperson = async (req, res, next) => {
     try {
@@ -126,4 +126,47 @@ export const getAllSalesPersons = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
+}
+
+export const salesPersonOrders = async (req, res, next) => {
+  try {
+    const salesPersonID = validID(req.params.salesPersonID);
+    const date_from = validDate(req.query.date_from);
+    const date_to = validDate(req.query.date_to);
+
+    if(salesPersonID === null){
+      throw new AppError(400, "Invalid salespersonID");
+    }
+    if(date_from === null){
+      throw new AppError(400, "Invalid Date From");
+    }
+    if(date_to === null){
+      throw new AppError(400, "Invalid Date To");
+    }
+
+    const [orders] = await db.execute(`
+      SELECT o.*, s.commission, s.salesPersonID, (o.amount*s.commission/100) AS commission_amt
+      FROM Orders o
+      JOIN SalesPersonOrders s ON o.orderID = s.orderID
+      WHERE o.created_at >= ? AND o.created_at < DATE_ADD(?, INTERVAL 1 DAY)
+      AND s.salesPersonID = ?
+    `, [date_from, date_to, salesPersonID]);
+
+    const [commission] = await db.execute(`
+      SELECT SUM(o.amount*s.commission/100) AS commission
+      FROM Orders o
+      JOIN SalesPersonOrders s ON o.orderID = s.orderID
+      WHERE o.created_at >= ? AND o.created_at < DATE_ADD(?, INTERVAL 1 DAY)
+      AND s.salesPersonID = ?
+    `, [date_from, date_to, salesPersonID]);
+
+    res.status(200).json({
+      message: "Salesperson orders fetched successfully",
+      commission: commission[0].commission,
+      orders
+    });
+
+  } catch(error){
+    next(error);
+  }
 }
