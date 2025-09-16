@@ -499,14 +499,16 @@ export const getOrder = async (req, res, next) => {
       throw new AppError(422, 'Invalid Order ID');
     }
 
-    const [orderRows] = await db.execute(
-      `SELECT o.*, a.city, a.state, a.pincode, a.address_line, u.name AS customer_name
-       FROM Orders o
-       JOIN Addresses a ON o.addressID = a.addressID
-       JOIN Users u ON o.userID = u.userID
-       WHERE o.orderID = ?`,
-      [orderID]
-    );
+    const [orderRows] = await db.execute(`
+      SELECT o.*, a.city, a.state, a.pincode, a.address_line, u.name AS customer_name,
+      s.salesPersonID, sp.name AS salesperson_name
+      FROM Orders o
+      LEFT JOIN SalesPersonOrders s ON s.orderID = o.orderID
+      LEFT JOIN SalesPersons sp ON s.salesPersonID = sp.salesPersonID
+      JOIN Addresses a ON o.addressID = a.addressID
+      JOIN Users u ON o.userID = u.userID
+      WHERE o.orderID = ?
+    `, [orderID]);
 
     if (orderRows.length === 0) {
       throw new AppError(404, "Order not found");
