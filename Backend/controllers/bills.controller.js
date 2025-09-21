@@ -54,13 +54,12 @@ export const uploadBill = async (req, res) => {
     });
 
   } catch (error) {
-    logger.error("Error uploading bill:", error.message);
-    console.log("Error uploading bill:", error.message)
 
     // Rollback if in transaction 
     if (connection) {
       await connection.rollback();
     }
+    next(error);
 
     res.status(500).json({ error: "Internal server error" });
 
@@ -125,11 +124,11 @@ export const deleteBill = async (req, res) => {
     return res.status(200).json({ message: "Bill deleted successfully" });
 
   } catch (error) {
-    console.error("Error deleting bill:", error.message);
-    // If anything fails, roll back the transaction
+
     if (connection) {
       await connection.rollback();
     }
+    next(error);
     res.status(500).json({ error: "Internal server error" });
   } finally {
     // 7. Always release the connection
