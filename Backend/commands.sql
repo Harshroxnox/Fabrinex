@@ -51,32 +51,13 @@ CREATE TABLE Users (
     name VARCHAR(100) NOT NULL,
     phone_number VARCHAR(15) NOT NULL UNIQUE,
     whatsapp_number VARCHAR(15) NOT NULL,
-    email VARCHAR(254) UNIQUE,
+    email VARCHAR(254) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     profile_img VARCHAR(500),
     razorpay_customer_id VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     refresh_token TEXT,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    is_offline BOOLEAN NOT NULL DEFAULT FALSE
-);
-
-INSERT INTO Users (
-    name,
-    phone_number,
-    whatsapp_number,
-    email,
-    password,
-    razorpay_customer_id,
-    is_offline
-) VALUES (
-    'guest',
-    '+910000000000',
-    '+910000000000',
-    'guest@guest.com',
-    'guest',
-    'guest_customer_id',
-    TRUE
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE AdminUsers (
@@ -101,10 +82,8 @@ CREATE TABLE Products (
     description JSON,
     category VARCHAR(50) NOT NULL,
     cumulative_rating DECIMAL(10,2) DEFAULT 0.00,
-    tax DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (tax >= 0 AND tax < 100),
     people_rated INT DEFAULT 0 CHECK (people_rated >= 0),
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
 CREATE TABLE ProductVariants (
@@ -113,17 +92,12 @@ CREATE TABLE ProductVariants (
     color VARCHAR(50) NOT NULL,
     size VARCHAR(50) NOT NULL,
     price DECIMAL(10,2) NOT NULL CHECK (price > 0),
-    my_wallet DECIMAL(10,2) NOT NULL CHECK (my_wallet > 0),
-    profit DECIMAL(10,2) NOT NULL CHECK (profit > 0),
-    source VARCHAR(255) NULL,
-    floor INT NOT NULL CHECK (floor >= 0),
     main_image VARCHAR(255) NOT NULL,
     cloudinary_id VARCHAR(255) NOT NULL,
     barcode CHAR(13) UNIQUE NOT NULL, -- EAN-13 format
     discount DECIMAL(5,2) NOT NULL DEFAULT 0.00 CHECK (discount >= 0 AND discount < 100),
     stock INT NOT NULL DEFAULT 0 CHECK (stock >= 0),
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (productID) REFERENCES Products(productID) ON DELETE CASCADE
 );
 
@@ -148,22 +122,6 @@ CREATE TABLE Addresses (
     FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
 );
 
-INSERT INTO Addresses (
-    userID,
-    city,
-    pincode,
-    state,
-    address_line
-) VALUES (
-    1,
-    'Jammu',
-    '180001',
-    'Jammu and Kashmir',
-    'Shop No : 133, Jain Bazar Rd'
-);
-
--- NOTE: amount is inclusive of all discount and taxes
--- NOTE: profit does not include tax
 CREATE TABLE Orders (
     orderID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
@@ -173,25 +131,15 @@ CREATE TABLE Orders (
     payment_status VARCHAR(40) NOT NULL DEFAULT 'pending',
     order_location VARCHAR(255) NOT NULL,
     order_status VARCHAR(40) NOT NULL DEFAULT 'pending',
-    amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
-    profit DECIMAL(10, 2) NOT NULL CHECK (profit > 0),
-    tax DECIMAL(10, 2) NOT NULL CHECK (tax >= 0),
     promo_discount DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (promo_discount >= 0 AND promo_discount < 100),
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
 );
 
--- NOTE: price_at_purchase is exclusive of promo_discount and tax
 CREATE TABLE OrderItems (
     orderItemID INT AUTO_INCREMENT PRIMARY KEY,
     orderID INT NOT NULL,
     variantID INT NOT NULL,
-    name VARCHAR(100) NOT NULL,
-    category VARCHAR(50) NOT NULL,
-    color VARCHAR(50) NOT NULL,
-    main_image VARCHAR(255) NOT NULL,
-    size VARCHAR(50) NOT NULL,
-    tax DECIMAL(5,2) NOT NULL CHECK (tax >= 0 AND tax < 100),
     quantity INT NOT NULL DEFAULT 1 CHECK (quantity >= 1),
     price_at_purchase DECIMAL(10, 2) NOT NULL CHECK (price_at_purchase > 0),
     FOREIGN KEY (orderID) REFERENCES Orders(orderID) ON DELETE CASCADE,
@@ -230,6 +178,16 @@ CREATE TABLE Transactions (
     FOREIGN KEY (orderID) REFERENCES Orders(orderID)
 );
 
+CREATE TABLE Cards (
+    cardID INT AUTO_INCREMENT PRIMARY KEY,
+    userID INT NOT NULL,
+    last4_card_no CHAR(4) NOT NULL,
+    expiration CHAR(7) NOT NULL,  -- YYYY-MM format ex 2027-09
+    payment_network VARCHAR(40) NOT NULL,
+    razorpay_token VARCHAR(255) NOT NULL,  -- Store a secure token from payment gateway
+    FOREIGN KEY (userID) REFERENCES Users(userID) ON DELETE CASCADE
+);
+
 CREATE TABLE CartItems (
     cartItemID INT AUTO_INCREMENT PRIMARY KEY,
     userID INT NOT NULL,
@@ -247,16 +205,18 @@ CREATE TABLE VariantImages (
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE CASCADE
 );
 
+
 CREATE TABLE MainBanners (
   bannerID INT AUTO_INCREMENT PRIMARY KEY,
   image_url VARCHAR(500) NOT NULL,
   cloudinary_id VARCHAR(255) NOT NULL,
   title VARCHAR(100),
   redirect_url VARCHAR(700),
-  priority INT NOT NULL UNIQUE CHECK (priority >= 0),  
+  priority INT NOT NULL UNIQUE CHECK (priority > 0),  
   is_active BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 CREATE TABLE SideBanners (
   bannerID INT AUTO_INCREMENT PRIMARY KEY,
@@ -268,27 +228,12 @@ CREATE TABLE SideBanners (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE SalesPersons (
-    salesPersonID INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    phone_number VARCHAR(15) NOT NULL,
-    commission DECIMAL(5,2) NOT NULL CHECK (commission > 0 AND commission < 100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE
-);
-
-CREATE TABLE SalesPersonOrders (
-    salesPersonOrderID INT AUTO_INCREMENT PRIMARY KEY,
-    orderID INT NOT NULL,
-    salesPersonID INT NOT NULL,
-    commission DECIMAL(5,2) NOT NULL CHECK (commission > 0 AND commission < 100),
-    FOREIGN KEY (orderID) REFERENCES Orders(orderID),
-    FOREIGN KEY (salesPersonID) REFERENCES SalesPersons(salesPersonID)
-);
-
-CREATE TABLE LoyaltyCards (
-    loyaltyCardID INT AUTO_INCREMENT PRIMARY KEY,
-    barcode CHAR(13) UNIQUE NOT NULL, -- EAN-13 format
-    discount INT NOT NULL CHECK (discount > 0 AND discount <= 100),
+CREATE TABLE Bills (
+    billID INT AUTO_INCREMENT PRIMARY KEY,
+    bill_date DATE NOT NULL,
+    wholesaler_name VARCHAR(255) NOT NULL,
+    pdf_url VARCHAR(500) NOT NULL,
+    cloudinary_id VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
