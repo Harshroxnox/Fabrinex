@@ -3,6 +3,7 @@ import { uploadOnCloudinary, deleteFromCloudinary } from "../utils/cloudinary.js
 import logger from '../utils/logger.js';
 import { validWholeNo } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
+import { validID } from '../utils/validators.utils.js';
 
 // Upload Bill Route
 export const uploadBill = async (req, res) => {
@@ -135,5 +136,68 @@ export const deleteBill = async (req, res) => {
     if (connection) {
       connection.release();
     }
+  }
+};
+
+export const getAllBills = async (req, res) => {
+  let connection;
+  try {
+    connection = await db.getConnection();
+
+    const [rows] = await connection.execute(
+      `SELECT billID, bill_date, wholesaler_name, pdf_url, created_at 
+       FROM Bills
+       ORDER BY bill_date DESC`
+    );
+
+    return res.status(200).json({
+      message: "Bills fetched successfully",
+      count: rows.length,
+      bills: rows
+    });
+
+  } catch (error) {
+    console.log(error.message)
+    logger.error("Error fetching bills:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  } finally {
+    if (connection) connection.release();
+  }
+};
+
+
+export const getBillById = async (req, res) => {
+  const billID = validID(req.params.id);
+  let connection;
+
+  try {
+    if (!billID) {
+      return res.status(400).json({ error: "Invalid bill ID" });
+    }
+
+    connection = await db.getConnection();
+
+    const [rows] = await connection.execute(
+      `SELECT billID, bill_date, wholesaler_name, pdf_url, created_at
+       FROM Bills
+       WHERE billID = ?`,
+      [billID]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    return res.status(200).json({
+      message: "Bill fetched successfully",
+      bill: rows[0],
+    });
+
+  } catch (error) {
+     console.log(error.message)
+    logger.error("Error fetching bill:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
+  } finally {
+    if (connection) connection.release();
   }
 };
