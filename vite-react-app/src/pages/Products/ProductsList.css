@@ -35,7 +35,10 @@
   margin: 0;
   color: black;
 }
-
+.products-btn-group{
+  display: flex;
+  gap:1rem;
+}
 .add-product-btn {
   background-color: #111827;
   color: white;
@@ -47,7 +50,7 @@
   cursor: pointer;
   transition: background-color 0.2s;
   display: flex;
-  align-items: center;
+  align-items: left;
   gap: 0.5rem;
 }
 

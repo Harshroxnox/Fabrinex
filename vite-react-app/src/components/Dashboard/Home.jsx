@@ -32,9 +32,10 @@ const Home = () => {
 
   const now = new Date();
   const currentMonth = now.toLocaleDateString("default", {month:"short"});
+  const year = new Date().getFullYear();
   // const currentMonth = now.getMonth() + 1;
   const dailySalesData = metrics.monthSalesChart.reduce((acc, cur) => {
-    acc[`${currentMonth} ${cur.day}`] = cur.sales;
+    acc[`${currentMonth} ${cur.day} , ${year}`] = cur.sales;
     return acc;
   }, {});
 

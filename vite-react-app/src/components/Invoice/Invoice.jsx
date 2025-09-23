@@ -34,20 +34,16 @@ const Invoice = ({ order }) => {
   if (loading) return <p>Loading invoice...</p>;
   if (!orderData) return <p>No invoice found.</p>;
 
-  const promoDiscount = parseFloat(orderData.order.promo_discount || 0);
+  const promoDiscount = parseFloat(orderData.order.promo_discount);
 
   // --- Billing calculations ---
   const itemsWithTotals = orderData.items.map((item) => {
     const price = parseFloat(item.price_at_purchase);
     const qty = parseInt(item.quantity);
     const taxRate = parseFloat(item.tax) / 100;
-
+    const discountPerItem = promoDiscount*(price)/100;
     // proportional discount (split equally across items)
-    const discountPerItem =
-      promoDiscount / orderData.items.length / qty || 0;
-
     const discountedPrice = price - discountPerItem;
-
     const baseTotal = discountedPrice * qty;
     const taxAmt = baseTotal * taxRate;
     const lineTotal = baseTotal + taxAmt;
@@ -107,15 +103,12 @@ const Invoice = ({ order }) => {
             <p>
               <strong>Order Status:</strong> {orderData.order.order_status}
             </p>
-            <p className="invoice-amount-due">
-              <strong>Amount Due:</strong> ₹{grandTotal.toFixed(2)}
-            </p>
           </div>
         </div>
 
         <div className="invoice-bill-to" style={{ marginBottom: "10px" }}>
           <p style={{ fontSize: "15px", fontWeight: "500" }}>Billed By:</p>
-          <p style={{ fontSize: "15px", fontWeight: "350" }}>Rahul</p>
+          <p style={{ fontSize: "15px", fontWeight: "350" }}>{orderData.order.salesperson_name}</p>
         </div>
 
         <table className="invoice-items-table">
@@ -125,11 +118,11 @@ const Invoice = ({ order }) => {
               <th>Category</th>
               <th>Color</th>
               <th>Size</th>
+              <th>Per Unit Price</th>
+              <th>Discounted Price (%{orderData.order.promo_discount})</th>
+              <th>Tax </th>
               <th>Quantity</th>
-              <th>Unit Price</th>
-              <th>Discounted Price</th>
-              <th>Tax</th>
-              <th>Line Total</th>
+              <th>Total</th>
             </tr>
           </thead>
           <tbody>
@@ -139,10 +132,10 @@ const Invoice = ({ order }) => {
                 <td>{item.category}</td>
                 <td>{item.color}</td>
                 <td>{item.size}</td>
-                <td>{item.quantity}</td>
                 <td>₹{parseFloat(item.price_at_purchase).toFixed(2)}</td>
                 <td>₹{item.discountedPrice.toFixed(2)}</td>
-                <td>₹{item.taxAmt.toFixed(2)}</td>
+                <td>₹{item.taxAmt.toFixed(2)} (% {item.tax})</td>
+                <td>{item.quantity}</td>
                 <td>₹{item.lineTotal.toFixed(2)}</td>
               </tr>
             ))}

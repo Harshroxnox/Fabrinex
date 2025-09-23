@@ -93,3 +93,13 @@ export const uploadSecondaryImages = (variantID , secondaryImages) => {
         )
     });
 };
+
+
+export const downloadProductLabels = () => {
+  return handleRequest(() =>
+    axiosInstance.get("/products/get-labels", {
+      responseType: "blob",
+      headers: { Accept: "application/pdf" },
+    })
+  );
+};

@@ -207,8 +207,8 @@ const handleCreateOrder = async () => {
 
   if(customerInfo.phone && customerInfo.name){
 
-    order.name = customerInfo.name,
-    order.phone_number = '+91' + customerInfo.phone
+    newOrder.name = customerInfo.name,
+    newOrder.phone_number = '+91' + customerInfo.phone
   }
   if(barcode !== 0){
     newOrder.loyalty_barcode = barcode;
@@ -741,7 +741,7 @@ const handleCreateOrder = async () => {
                   <th style={styles.th}>Location</th>
                   <th style={styles.th}>Date</th>
                   <th style={styles.th}>Check Invoice</th>
-                  <th style={styles.th}>Billed By</th>
+                  {/* <th style={styles.th}>Billed By</th> */}
                 </tr>
               </thead>
               <tbody style={{backgroundColor: '#FDFDFD'}}>
@@ -800,9 +800,9 @@ const handleCreateOrder = async () => {
                     <td style={styles.td}>
                       <span style={{color: '#2c2c2c', fontWeight: '300'}} onClick={()=> {setInvoice(true);setOrderChoose(order.orderID);console.log(order.orderID) }}><FileInput style={{color: '#2c2c2c', fontWeight: '300',alignContent: 'center',cursor: 'pointer'}}/></span>
                     </td>
-                    <td style = {styles.td}>
+                    {/* <td style = {styles.td}>
                       <span style= {{ color:'#2c2c2c', fontWeight: '300'}}> salesPerson</span> 
-                    </td>
+                    </td> */}
                   </tr>
                           
                 ))}

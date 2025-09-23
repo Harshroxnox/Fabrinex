@@ -4,7 +4,7 @@ import ProductFilters from './ProductFilters';
 import AddProductDialog from './AddProductDialog';
 import './ProductsList.css';
 import { ProductContext } from '../../contexts/ProductContext';
-import { getAllProducts } from '../../contexts/api/products';
+import { downloadProductLabels, getAllProducts } from '../../contexts/api/products';
 
 const ProductsList = () => {
   const [products, setProducts] = useState([]);
@@ -116,17 +116,45 @@ const ProductsList = () => {
     );
   };
 
+  const handleDownload = async () => {
+    const {data , error} = await downloadProductLabels();
+    if(error){
+      console.error("Download Failed:" ,error);
+      return ;
+    }
+    //create download link
+    const url = window.URL.createObjectURL(data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "barcode.pdf";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+  
+
   return (
     <div className="products-container">
       <div className="products-header">
         <h5>Products</h5>
-        <button
+        <div className='products-btn-group'>
+
+          <button
           className="add-product-btn"
-          onClick={() => setIsAddDialogOpen(true)}
           disabled={!canCreateProduct}
-        >
-          Add New Product
-        </button>
+          onClick={handleDownload}
+          >
+            Download Barcodes
+          </button>
+          <button
+            className="add-product-btn"
+            onClick={() => setIsAddDialogOpen(true)}
+            disabled={!canCreateProduct}
+          >
+            Add New Product
+          </button>
+          </div>
       </div>
 
       <ProductFilters
