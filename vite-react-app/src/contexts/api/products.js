@@ -70,6 +70,9 @@ export const updateVariant = (variantID, updateData) =>
 export const getVariant = (variantID) =>
   handleRequest(() => api.get(`/get-variant/${variantID}`));
 
+export const getVariantAdmin = (variantID) =>
+  handleRequest(() => axiosInstance.get(`/products/get-variant-admin/${variantID}`));
+
 export const getVariantsByProduct = (productID) =>
   handleRequest(() => api.get(`/get-variants/${productID}`));
 
@@ -94,10 +97,26 @@ export const uploadSecondaryImages = (variantID , secondaryImages) => {
     });
 };
 
+export const deleteSecondaryImage = (variantImageID) => {
+  return handleRequest( ()=>
+    api.delete(`/delete-secondary-image/${variantImageID}`)
+  );
+};
+
 
 export const downloadProductLabels = () => {
   return handleRequest(() =>
     axiosInstance.get("/products/get-labels", {
+      responseType: "blob",
+      headers: { Accept: "application/pdf" },
+    })
+  );
+};
+
+export const downloadLabelsByDate = (dates) =>{
+  console.log(dates);
+  return handleRequest(()=>
+    axiosInstance.get(`/products/get-labels-by-date?date_from=${dates.dateFrom}&date_to=${dates.dateTo}`,{
       responseType: "blob",
       headers: { Accept: "application/pdf" },
     })

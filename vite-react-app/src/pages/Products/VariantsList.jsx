@@ -122,7 +122,7 @@ const VariantsList = ({ variants, productId , onDeleted}) => {
         <EditVariantDialog
           isOpen={!!editingVariant}
           onClose={() => setEditingVariant(null)}
-          variant={editingVariant}
+          variantId={editingVariant.variantID}
           productId={productId}
           onSave={handleUpdate}
         />

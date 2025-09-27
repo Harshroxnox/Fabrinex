@@ -38,6 +38,7 @@
 .products-btn-group{
   display: flex;
   gap:1rem;
+  align-items: center;
 }
 .add-product-btn {
   background-color: #111827;
@@ -630,4 +631,31 @@
 
 .remove-btn:hover {
   background: #e60000;
+}
+
+
+.products-barcode-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.products-barcode-group label {
+  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.products-barcode-group input {
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border 0.2s ease;
+}
+
+.products-barcode-group input:focus {
+  border-color: #3b82f6;
+  outline: none;
 }

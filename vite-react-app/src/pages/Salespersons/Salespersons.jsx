@@ -52,7 +52,7 @@ const Salespersons = () => {
       alert("Please fill all fields.");
       return;
     }
-
+    newSalesperson.phone_number = '+91' + newSalesperson.phone_number;
     try {
       await addSalesPerson(newSalesperson);
       // Refresh the list after adding
@@ -204,7 +204,7 @@ const Salespersons = () => {
               />
             </div>
             <div className="input-group">
-              <label>Phone Number</label>
+              <label>Phone Number(+91)</label>
               <input
                 type="text"
                 placeholder="Enter phone number"

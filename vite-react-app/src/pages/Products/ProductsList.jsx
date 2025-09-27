@@ -4,7 +4,7 @@ import ProductFilters from './ProductFilters';
 import AddProductDialog from './AddProductDialog';
 import './ProductsList.css';
 import { ProductContext } from '../../contexts/ProductContext';
-import { downloadProductLabels, getAllProducts } from '../../contexts/api/products';
+import { downloadLabelsByDate, downloadProductLabels, getAllProducts } from '../../contexts/api/products';
 
 const ProductsList = () => {
   const [products, setProducts] = useState([]);
@@ -12,7 +12,8 @@ const ProductsList = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading,setLoading]=useState(false);
   const [error, setError] = useState('');
-
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   //roles of the admin
   const roles = localStorage.getItem("role");
@@ -115,9 +116,10 @@ const ProductsList = () => {
       prev.map(p => p.productID === updatedProduct.productID ? updatedProduct : p)
     );
   };
-
-  const handleDownload = async () => {
-    const {data , error} = await downloadProductLabels();
+  
+const handleDownloadByDate = async () => {
+    // console.log(dateFrom, dateTo);
+    const {data , error} = await downloadLabelsByDate({dateFrom,dateTo});
     if(error){
       console.error("Download Failed:" ,error);
       return ;
@@ -132,21 +134,38 @@ const ProductsList = () => {
     a.remove();
     window.URL.revokeObjectURL(url);
   };
-  
 
   return (
     <div className="products-container">
       <div className="products-header">
         <h5>Products</h5>
+        
         <div className='products-btn-group'>
+<div className="products-barcode-group">
+          <label>Date From</label>
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+          />
+        </div>
 
+        <div className="products-barcode-group">
+          <label>Date To</label>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+          />
+        </div>
           <button
           className="add-product-btn"
           disabled={!canCreateProduct}
-          onClick={handleDownload}
+          onClick={handleDownloadByDate}
           >
-            Download Barcodes
+            Download Barcodes By Date
           </button>
+          
           <button
             className="add-product-btn"
             onClick={() => setIsAddDialogOpen(true)}

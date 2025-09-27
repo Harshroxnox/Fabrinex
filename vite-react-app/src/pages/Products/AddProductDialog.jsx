@@ -148,10 +148,15 @@ const handleSubmit = async (e) => {
 
   if (!isOpen) return null;
 const PRODUCT_CATEGORIES = [
-  'Suits - stitched',
-  'Suits - unstitched',
-  'Bridal',
-  'Other'
+  'Casual - Unstitched suit',
+  'Partywear - Unstitched suit',
+  'Readymade suit',
+  'Semistich suit',
+  'Bansari Saree',
+  'Partywear Saree',
+  'Casual Lhenga',
+  'Partywear Lhenga',
+  'Bridal Lhenga'
 ];
 
   return (
