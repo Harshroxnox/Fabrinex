@@ -17,7 +17,8 @@ import {
     getProductByIdAdmin,
     getVariantByIdAdmin,
     getVariantByBarcodeAdmin,
-    getLabels
+    getLabels,
+    getLabelsByDate
 } from '../controllers/products.controller.js';
 import { authMiddleware, checkAdminRoles } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/multer.middleware.js';
@@ -51,5 +52,6 @@ router.route('/get-variant-barcode-admin/:barcode').get(authMiddleware('admin'),
 
 // download barcode
 router.route("/get-labels").get(authMiddleware('admin'), getLabels);
+router.route("/get-labels-by-date").get(authMiddleware('admin'), getLabelsByDate);
 
 export default router

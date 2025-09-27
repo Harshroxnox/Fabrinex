@@ -2,7 +2,7 @@ import { db } from '../index.js';
 import { constants } from '../config/constants.js';
 import { uploadOnCloudinary, deleteFromCloudinary } from '../utils/cloudinary.js';
 import { generateUniqueBarcode, ValidEAN13 } from '../utils/generateBarcode.js';
-import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview } from '../utils/validators.utils.js';
+import { validID, validStringChar, validString, validDecimal, validWholeNo, validReview, validDate } from '../utils/validators.utils.js';
 import { deleteTempImg } from '../utils/deleteTempImg.js';
 import PDFDocument from 'pdfkit';
 import bwipjs from 'bwip-js';
@@ -16,6 +16,7 @@ export const createProduct = async (req, res, next) => {
   const tax = validDecimal(req.body.tax);
   const { description, category } = req.body;
 
+  console.log(tax);
   try {
     // check if name is valid
     if(name === null){
@@ -685,7 +686,7 @@ export const createVariant = async (req, res, next) => {
 export const updateVariant = async (req, res, next) => {
   const variantID = validID(req.params.variantID);
   const priceRaw = req.body.price;
-  const myWalletRaw = req.body.myWallet;
+  const myWalletRaw = req.body.my_wallet;
   const sourceRaw = req.body.source;
   const floorRaw = req.body.floor;
   const discountRaw = req.body.discount;
@@ -1300,6 +1301,82 @@ export const getLabels = async (req, res, next) => {
       }
     }
 
+    doc.end();
+  } catch(error){
+    next(error);
+  }
+}
+
+export const getLabelsByDate = async  (req, res, next) => {
+  try {
+    const date_from = validDate(req.query.date_from);
+    const date_to = validDate(req.query.date_to);
+
+    if (date_from === null) {
+      throw new AppError(400, "Invalid Date from");
+    }
+    if (date_to === null) {
+      throw new AppError(400, "Invalid Date To");
+    }
+    // Fetch product variants with product info
+    const [variants] = await db.execute(`
+      SELECT pv.barcode, pv.color, pv.size, pv.price, pv.floor,
+      p.name AS product_name, p.category
+      FROM ProductVariants pv
+      JOIN Products p ON pv.productID = p.productID
+      WHERE pv.is_active = 1 AND p.is_active = 1 AND
+      pv.created_at >= ? AND pv.created_at < DATE_ADD(?, INTERVAL 1 DAY)
+    ` , [date_from, date_to]);
+
+
+    // Create a PDF document
+        const doc = new PDFDocument({ margin: 30 });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', 'attachment; filename=barcodes.pdf');
+        doc.pipe(res);
+
+        const labelWidth = 250;
+        const labelHeight = 100;
+        const margin = 10;
+        let x = margin;
+        let y = margin;
+
+        for (const v of variants) {
+          // Generate barcode as PNG buffer
+          const png = await bwipjs.toBuffer({
+            bcid: 'ean13',       // Barcode type
+            text: v.barcode,     // Barcode value
+            scale: 3,
+            height: 10,
+            includetext: true,
+            textxalign: 'center',
+          });
+
+          // Draw a rectangle for label
+          doc.rect(x, y, labelWidth, labelHeight).stroke();
+
+          // Draw product info
+          doc.fontSize(10).text(`Name: ${v.product_name}`, x + 5, y + 5);
+          doc.text(`Category: ${v.category}`, x + 5, y + 20);
+          doc.text(`Color: ${v.color}`, x + 5, y + 35);
+          doc.text(`Size: ${v.size}`, x + 5, y + 50);
+          doc.text(`Price: ${v.price}`, x + 5, y + 65);
+          doc.text(`Floor: ${v.floor}`, x + 5, y + 80);
+
+          // Add barcode image
+          doc.image(png, x + 140, y + 25, { width: 90, height: 55 });
+
+          // Move to next label position
+          x += labelWidth + margin;
+          if (x + labelWidth > doc.page.width - margin) {
+            x = margin;
+            y += labelHeight + margin;
+            if (y + labelHeight > doc.page.height - margin) {
+              doc.addPage();
+              y = margin;
+            }
+          }
+    }
     doc.end();
   } catch(error){
     next(error);

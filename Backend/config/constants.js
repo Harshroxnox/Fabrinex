@@ -1,10 +1,16 @@
 export const constants = {
   PRODUCT_CATEGORIES: [
-    'Suits - stitched',
-    'Suits - unstitched',
-    'Bridal',
-    'Other'
+    'Casual - Unstitched suit',
+    'Partywear - Unstitched suit',
+    'Readymade suit',
+    'Semistich suit',
+    'Bansari Saree',
+    'Partywear Saree',
+    'Casual Lhenga',
+    'Partywear Lhenga',
+    'Bridal Lhenga'
   ],
+  
 
   PAYMENT_METHODS: [
     'card', 
