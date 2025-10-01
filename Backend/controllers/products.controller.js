@@ -570,7 +570,8 @@ export const createVariant = async (req, res, next) => {
   const floor = validWholeNo(req.body.floor);
   const discount = validDecimal(req.body.discount);
   const stock = validWholeNo(req.body.stock);
-  
+  const received_barcode = validString(req.body.received_barcode);
+
   const mainImgPath = req.file ? req.file.path : null;
   let cloudinaryID;
 
@@ -633,7 +634,8 @@ export const createVariant = async (req, res, next) => {
     const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
     cloudinaryID = mainImgCloudinary.public_id;
 
-    const barcode = await generateUniqueBarcode("ProductVariants");
+    const barcode = received_barcode ? received_barcode :
+     await generateUniqueBarcode("ProductVariants");
 
     const [result] = await db.execute(
       `INSERT INTO ProductVariants 
