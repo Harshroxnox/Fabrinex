@@ -195,7 +195,7 @@ export const getAllProducts = async (req, res, next) => {
         pv.discount
       FROM 
         Products p
-      JOIN 
+      LEFT JOIN 
         ProductVariants pv 
         ON pv.variantID = (
           SELECT variantID FROM ProductVariants 
@@ -210,11 +210,6 @@ export const getAllProducts = async (req, res, next) => {
     const [count] = await db.execute(`
       SELECT COUNT(*) AS count
       FROM Products p
-      JOIN ProductVariants pv ON pv.variantID = (
-        SELECT variantID FROM ProductVariants 
-        WHERE productID = p.productID AND is_active = TRUE
-        LIMIT 1
-      )
       WHERE p.is_active = TRUE
     `);
 
@@ -1110,10 +1105,6 @@ export const getProductByIdAdmin = async (req, res, next) => {
       FROM ProductVariants 
       WHERE productID = ? AND is_active = TRUE
     `,[productID]);
-
-    if (variants.length === 0){
-      throw new AppError(400, "Product has no variants");
-    }
 
     product.variants = variants;
     res.status(200).json({
