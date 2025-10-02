@@ -3,7 +3,6 @@ import ProductItem from './ProductItem';
 import ProductFilters from './ProductFilters';
 import AddProductDialog from './AddProductDialog';
 import './ProductsList.css';
-import { ProductContext } from '../../contexts/ProductContext';
 import { downloadLabelsByDate, downloadProductLabels, getAllProducts } from '../../contexts/api/products';
 
 const ProductsList = () => {
@@ -62,25 +61,6 @@ const ProductsList = () => {
     
     return nameMatch || categoryMatch || descriptionMatch;
   });
-    
-    setFilteredProducts(filtered);
-  };
-
-  const handleVariantSearch = (searchTerm) => {
-    if (!searchTerm.trim()) {
-      setFilteredProducts(products);
-      return;
-    }
-    
-    const filtered = products.map(product => ({
-      ...product,
-      variants: product.variants?.filter(variant => {
-        const searchLower = searchTerm.toLowerCase();
-        const colorMatch = variant.color?.toLowerCase().includes(searchLower);
-        const sizeMatch = variant.size?.toLowerCase().includes(searchLower);
-        return colorMatch || sizeMatch;
-      }) || []
-    })).filter(product => product.variants.length > 0);
     
     setFilteredProducts(filtered);
   };
@@ -178,7 +158,6 @@ const handleDownloadByDate = async () => {
 
       <ProductFilters
         onSearch={handleSearch}
-        onVariantSearch={handleVariantSearch}
         onReset={handleResetFilters}
       />
 

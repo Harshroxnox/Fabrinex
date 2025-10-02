@@ -51,27 +51,27 @@ const Home = () => {
         <div className="text-card">
           <h1>Total Revenue</h1>
           <h2>₹{metrics.monthRev.toLocaleString()}</h2>
-          <h3>{metrics.monthRevChange}% from last month</h3>
+          <h3>{metrics.monthRevChange.toFixed(2)}% from last month</h3>
         </div>
         <div className="text-card">
           <h1>Sales</h1>
           <h2>{metrics.monthSales}</h2>
-          <h3>{metrics.monthSalesChange}% from last month</h3>
+          <h3>{metrics.monthSalesChange.toFixed(2)}% from last month</h3>
         </div>
         <div className="text-card">
           <h1>Profit</h1>
           <h2>₹{metrics.monthProfit.toLocaleString()}</h2>
-          <h3>{metrics.monthProfitChange}% from last month</h3>
+          <h3>{metrics.monthProfitChange.toFixed(2)}% from last month</h3>
         </div>
         <div className="text-card">
           <h1>Tax</h1>
           <h2>₹{metrics.monthTax.toLocaleString()}</h2>
-          <h3>{metrics.monthTaxChange}% from last month</h3>
+          <h3>{metrics.monthTaxChange.toFixed(2)}% from last month</h3>
         </div>
         <div className="text-card">
           <h1>Customers</h1>
           <h2>{metrics.noUsers}</h2>
-          <h3>{metrics.userMonthGrowth}% growth</h3>
+          <h3>{metrics.userMonthGrowth.toFixed(2)}% growth</h3>
         </div>
       </div>
 

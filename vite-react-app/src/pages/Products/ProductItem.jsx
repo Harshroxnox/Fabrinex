@@ -1,117 +1,106 @@
-import React, { useState, useContext, useDebugValue, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import VariantsList from './VariantsList';
 import EditProductDialog from './EditProductDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import './ProductsList.css';
 import { EditIcon, PlusCircleIcon, Trash2Icon } from 'lucide-react';
 import AddVariantDialog from './AddVariantDialog';
-import { deleteProduct, getProductByIDByAdmin, uploadSecondaryImages } from '../../contexts/api/products';
+import { 
+  deleteProduct, 
+  getProductByIDByAdmin, 
+  uploadSecondaryImages, 
+  createVariant 
+} from '../../contexts/api/products';
 
-const ProductItem = ({ product, onUpdate ,onAdd , onDeleted}) => {
+const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [variants, setVariants] = useState([]);
 
   const toggleExpand = () => setIsExpanded(!isExpanded);
-  const [loading,setLoading]=useState(false);
-  const [variants,setVariants]= useState([]);
 
   const fetchVariants = async () => {
     setLoading(true);
     try {
-      const {data, error} = await getProductByIDByAdmin(product.productID);
-      if(error) {
+      const { data, error } = await getProductByIDByAdmin(product.productID);
+      if (error) {
         console.error("Error fetching variants:", error);
-        return ;
+        return;
       }
       setVariants(data.product.variants);
     } catch (err) {
       console.error("Unexpected error fetching variants:", err);
-    }
-    finally{
+    } finally {
       setLoading(false);
     }
   };
 
-  useEffect( ()=>{
+  useEffect(() => {
     fetchVariants();
   }, [product.productID]);
 
   const handleUpdate = (updatedProduct) => {
     onUpdate(updatedProduct);
     setIsEditDialogOpen(false);
-    if(onDeleted) onDeleted();
+    if (onDeleted) onDeleted();
   };
 
-const handleAddVariant = async (variant) => {
-  try {
+  const handleAddVariant = async (variant) => {
     setLoading(true);
-
-    
-    // STEP 1: Create variant (with main image + fields)
-    const formData = new FormData();
-    for (let key in variant) {
-      if (key !== "main_image" && key !== "secondaryImages") {
-        formData.append(key, variant[key]);
-      }
-    }
-    formData.append("main_image", variant.main_image);
-
-    const response = await fetch(
-      `http://localhost:5000/api/v1/products/create-variant/${product.productID}`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    if (!response.ok) throw new Error("Failed to create variant");
-
-    const data = await response.json();
-    const variantID = data.variantID;
-
-    // STEP 2: Upload secondary images (if any)
-    if (variant.secondaryImages && variant.secondaryImages.length > 0) {
-      const secondaryImagesForm = new FormData();
-      variant.secondaryImages.forEach((file) => {
-        secondaryImagesForm.append("images", file);
-      });
-
-      const secImageRes = await fetch(
-        `http://localhost:5000/api/v1/products/upload-secondary-images/${variantID}`,
-        {
-          method: "POST",
-          body: secondaryImagesForm,
+    try {
+      const variantFormData = new FormData();
+      for (const key in variant) {
+        if (key !== 'secondaryImages') {
+          variantFormData.append(key, variant[key]);
         }
+      }
+
+      const { data: createData, error: createError } = await createVariant(
+        product.productID,
+        variantFormData
       );
 
-      if (!secImageRes.ok) throw new Error("Failed to upload secondary images");
+      if (createError) {
+        throw new Error(`Failed to create variant: ${createError}`);
+      }
 
-      const secImageData = await secImageRes.json();
-      // console.log("Secondary images uploaded:", secImageData);
+      const newVariantID = createData.variantID;
+
+      if (variant.secondaryImages && variant.secondaryImages.length > 0) {
+        const { error: uploadError } = await uploadSecondaryImages(
+          newVariantID,
+          variant.secondaryImages
+        );
+
+        if (uploadError) {
+          console.warn(`Variant created, but failed to upload secondary images: ${uploadError}`);
+        }
+      }
+      
+      fetchVariants();
+      setIsAddDialogOpen(false);
+
+    } catch (error) {
+      console.error("Error adding new variant:", error.message);
+    } finally {
+      setLoading(false);
     }
-    fetchVariants();
-    setIsAddDialogOpen(false);
-  } catch (error) {
-    console.error("Error adding new variant:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleDelete = async () => {
     setLoading(true);
     try {
-      const {data,error } = await deleteProduct(product.productID);
+      const { data, error } = await deleteProduct(product.productID);
 
-      if(error) throw new Error(error);
+      if (error) throw new Error(error);
       setIsDeleteDialogOpen(false);
-      if(onDeleted) onDeleted();
+      if (onDeleted) onDeleted();
     } catch (err) {
-      console.error("Error deleting product :",err);
-    }finally{
+      console.error("Error deleting product :", err);
+    } finally {
       setLoading(false);
     }
   };
@@ -147,9 +136,9 @@ const handleAddVariant = async (variant) => {
               <span>Rated by {product.people_rated || 0} people</span>
               <span>Average: {product.average_rating ?? 'N/A'}</span>
             </div>
-            {product.variants?.length > 0 && (
+            {variants?.length > 0 && (
               <div className="product-variants-count">
-                {product.variants.length} variant{product.variants.length !== 1 ? 's' : ''}
+                {variants.length} variant{variants.length !== 1 ? 's' : ''}
               </div>
             )}
           </div>
@@ -164,7 +153,7 @@ const handleAddVariant = async (variant) => {
             disabled={loading}
           >
             <PlusCircleIcon size={20} color="green"/>
-            </button>
+          </button>
           <button 
             className="edit-btn"
             onClick={(e) => {
@@ -206,9 +195,9 @@ const handleAddVariant = async (variant) => {
       )}
     
       <AddVariantDialog
-      isOpen={isAddDialogOpen}
-      onClose={()=> setIsAddDialogOpen(false)}
-      onAdd={handleAddVariant}
+        isOpen={isAddDialogOpen}
+        onClose={()=> setIsAddDialogOpen(false)}
+        onAdd={handleAddVariant}
       />
 
       <EditProductDialog

@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
 import './ProductsList.css';
-import { ProductContext } from '../../contexts/ProductContext';
-import { Upload } from 'lucide-react';
 
 const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
   const [variant, setVariant] = useState({
@@ -21,7 +19,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
   const [secondaryPreviews, setSecondaryPreviews] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [error, setError] = useState('');
-  const { error: contextError, clearError } = useContext(ProductContext);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -41,6 +38,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
           ...prev,
           main_image:files[0]
         }));
+
         //remaining_files are secondary images
         if (files.length > 1) {
           setSecondaryImages( (prev) => [...prev , ...files.slice(1)]);
@@ -95,7 +93,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       return;
     }
     // console.log(secondaryImages); 
-    clearError();
     setError('');
 
     
@@ -109,6 +106,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
       floor: parseFloat(variant.floor),
       secondaryImages:secondaryImages
     });
+
     // Reset form
     setVariant({
       color: '',
@@ -128,12 +126,12 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
 
   if (!isOpen) return null;
 
-  return (
+   return (
     <div className="dialog-overlay">
       <div className="dialog-content">
-        <h2 className='variant-heading'>Add Variant</h2>
+        <h2 className="variant-heading">Add Variant</h2>
 
-        {(error || contextError) && <p className="error-message">{error || contextError}</p>}
+        {error && <p className="error-message">{error}</p>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">
@@ -145,7 +143,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 value={variant.color}
                 onChange={handleChange}
                 required
-                // disabled={loading}
               />
             </div>
 
@@ -157,7 +154,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 value={variant.size}
                 onChange={handleChange}
                 required
-                // disabled={loading}
               />
             </div>
           </div>
@@ -173,7 +169,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 min="0.01"
                 step="0.01"
                 required
-                // disabled={loading}
               />
             </div>
 
@@ -209,16 +204,13 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 type="text"
                 name="barcode"
                 value={variant.barcode}
-                onChange={handleChange}
                 disabled
               />
             </div>
           </div>
 
-           
           <div className="form-row">
             <div className="form-group">
-              
               <label>My Wallet</label>
               <input
                 type="number"
@@ -230,7 +222,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
             </div>
 
             <div className="form-group">
-              <label>Floor No </label>
+              <label>Floor No</label>
               <input
                 type="number"
                 name="floor"
@@ -241,6 +233,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               />
             </div>
           </div>
+
           <div className="form-row">
             <div className="form-group">
               <label>Source*</label>
@@ -252,8 +245,8 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
                 required
               />
             </div>
-            
           </div>
+
           <div className="form-group-image">
             <label>Image*</label>
             <input
@@ -261,32 +254,27 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               name="main_image"
               accept="image/*"
               onChange={handleFileChange}
-              required= {!variant.main_image}
+              required={!variant.main_image}
             />
-            {/* <Upload /> */}
           </div>
 
           {previewUrl && (
             <div className="image-preview-container">
               <h5>Main Image</h5>
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="image-preview"
-              />
+              <img src={previewUrl} alt="Preview" className="image-preview" />
             </div>
           )}
-          {/* //secondary image */}
+
           {secondaryPreviews.length > 0 && (
-            <div className='secondary-images-containter'>
+            <div className="secondary-images-containter">
               <h4>Secondary Images</h4>
-              <div className='secondary-images-grid'>
+              <div className="secondary-images-grid">
                 {secondaryPreviews.map((url, index) => (
-                  <div key={index} className='secondary-image-wrapper'> 
-                    <img src={url} alt={`Secondary ${index}`} className='secondary-preview'/>
+                  <div key={index} className="secondary-image-wrapper">
+                    <img src={url} alt={`Secondary ${index}`} className="secondary-preview" />
                     <button
                       type="button"
-                      className='remove-btn'
+                      className="remove-btn"
                       onClick={() => removeSecondaryImage(index)}
                     >
                       X
@@ -297,19 +285,11 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
             </div>
           )}
 
-
           <div className="dialog-actions">
-            <button 
-              type="button" 
-              className="cancel-btn" 
-              onClick={onClose}
-            >
+            <button type="button" className="cancel-btn" onClick={onClose}>
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="save-btn"
-            >
+            <button type="submit" className="save-btn">
               Add Variant
             </button>
           </div>

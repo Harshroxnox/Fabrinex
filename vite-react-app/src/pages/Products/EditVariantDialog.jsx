@@ -1,36 +1,39 @@
-import React, { useState, useEffect, useContext } from 'react';
-import './VariantsList.css';
-import { ProductContext } from '../../contexts/ProductContext';
-import { deleteSecondaryImage, getVariantAdmin, uploadSecondaryImages } from '../../contexts/api/products';
+import React, { useState, useEffect } from "react";
+import "./VariantsList.css";
+import {
+  deleteSecondaryImage,
+  getVariantAdmin,
+  uploadSecondaryImages,
+  updateVariant,
+} from "../../contexts/api/products";
 
 const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) => {
-  const [loading , setLoading] = useState(false);
-  const [variant , setVariant] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [variant, setVariant] = useState({});
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [error, setError] = useState('');
-  const { updateVariant,error: contextError, clearError } = useContext(ProductContext);
-  
+  const [error, setError] = useState("");
+
   const [editedVariant, setEditedVariant] = useState({
-    price: '',
-    discount: '0',
+    price: "",
+    discount: "0",
     main_image: null,
-    my_wallet:'0',
-    source: '',
-    floor: '0',
-    secondary_images:[]
+    my_wallet: "0",
+    source: "",
+    floor: "0",
+    secondary_images: [],
   });
 
-  //fetch variant details
+  // fetch variant details
   const fetchVariant = async () => {
     setLoading(true);
     try {
-      const {data,error} = await getVariantAdmin(variantId);
-      if(error) throw new Error(error);
+      const { data, error } = await getVariantAdmin(variantId);
+      if (error) throw new Error(error);
       setVariant(data.variant);
     } catch (err) {
-      console.error("Error fetching that variant:", err);
-    }
-    finally{
+      console.error("Error fetching variant:", err);
+      setError("Failed to fetch variant details");
+    } finally {
       setLoading(false);
     }
   };
@@ -41,16 +44,16 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
     }
   }, [variantId]);
 
-  //sync fetched variant into form state 
+  // sync fetched variant into form state
   useEffect(() => {
     if (variant) {
       setEditedVariant({
-        price: variant.price ?? '',
-        discount: variant.discount ?? '0',
+        price: variant.price ?? "",
+        discount: variant.discount ?? "0",
         main_image: null,
-        my_wallet: variant.my_wallet ?? '0',
-        source: variant.source ?? '',
-        floor: variant.floor ?? '0',
+        my_wallet: variant.my_wallet ?? "0",
+        source: variant.source ?? "",
+        floor: variant.floor ?? "0",
         secondary_images:
           variant.secondary_images?.map((img) => ({
             id: img.variantImageID,
@@ -64,22 +67,22 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setEditedVariant(prev => ({...prev, [name]: value }));
+    setEditedVariant((prev) => ({ ...prev, [name]: value }));
   };
 
-  //main file change
+  // main file change
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-      setEditedVariant(prev => ({
+    if (file && file.type.startsWith("image/")) {
+      setEditedVariant((prev) => ({
         ...prev,
-        main_image: file
+        main_image: file,
       }));
       setPreviewUrl(URL.createObjectURL(file));
     }
   };
 
-  //secondary images change
+  // secondary images change
   const handleSecondaryFiles = (e) => {
     const files = Array.from(e.target.files);
     const newImages = files.map((file) => ({
@@ -94,7 +97,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
     }));
   };
 
-  //remove secondary image
+  // remove secondary image
   const handleRemoveSecondary = async (img, idx) => {
     if (!img.isNew && img.id) {
       try {
@@ -105,6 +108,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
         }));
       } catch (err) {
         console.error("Error deleting secondary image:", err);
+        setError("Failed to delete secondary image");
       }
     } else {
       setEditedVariant((prev) => ({
@@ -117,22 +121,23 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
+
     if (!editedVariant.price) {
-      setError('Price is required');
+      setError("Price is required");
       setLoading(false);
       return;
     }
 
-    if (parseFloat(editedVariant.discount) < 0 || parseFloat(editedVariant.discount) > 100) {
-      setError('Discount must be between 0 and 100');
+    if (
+      parseFloat(editedVariant.discount) < 0 ||
+      parseFloat(editedVariant.discount) > 100
+    ) {
+      setError("Discount must be between 0 and 100");
       setLoading(false);
       return;
     }
 
     try {
-      clearError();
-
       const updateData = {
         price: parseFloat(editedVariant.price).toFixed(2),
         discount: parseFloat(editedVariant.discount).toFixed(2),
@@ -140,12 +145,19 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
         source: editedVariant.source,
         floor: parseFloat(editedVariant.floor),
       };
-      
+
       if (editedVariant.main_image) {
         updateData.main_image = editedVariant.main_image;
       }
 
-      await updateVariant(variant.variantID, updateData);
+      const { error: updateError } = await updateVariant(
+        variant.variantID,
+        updateData
+      );
+
+      if (updateError) throw new Error(updateError);
+
+      // handle secondary images
       const newFiles = editedVariant.secondary_images
         .filter((img) => img.isNew)
         .map((img) => img.file);
@@ -154,17 +166,17 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
         await uploadSecondaryImages(variant.variantID, newFiles);
       }
 
-      onSave({
+      onSave?.({
         ...variant,
         ...updateData,
-        main_image: previewUrl // Keep existing if no new image uploaded
+        main_image: previewUrl, // keep existing if no new image uploaded
       });
 
       onClose();
     } catch (err) {
-      console.error('Error updating variant:', err);
-      setError(contextError || 'Failed to update variant');
-    }finally{
+      console.error("Error updating variant:", err);
+      setError("Failed to update variant");
+    } finally {
       setLoading(false);
     }
   };
@@ -178,9 +190,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
           Edit Variant ({variant.color}, {variant.size})
         </h2>
 
-        {(error || contextError) && (
-          <p className="error-message">{error || contextError}</p>
-        )}
+        {error && <p className="error-message">{error}</p>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-row">
@@ -316,7 +326,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
               Cancel
             </button>
             <button type="submit" className="save-btn" disabled={loading}>
-              {loading === true ? "Saving..." : "Save Changes"}
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

@@ -25,6 +25,9 @@ const Navbar = () => {
   };
 
   const admin = localStorage.getItem("admin");
+  const rolesString = localStorage.getItem("role") || "";
+  const roles = rolesString.split(",").filter(Boolean);
+
   if (admin === null) {
     return null;
   }
@@ -44,6 +47,16 @@ const Navbar = () => {
 
         {isDropdownOpen && (
           <div className="navbar-dropdown">
+            {roles.length > 0 && (
+              <div className="navbar-roles">
+                Roles : {roles.map((role, index) => (
+                  <span key={index} className="navbar-role-badge">
+                    {role}
+                  </span>
+                ))}
+              </div>
+            )}
+      
             <button className="navbar-logout-button" onClick={handleLogout}>
               Logout
             </button>

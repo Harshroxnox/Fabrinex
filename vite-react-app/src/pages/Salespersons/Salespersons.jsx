@@ -133,6 +133,7 @@ const Salespersons = () => {
           <table className="salesperson-list">
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Name</th>
                 <th>Commission (%)</th>
                 <th>Phone Number</th>
@@ -142,6 +143,7 @@ const Salespersons = () => {
             <tbody>
               {filteredSalespersons.map((sp, index) => (
                 <tr key={sp.salesPersonID} className={index % 2 === 0 ? "even-row" : "odd-row"}>
+                  <td>{sp.salesPersonID} </td>
                   <td>{sp.name}</td>
                   <td>{sp.commission}</td>
                   <td>{sp.phone_number}</td>

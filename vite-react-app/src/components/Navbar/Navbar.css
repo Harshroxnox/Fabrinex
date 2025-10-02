@@ -60,6 +60,31 @@
   z-index: 1000;
 }
 
+/* Roles container */
+.navbar-roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;          /* space between badges */
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee; /* separates badges from Logout */
+  margin-bottom: 6px;
+}
+
+/* Individual role badge */
+.navbar-role-badge {
+  background-color: #f0f4ff; /* light blue */
+  color: #1d4ed8;            /* dark blue text */
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.navbar-role-badge:hover {
+  background-color: #dbeafe; /* slightly darker on hover */
+}
+
 .navbar-logout-button {
   width: 100%;
   padding: 12px 16px;

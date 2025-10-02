@@ -2,22 +2,24 @@ import React, { useState, useEffect, useContext } from 'react';
 import './ProductsList.css';
 import TextEditor from '../../Editor/TextEditor';
 import { ProductContext } from '../../contexts/ProductContext';
+import { updateProduct } from '../../contexts/api/products';
 
 const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
   const [editedProduct, setEditedProduct] = useState({
-    name: product.name,
-    description: product.description.content,
-    category: product.category
+    name: product?.name || "",
+    description: product?.description || { content: "" },
+    category: product?.category || "",
   });
-  const [error, setError] = useState('');
-  const { updateProduct,error: contextError, clearError } = useContext(ProductContext);
 
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  
   useEffect(() => {
     if (product) {
       setEditedProduct({
-        name: product.name || '',
-        description: product.description || { content: '' },
-        category: product.category || ''
+        name: product.name || "",
+        description: product.description || { content: "" },
+        category: product.category || "",
       });
     }
   }, [product]);
@@ -33,46 +35,55 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
       description: { content }
     }));
   };
-  const [loading,setLoading]=useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
     if (!editedProduct.name.trim()) {
-      setError('Product name is required');
-      return;
-    }
-    if (!editedProduct.category.trim()) {
-      setError('Category is required');
-      return;
-    }
-
-    try {
-      clearError();
-      await updateProduct(product.productID, editedProduct);
-      onSave(editedProduct);
-      onClose();
-    } catch (err) {
-      console.error('Error updating product:', err);
-      setError(contextError || 'Failed to update product');
-    } finally{
+      setError("Product name is required");
       setLoading(false);
+      return;
     }
+    
+    if (!editedProduct.category.trim()) {
+      setError("Category is required");
+      setLoading(false);
+      return;
+    }
+    const { data, error } = await updateProduct(product.productID, editedProduct);
+    
+    if (error) {
+      console.error("Error updating product:", error);
+      setError(error);
+    } else {
+      onSave?.(data);
+      onClose();
+    }
+    setLoading(false);
   };
 
   
-    const PRODUCT_CATEGORIES = [
-    'Suits - stitched',
-    'Suits - unstitched',
-    'Bridal',
-    'Other'
+  const PRODUCT_CATEGORIES = [
+    'Casual - Unstitched suit',
+    'Partywear - Unstitched suit',
+    'Readymade suit',
+    'Semistich suit',
+    'Bansari Saree',
+    'Partywear Saree',
+    'Casual Lhenga',
+    'Partywear Lhenga',
+    'Bridal Lhenga'
   ];
+
   if (!isOpen) return null;
+  
   return (
     <div className="dialog-overlay">
       <div className="dialog-content">
         <h2>Edit Product</h2>
 
-        {(error || contextError) && <p className="error-message">{error || contextError}</p>}
+        {error && <p className="error-message">{error}</p>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -90,12 +101,15 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
           <div className="form-group">
             <label>Description</label>
             <TextEditor
-              value={''}
+              value={editedProduct.description.content}
               onChange={handleDescriptionChange}
-              />
-              <label> Preview </label>
-            <div className='product-preview'
-              dangerouslySetInnerHTML={{ __html: editedProduct.description.content }}
+            />
+            <label> Preview </label>
+            <div
+              className="product-preview"
+              dangerouslySetInnerHTML={{
+                __html: editedProduct.description.content,
+              }}
             />
           </div>
 
@@ -118,21 +132,16 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
           </div>
 
           <div className="dialog-actions">
-            <button 
-              type="button" 
-              className="cancel-btn" 
+            <button
+              type="button"
+              className="cancel-btn"
               onClick={onClose}
               disabled={loading}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
-              className="save-btn"
-              disabled={loading}
-            >
-              {loading === true ?'Saving' : 'Save Changes'}
-              {/* Save Changes */}
+            <button type="submit" className="save-btn" disabled={loading}>
+              {loading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

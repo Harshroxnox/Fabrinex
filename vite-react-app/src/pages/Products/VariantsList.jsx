@@ -1,32 +1,37 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import EditVariantDialog from './EditVariantDialog';
 import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import './VariantsList.css';
 import { EditIcon, Trash2Icon } from 'lucide-react';
-import { ProductContext } from '../../contexts/ProductContext';
-import { deleteVariant } from '../../contexts/api/products';
+import { deleteVariant, updateVariant } from '../../contexts/api/products';
 
-const VariantsList = ({ variants, productId , onDeleted}) => {
+const VariantsList = ({ variants, productId, onDeleted }) => {
   const [editingVariant, setEditingVariant] = useState(null);
   const [deletingVariant, setDeletingVariant] = useState(null);
-  const { updateVariant,error } = useContext(ProductContext);
-  const [loading,setLoading]=useState(false);
-  const handleUpdate = async (updatedVariant) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdate = async (updatedVariantData) => {
     setLoading(true);
     try {
-      await updateVariant(updatedVariant.variantID, {
-        price: updatedVariant.price,
-        discount: updatedVariant.discount,
-        main_image: updatedVariant.main_image,
-        stock: updateVariant.stock,
-        my_wallet: updateVariant.my_wallet
-      }); 
+      const payload = {
+        price: updatedVariantData.price,
+        discount: updatedVariantData.discount,
+        stock: updatedVariantData.stock,
+        my_wallet: updatedVariantData.my_wallet,
+        ...(updatedVariantData.main_image instanceof File && { main_image: updatedVariantData.main_image }),
+      };
+
+      const { data, error } = await updateVariant(editingVariant.variantID, payload);
+
+      if (error) {
+        throw new Error(error);
+      }
+      
       setEditingVariant(null);
-      if(onDeleted) onDeleted();
+      if (onDeleted) onDeleted();
     } catch (err) {
       console.error('Error updating variant:', err);
-    }
-    finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -34,14 +39,15 @@ const VariantsList = ({ variants, productId , onDeleted}) => {
   const handleDelete = async (variantId) => {
     setLoading(true);
     try {
-      const {data,error} = await deleteVariant(variantId);
-      if(error) throw new Error(error);
+      const { data, error } = await deleteVariant(variantId);
+      if (error) throw new Error(error);
+      
       setDeletingVariant(null);
-      if(onDeleted) onDeleted();
+      if (onDeleted) onDeleted();
     
     } catch (err) {
       console.error("Error deleting variant: ", err);
-    }finally{
+    } finally {
       setLoading(false);
     }
   };

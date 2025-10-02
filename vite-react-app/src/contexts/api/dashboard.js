@@ -13,4 +13,4 @@ const handleRequest = async (fn) => {
   }
 };
 
-export const getMetrics = () => handleRequest(() => axiosInstance.get("http://localhost:5000/api/v1/dashboard/get-metrics"));
+export const getMetrics = () => handleRequest(() => axiosInstance.get("/dashboard/get-metrics"));
