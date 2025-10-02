@@ -6,7 +6,7 @@ import { deleteTempImg } from '../utils/deleteTempImg.js';
 import { validID } from '../utils/validators.utils.js';
 
 // Upload Bill Route
-export const uploadBill = async (req, res) => {
+export const uploadBill = async (req, res,next) => {
   const wholesaler_name = req.body.wholesaler_name?.trim() || null;
   const bill_date = req.body.bill_date?.trim() || null; 
   const billPath = req.file ? req.file.path : null;
@@ -62,8 +62,6 @@ export const uploadBill = async (req, res) => {
     }
     next(error);
 
-    res.status(500).json({ error: "Internal server error" });
-
     // Cleanup Cloudinary if upload succeeded but DB failed
     if (cloudinaryID) {
       deleteFromCloudinary(cloudinaryID).catch((err) => {
@@ -81,7 +79,7 @@ export const uploadBill = async (req, res) => {
   }
 };
 
-export const deleteBill = async (req, res) => {
+export const deleteBill = async (req, res,next) => {
   const { id } = req.params;
   let connection;
 
@@ -130,7 +128,6 @@ export const deleteBill = async (req, res) => {
       await connection.rollback();
     }
     next(error);
-    res.status(500).json({ error: "Internal server error" });
   } finally {
     // 7. Always release the connection
     if (connection) {
@@ -139,7 +136,7 @@ export const deleteBill = async (req, res) => {
   }
 };
 
-export const getAllBills = async (req, res) => {
+export const getAllBills = async (req, res, next) => {
   let connection;
   try {
     connection = await db.getConnection();
@@ -157,16 +154,14 @@ export const getAllBills = async (req, res) => {
     });
 
   } catch (error) {
-    console.log(error.message)
-    logger.error("Error fetching bills:", error.message);
-    return res.status(500).json({ error: "Internal server error" });
+      next(error);
   } finally {
     if (connection) connection.release();
   }
 };
 
 
-export const getBillById = async (req, res) => {
+export const getBillById = async (req, res,next) => {
   const billID = validID(req.params.id);
   let connection;
 
@@ -194,9 +189,7 @@ export const getBillById = async (req, res) => {
     });
 
   } catch (error) {
-     console.log(error.message)
-    logger.error("Error fetching bill:", error.message);
-    return res.status(500).json({ error: "Internal server error" });
+    next(error);
   } finally {
     if (connection) connection.release();
   }
