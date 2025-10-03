@@ -14,6 +14,7 @@ import SalesPersons from '../Salespersons/Salespersons.jsx';
 import LoyaltyCards from '../LoyaltyCards/LoyaltyCards.jsx';
 import Home from '../../components/Dashboard/Home.jsx';
 import BillManagement from '../Bills/Bill.jsx';
+import PurchaseList from '../Purchases/PurchaseList.jsx';
 
 const Admin = () => {
   const [activeBtn, setActiveBtn] = useState("Dashboard");
@@ -27,7 +28,7 @@ const Admin = () => {
     if (activeBtn === "SalesPersons") return <SalesPersons/>;
     if (activeBtn === "LoyaltyCards") return <LoyaltyCards/>;
     if (activeBtn === "Bills") return <BillManagement/>;
-
+    if (activeBtn === "Purchases") return <PurchaseList/>;
     if (activeBtn === "Messaging") return <MessagingSection />;
     if (activeBtn === "Web") return <WebPage />;
     if (activeBtn === "Promotions") return <PromotionsPage />;
@@ -91,6 +92,12 @@ const Admin = () => {
             className={activeBtn === "Bills" ? "active-btn" : ""}
           >
             Bills
+          </button>
+           <button
+            onClick={() => setActiveBtn("Purchases")}
+            className={activeBtn === "Purchases" ? "active-btn" : ""}
+          >
+            Purchases
           </button>
           <button
             onClick={() => setActiveBtn("Messaging")}

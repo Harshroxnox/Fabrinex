@@ -3,6 +3,7 @@ import './ProductsList.css';
 import TextEditor from '../../Editor/TextEditor';
 import AddVariantDialog from './AddVariantDialog';
 import { createProduct, createVariant, uploadSecondaryImages } from '../../contexts/api/products';
+import toast from 'react-hot-toast';
 
 const AddProductDialog = ({ isOpen, onClose, onSave }) => {
   const [newProduct, setNewProduct] = useState({
@@ -71,7 +72,10 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
     try {
       // Step 1: Create the product
       const { data: productData, error: productError } = await createProduct(newProduct);
-      if (productError) throw new Error(productError);
+      if (productError){
+        toast.error('Error while creating product');
+        throw new Error(productError);
+      } 
 
       const productID = productData.productID;
 
@@ -85,18 +89,25 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
         }
         
         const { data: variantData, error: variantError } = await createVariant(productID, formData);
-        if (variantError) throw new Error(`Failed to create variant: ${variantError}`);
+        if (variantError){
+          toast.error(`Failed to create variant: ${variantError}`);
+          throw new Error(`Failed to create variant: ${variantError}`);
+        } 
 
         const variantID = variantData.variantID;
 
         if (variant.secondaryImages?.length > 0) {
           const { error: imageError } = await uploadSecondaryImages(variantID, variant.secondaryImages);
-          if (imageError) throw new Error(`Failed to upload secondary images: ${imageError}`);
+          if (imageError){
+            toast.error('Failed to upload secondary images');
+            throw new Error(`Failed to upload secondary images: ${imageError}`);
+          } 
         }
       });
 
       await Promise.all(variantPromises);
-
+      toast.success('Product created successfully!');
+      toast.success('Variants added successfully!');
       // Step 4: Reset form and close on success
       setNewProduct({ name: '', description: { content: '' }, category: '', tax: 18 });
       setVariants([]);
@@ -105,8 +116,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
       onClose();
 
     } catch (err) {
+      toast.error('Error saving product or variants');
       console.error("Error saving product or variants:", err);
-      setError(err.message || "Failed to save product. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -127,8 +138,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
   ];
 
   return (
-    <div className="dialog-overlay">
-      <div className="dialog-content">
+    <div className="dialog-overlay no-scrollbar">
+      <div className="dialog-content no-scrollbar">
         <h2>Add New Product</h2>
         {error && <div className="error-message">{error}</div>}
 

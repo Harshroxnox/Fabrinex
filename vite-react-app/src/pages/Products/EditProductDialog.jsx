@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
 import './ProductsList.css';
 import TextEditor from '../../Editor/TextEditor';
-import { ProductContext } from '../../contexts/ProductContext';
 import { updateProduct } from '../../contexts/api/products';
+import toast from 'react-hot-toast';
 
 const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
   const [editedProduct, setEditedProduct] = useState({
@@ -54,10 +54,11 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
     const { data, error } = await updateProduct(product.productID, editedProduct);
     
     if (error) {
-      console.error("Error updating product:", error);
+      toast.error("Error updating product");
       setError(error);
     } else {
       onSave?.(data);
+      toast.success("Product Updated successfully");
       onClose();
     }
     setLoading(false);

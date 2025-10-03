@@ -8,6 +8,7 @@ import { getVariantBarcodeAdmin } from '../../contexts/api/products.js';
 import { getDiscountByBarcode } from '../../contexts/api/loyaltyCards.js';
 import { formatDate } from '../../utils/dateFormatter.js';
 import axios from 'axios';
+import toast from 'react-hot-toast';
 
 const OrderCreationCRM = () => {
   const [currentView, setCurrentView] = useState('orders'); // 'orders' or 'create'
@@ -69,7 +70,6 @@ const OrderCreationCRM = () => {
     try {
       setLoading(true);
       const res = await getAllOrders(page,limit);
-      console.log(res);
       setOrdersData(res.orders || []);
       setTotalPages(Math.ceil(res.total/limit));
     } catch (error) {
@@ -153,7 +153,7 @@ const OrderCreationCRM = () => {
       return ;
     }
     if (newQuantity > product.stock) {
-      alert(`Cannot exceed stock limit: ${product.stock}`);
+      toast.error(`Cannot exceed stock limit: ${product.stock}`);
       return;
     }
     setSelectedProducts(prev =>
@@ -190,7 +190,7 @@ const handleAdd = async (newOrder) => {
 
 const handleCreateOrder = async () => {
   if (selectedProducts.length === 0 || !customerInfo.payment_method) {
-    alert('Please fill all customer information and add at least one product');
+    toast.error('Please fill all customer information and add at least one product');
     return;
   }
 
@@ -216,20 +216,19 @@ const handleCreateOrder = async () => {
   const success = await handleAdd(newOrder);
 
   if (success) {
-    console.log(newOrder);
     setSelectedProducts([]);
     setCustomerInfo({
       phone: '',
       name: '',
-      location: '',
+      location: 'Noor Creations',
       payment_method: '',
     });
     setBarcodeInput('');
-    alert('Order created successfully!');
+    toast.success('Order created successfully!');
     setCurrentView('orders');
     fetchOrders(page,limit);
   } else {
-    alert('Failed to create order. Please try again.');
+    toast.error('Failed to create order. Please try again.');
   }
 };
 
@@ -332,7 +331,7 @@ const handleCreateOrder = async () => {
                 style={styles.input}
                 value = {salesPerson}
                 onChange={(e)=>  setSalesperson(e.target.value)}
-                placeholder='Enter Salesperson Name'
+                placeholder='Enter Salesperson ID'
                 />
               </div>
             </div>
@@ -346,7 +345,7 @@ const handleCreateOrder = async () => {
             <div style={styles.formGrid}>
               
               <div style={styles.formGroup}>
-                <label style={styles.label}>Customer Name *</label>
+                <label style={styles.label}>Customer Name </label>
                 <input
                   type="text"
                   style={styles.input}
@@ -356,7 +355,7 @@ const handleCreateOrder = async () => {
                 />
               </div>
               <div style={styles.formGroup}>
-                <label style={styles.label}>Customer Phone No. (+91)*</label>
+                <label style={styles.label}>Customer Phone No. (+91)</label>
                 <input
                   type="text"
                   style={styles.input}
@@ -391,7 +390,7 @@ const handleCreateOrder = async () => {
                   <option value="upi">Upi</option>
                   <option value="netbanking">Net Banking</option>
                   <option value="wallet">Wallet</option>
-                  <option value="cash-on-delivery">Cash On Delivery</option>
+                  <option value="cash-on-delivery">Cash</option>
                 </select>
 
               </div>
@@ -747,7 +746,7 @@ const handleCreateOrder = async () => {
               <tbody style={{backgroundColor: '#FDFDFD'}}>
                 {ordersData.map((order, index) => (
                   <tr 
-                    key={order.id} 
+                    key={order.orderID} 
                     style={{
                       transition: 'background-color 0.2s',
                       cursor: 'pointer'

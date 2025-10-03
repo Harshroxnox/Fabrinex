@@ -1,9 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ProductItem from './ProductItem';
 import ProductFilters from './ProductFilters';
 import AddProductDialog from './AddProductDialog';
 import './ProductsList.css';
 import { downloadLabelsByDate, downloadProductLabels, getAllProducts } from '../../contexts/api/products';
+import toast from 'react-hot-toast';
 
 const ProductsList = () => {
   const [products, setProducts] = useState([]);
@@ -75,13 +76,13 @@ const ProductsList = () => {
       setIsAddDialogOpen(false);
       const {data, error} = await getAllProducts();
       if(error) {
-        console.error("Error refreshing products:" , error);
+        toast.error(`Error refreshing products: ${error}`);
         return ;
       }
       setProducts(data.products);
       setFilteredProducts(data.products);
     } catch (err) {
-      console.error('Unexpected error refreshing products:', err);
+      toast.error(`Unexpected error refreshing products: ${err.message}`);
     }
     finally{
       setLoading(false);
@@ -101,7 +102,7 @@ const handleDownloadByDate = async () => {
     // console.log(dateFrom, dateTo);
     const {data , error} = await downloadLabelsByDate({dateFrom,dateTo});
     if(error){
-      console.error("Download Failed:" ,error);
+      toast.error(`Download failed:  ${error}`);
       return ;
     }
     //create download link
@@ -113,6 +114,7 @@ const handleDownloadByDate = async () => {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+    toast.success("Barcode list added!");
   };
 
   return (

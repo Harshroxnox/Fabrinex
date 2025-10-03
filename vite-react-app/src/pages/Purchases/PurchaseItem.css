@@ -1,0 +1,77 @@
+.purchase-item {
+border: 0.01rem solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1rem;
+  background-color: #f9fafb;
+  /* margin-bottom: 0.5rem; */
+}
+
+.purchase-item.expanded {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.purchase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.purchase-info {
+  flex : 1;
+}
+
+.purchase-category{
+    display: inline-block;
+  background-color: #e5e7eb;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #374151;
+  margin-right: 0.5rem;
+}
+.purchase-name{
+  font-weight: 600;
+  color: black;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+
+
+.purchase-date {
+  font-size: 0.9em;
+  color: #666;
+  background-color: #f0f0f0;
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.purchase-metadata {
+    color: #6b7280;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.purchase-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.expand-icon {
+  font-size: 16px;
+  color: #888;
+}
+
+.purchase-items-section {
+  padding: 0 15px 15px 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.no-items-message {
+  color: #888;
+  font-style: italic;
+}

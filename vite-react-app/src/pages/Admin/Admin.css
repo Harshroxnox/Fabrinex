@@ -8,13 +8,14 @@
 
 .admin-main {
     margin-top: 50px;
-    height: 100vh;
+    height: 110vh;
     overflow-y: auto;
     padding-left: 2rem;
     font-size: 3rem;
     padding-top: 2rem;
     background-color: #F1F5F9;
     width:100%;
+
 }
 
 .admin-box {
@@ -32,7 +33,7 @@
     border: 0.01rem solid #a2a2a2;
     background-color: #F1F5F9;
     color:#0F172A;
-    height: 100%;
+    height: 110vh;
 }
 
 .admin-title {

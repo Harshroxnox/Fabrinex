@@ -1,0 +1,112 @@
+
+.purchases-container {
+  background-color: #f9fafb;
+  font-family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  border: 0.01rem solid black;
+  border-radius: 2rem;
+  width: 84vw;
+  overflow: hidden;
+  min-height: 600px;
+  margin: 0 auto;
+  padding:35px;
+}
+
+.purchases-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+.purchases-list {
+  /* overflow: scroll; */
+  border: 0.01rem solid #a2a2a2;
+  padding: 2rem;
+
+  border-radius: 2rem;
+  background-color: #FDFDFD;
+  /* margin-bottom: 3rem0; */
+}
+
+.purchases-btn-group {
+  display: flex;
+  gap:1rem;
+  align-items: center;
+}
+
+.add-purchase-btn {
+  background-color: #111827;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 2rem;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: left;
+  gap: 0.5rem;
+}
+
+.add-purchase-btn:hover {
+  background-color: #1f2937;
+}
+
+.add-purchase-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.purchases-list {
+  font-size: large;
+  display: grid;
+  gap: 20px;
+}
+
+.loading-indicator,
+.no-purchases-message {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: #777;
+}
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  margin-top: 25px;
+  padding: 10px;
+  font-family: sans-serif;
+}
+
+.pagination-controls button {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background-color: #fff;
+  color: #007bff;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+
+.pagination-controls button:hover:not(:disabled) {
+  background-color: #007bff;
+  color: #fff;
+  box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+}
+
+.pagination-controls button:disabled {
+  background-color: #f8f9fa;
+  color: #adb5bd;
+  cursor: not-allowed;
+  border-color: #e9ecef;
+}
+
+.pagination-controls span {
+  font-size: 16px;
+  color: #495057;
+  font-weight: 500;
+}

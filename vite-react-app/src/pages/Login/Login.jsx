@@ -3,6 +3,7 @@ import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoginContext } from "../../contexts/LoginContext";
 import "./Login.css"; // switched to normal CSS
+import toast from "react-hot-toast";
 
 function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -14,13 +15,13 @@ function Login() {
     try {
       const res = await login(form); // wait for the promise to resolve
       if (res.message === "success") {
+        toast.success("Login successful!");
         navigate("/admin");
       } else {
-        alert("Wrong credentials - User not found");
+        toast.error("Wrong credentials - User not found");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     }
   };
 

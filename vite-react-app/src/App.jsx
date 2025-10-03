@@ -4,12 +4,12 @@ import "./App.css"
 import Login from "./pages/Login/Login"
 import Navbar from "./components/Navbar/Navbar"
 import {LoginProvider} from './contexts/LoginContext';
-import { ProductProvider } from "./contexts/ProductContext"
 import ProtectedRoute from "./ProtectedRoute"
+import { Toaster } from "react-hot-toast"
 const App = () => {
   return (
 <LoginProvider>
-  <ProductProvider>
+    <Toaster position="top-right" />
     <Navbar/>
       <Routes >
         <Route path="/" element={<Login />}/>
@@ -20,8 +20,6 @@ const App = () => {
         }
         />
       </Routes>
-  </ProductProvider>
-
 </LoginProvider>
   )
 }

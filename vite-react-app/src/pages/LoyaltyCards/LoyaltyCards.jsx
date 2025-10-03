@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Trash, Search, Plus } from "lucide-react";
 import "./LoyaltyCards.css";
 import { createLoyaltyCards, deleteLoyaltyCards, getAllLoyaltyCards } from "../../contexts/api/loyaltyCards";
+import toast from "react-hot-toast";
 
 const LoyaltyCards = () => {
   const [loyaltyCards, setLoyaltyCards] = useState([]);
@@ -40,8 +41,9 @@ const LoyaltyCards = () => {
       fetchLoyaltyCards();
       setNewLoyaltyCard({ discount: "" });
       setIsAddDialogOpen(false);
+      toast.success('New Loyalty Card added!');
     } catch (error) {
-      console.error("Error adding loyalty card:", error);
+      toast.error('Error while adding loyalty card!');
     }
   };
 

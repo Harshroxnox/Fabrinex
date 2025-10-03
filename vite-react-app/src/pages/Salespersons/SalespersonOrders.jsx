@@ -1,39 +1,52 @@
-import React, { useState } from "react";
-import axios from "axios";
-import axiosInstance from "../../utils/axiosInstance";
-// import "./SalespersonOrders.css"; // import the CSS file
-
-const SalespersonOrders = () => {
+import React, { useState, useCallback, useEffect } from "react";
+import { getSalespersonOrders,getAllSalesPersons } from "../../contexts/api/salespersons";
+import './Salespersons.css';
+import toast from "react-hot-toast";
+const SalespersonOrders = (refresh) => {
   const [salesPersonID, setSalesPersonID] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [orders, setOrders] = useState([]);
   const [commission, setCommission] = useState(null);
+  const [salespersons, setSalespersons] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const fetchOrders = async () => {
+  // Fetch salespersons
+  const fetchSalespersons = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getAllSalesPersons();
+      setSalespersons(res.data.salesPersons || []);
+    } catch (error) {
+      console.error("Error fetching salespersons:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [refresh]);
+
+  useEffect(() => {
+    fetchSalespersons();
+  }, [fetchSalespersons]);
+
+  // Fetch orders
+  const fetchOrders = useCallback(async () => {
     if (!salesPersonID || !dateFrom || !dateTo) {
-      alert("Please fill all fields");
+      toast.error("Please fill all fields");
       return;
     }
 
     try {
-      const res = await axiosInstance.get(
-        `http://localhost:5000/api/v1/salespersons/salesperson-orders/${salesPersonID}`,
-        {
-          params: {
-            date_from: dateFrom,
-            date_to: dateTo,
-          },
-        }
-      );
-
+      setLoading(true);
+      const res = await getSalespersonOrders(salesPersonID, dateFrom, dateTo);
       setOrders(res.data.orders || []);
       setCommission(res.data.commission || null);
     } catch (error) {
-      console.error("Error fetching salesperson orders:", error);
-      alert("Failed to fetch data");
+      // console.error("Error fetching salesperson orders:", error);
+      toast.error("Failed to fetch data");
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [salesPersonID, dateFrom, dateTo]);
 
   return (
     <div className="salesperson-info-container">
@@ -42,56 +55,45 @@ const SalespersonOrders = () => {
       {/* Filters */}
       <div className="salesperson-info-filters">
         <div className="salesperson-info-filter-group">
-          <label>Salesperson ID</label>
-          <input
-            type="number"
-            value={salesPersonID}
-            onChange={(e) => setSalesPersonID(e.target.value)}
-          />
+          <label>Salesperson</label>
+          <select value={salesPersonID} onChange={(e) => setSalesPersonID(e.target.value)}>
+            <option value="">Select Salesperson</option>
+            {salespersons.map((sp) => (
+              <option key={sp.salesPersonID} value={sp.salesPersonID}>
+                {sp.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="salesperson-info-filter-group">
           <label>Date From</label>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-          />
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
         </div>
 
         <div className="salesperson-info-filter-group">
           <label>Date To</label>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-          />
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
         </div>
 
-        <button onClick={fetchOrders} className="salesperson-info-button">
-          Fetch Orders
+        <button onClick={fetchOrders} disabled={loading} className="salesperson-info-button">
+          {loading ? "Loading..." : "Fetch Orders"}
         </button>
       </div>
 
       {/* Commission */}
-      {commission && (
-        <h6>Total Commission: ₹{parseFloat(commission).toFixed(2)}</h6>
-      )}
+      {commission && <h6>Total Commission: ₹{parseFloat(commission).toFixed(2)}</h6>}
 
-      {/* Table */}
+      {/* Orders Table */}
       {orders.length > 0 ? (
         <table className="salesperson-info-table">
           <thead>
             <tr>
               <th>Order ID</th>
               <th>Date</th>
-              {/* <th>Payment Method</th> */}
               <th>Payment Status</th>
               <th>Order Status</th>
               <th>Amount</th>
-              {/* <th>Profit</th> */}
-              {/* <th>Tax</th> */}
-              {/* <th>Discount</th> */}
               <th>Commission %</th>
               <th>Commission Amount</th>
             </tr>
@@ -101,13 +103,9 @@ const SalespersonOrders = () => {
               <tr key={order.orderID}>
                 <td>{order.orderID}</td>
                 <td>{new Date(order.created_at).toLocaleString()}</td>
-                {/* <td>{order.payment_method}</td> */}
                 <td>{order.payment_status}</td>
                 <td>{order.order_status}</td>
                 <td>₹{order.amount}</td>
-                {/* <td>₹{order.profit}</td> */}
-                {/* <td>₹{order.tax}</td> */}
-                {/* <td>₹{order.promo_discount}</td> */}
                 <td>{order.commission}%</td>
                 <td>₹{parseFloat(order.commission_amt).toFixed(2)}</td>
               </tr>

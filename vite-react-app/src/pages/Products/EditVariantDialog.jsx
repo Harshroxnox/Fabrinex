@@ -6,6 +6,7 @@ import {
   uploadSecondaryImages,
   updateVariant,
 } from "../../contexts/api/products";
+import toast from "react-hot-toast";
 
 const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) => {
   const [loading, setLoading] = useState(false);
@@ -155,8 +156,10 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
         updateData
       );
 
-      if (updateError) throw new Error(updateError);
-
+      if (updateError){
+        toast.error("Error updating variant");
+        throw new Error(updateError);
+      } 
       // handle secondary images
       const newFiles = editedVariant.secondary_images
         .filter((img) => img.isNew)
@@ -172,8 +175,10 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
         main_image: previewUrl, // keep existing if no new image uploaded
       });
 
+      toast.success("Variant updated successfully");
       onClose();
     } catch (err) {
+      toast.error(`Error updating variant: ${err}`);
       console.error("Error updating variant:", err);
       setError("Failed to update variant");
     } finally {
@@ -189,9 +194,6 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
         <h2>
           Edit Variant ({variant.color}, {variant.size})
         </h2>
-
-        {error && <p className="error-message">{error}</p>}
-
         <form onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="form-group">

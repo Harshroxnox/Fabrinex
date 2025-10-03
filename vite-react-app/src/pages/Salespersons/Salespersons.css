@@ -345,6 +345,18 @@
   color: #374151;
   font-weight: 500;
 }
+.salesperson-info-filter-group select , option {
+  font-size: 0.9rem;
+  color: #374151;
+  /* font-weight: 500; */
+  /* display: flex; */
+  /* flex-direction: column; */
+  gap: 0.5rem;
+  /* margin-bottom: 1rem; */
+  width:100%;
+  padding: 7px;
+  border-radius: 8px;
+}
 
 .salesperson-info-filter-group input {
   padding: 8px 10px;

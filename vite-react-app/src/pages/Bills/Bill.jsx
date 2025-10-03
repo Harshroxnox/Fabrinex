@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { FaTrashAlt, FaEye } from 'react-icons/fa';
 import { deleteBill, getAllBills, uploadBill } from '../../contexts/api/bills';
 import "./Bills.css";
+import toast from "react-hot-toast";
 
 const BillManagement = () => {
   const [bills, setBills] = useState([]);
@@ -46,9 +47,10 @@ const BillManagement = () => {
       fetchBills();
       setNewBill({ wholesaler_name: "", bill_date: "", bill_pdf: null });
       setIsAddDialogOpen(false);
+      toast.success('New Bill added!');
     } catch (error) {
       console.error("Error adding bill:", error);
-      alert("Failed to add bill. Please try again.");
+      toast.error('Failed to add bill. Please try again.');
     }
   };
 
@@ -57,9 +59,9 @@ const BillManagement = () => {
     try {
       await deleteBill(billID);
       fetchBills();
+      toast.success('Bill deleted successfully!');
     } catch (error) {
-      console.error("Error deleting bill:", error);
-      alert("Failed to delete bill. Please try again.");
+      toast.error('Error deleting bill');
     }
   };
   

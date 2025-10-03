@@ -11,6 +11,7 @@ import {
   uploadSecondaryImages, 
   createVariant 
 } from '../../contexts/api/products';
+import toast from 'react-hot-toast';
 
 const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -64,7 +65,8 @@ const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
       );
 
       if (createError) {
-        throw new Error(`Failed to create variant: ${createError}`);
+        toast.error(`Failed to create variant: ${createError}`)
+        // throw new Error(`Failed to create variant: ${createError}`);
       }
 
       const newVariantID = createData.variantID;
@@ -76,15 +78,16 @@ const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
         );
 
         if (uploadError) {
+          toast.error("Variant created, but failed to upload secondary images");
           console.warn(`Variant created, but failed to upload secondary images: ${uploadError}`);
         }
       }
       
       fetchVariants();
       setIsAddDialogOpen(false);
-
+      toast.success("Variant added!");
     } catch (error) {
-      console.error("Error adding new variant:", error.message);
+      toast.error(`Error adding new variant:", ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -95,11 +98,15 @@ const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
     try {
       const { data, error } = await deleteProduct(product.productID);
 
-      if (error) throw new Error(error);
+      if (error){
+        toast.error("Variant not deleted!");
+        throw new Error(error);
+      } 
       setIsDeleteDialogOpen(false);
       if (onDeleted) onDeleted();
+      toast.success("Variant Deleted!");
     } catch (err) {
-      console.error("Error deleting product :", err);
+      toast.error("Variant not deleted!");
     } finally {
       setLoading(false);
     }

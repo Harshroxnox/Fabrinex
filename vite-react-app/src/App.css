@@ -29,3 +29,16 @@ html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+/* Create a class to apply to any element */
+.no-scrollbar {
+  /* For Firefox */
+  scrollbar-width: none;
+
+  /* For Internet Explorer and old Edge */
+  -ms-overflow-style: none;
+}
+
+/* For WebKit-based browsers (Chrome, Safari, new Edge, Opera) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

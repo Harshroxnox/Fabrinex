@@ -1,0 +1,32 @@
+.items-list-container {
+  margin-top: 1rem;
+  border: 0.01rem solid #e5e7eb;
+  border-radius: 1rem;
+  padding: 1rem;
+  background-color: #FDFDFD;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+}
+
+.items-table th{
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 0.1rem solid #a2a2a2;
+  color: #374151;
+} 
+.items-table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 0.1rem solid #e5e7eb;
+  color: #4b5563;
+}
+
+.items-table tbody tr:last-child td {
+  border-bottom: none;
+}

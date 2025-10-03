@@ -4,6 +4,7 @@ import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 import './VariantsList.css';
 import { EditIcon, Trash2Icon } from 'lucide-react';
 import { deleteVariant, updateVariant } from '../../contexts/api/products';
+import toast from 'react-hot-toast';
 
 const VariantsList = ({ variants, productId, onDeleted }) => {
   const [editingVariant, setEditingVariant] = useState(null);
@@ -29,8 +30,9 @@ const VariantsList = ({ variants, productId, onDeleted }) => {
       
       setEditingVariant(null);
       if (onDeleted) onDeleted();
+      toast.success('Variant Updated!');
     } catch (err) {
-      console.error('Error updating variant:', err);
+      toast.error('Error updating variant:' ,error);
     } finally {
       setLoading(false);
     }
@@ -44,9 +46,9 @@ const VariantsList = ({ variants, productId, onDeleted }) => {
       
       setDeletingVariant(null);
       if (onDeleted) onDeleted();
-    
+      toast.success('Variant Deleted!');  
     } catch (err) {
-      console.error("Error deleting variant: ", err);
+      toast.error('Error updating variant:' ,error);
     } finally {
       setLoading(false);
     }

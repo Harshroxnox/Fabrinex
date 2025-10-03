@@ -3,6 +3,7 @@ import './CustomerPage.css';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { LoginContext } from '../../contexts/LoginContext';
+import toast from 'react-hot-toast';
 
 const CustomerPage = () => {
   const [customers, setCustomers] = useState([]);
@@ -28,7 +29,6 @@ const CustomerPage = () => {
     const fetchData= async ()=>{
       const sampleData =await getAllUsers(page,limit);
       const users = sampleData.users;
-      console.log(users);
       setCustomers(users);
       setTotalPages(Math.ceil(sampleData.total/limit));
       setFilteredCustomers(users);
@@ -127,12 +127,12 @@ const CustomerPage = () => {
 
   const sendPromotions = () => {
     if (selectedCustomers.length === 0) {
-      alert('Please select at least one customer');
+      toast.error('Please select at least one customer');
       return;
     }
     
     const selected = customers.filter(c => selectedCustomers.includes(c.userID));
-    alert(`Preparing to send ${notificationMethod} promotions to: ${selected.map(c => c.name).join(', ')}`);
+    toast.success(`Preparing to send ${notificationMethod} promotions to: ${selected.map(c => c.name).join(', ')}`);
     // In a real app, you would call your API here
   };
 

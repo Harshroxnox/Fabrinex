@@ -8,7 +8,6 @@ const TextEditor = ({ value, onChange }) => {
   const quillInstance = useRef(null);
 
   useEffect(() => {
-    console.log(value);
     if (editorRef.current && !quillInstance.current) {
       quillInstance.current = new Quill(editorRef.current, {
         theme: 'snow',

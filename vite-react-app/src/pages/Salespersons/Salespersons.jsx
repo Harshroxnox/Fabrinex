@@ -8,12 +8,13 @@ import {
 } from "../../contexts/api/salespersons";
 import { Trash, Search, Plus } from "lucide-react";
 import SalespersonOrders from "./SalespersonOrders";
+import toast from "react-hot-toast";
 
 const Salespersons = () => {
   const [salespersons, setSalespersons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [refresh,setRefresh] = useState(false);
   // Dialog states
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
@@ -34,6 +35,7 @@ const Salespersons = () => {
       const res = await getAllSalesPersons();
       setSalespersons(res.data.salesPersons || []);
     } catch (error) {
+      toast.error("Error fetching salespersons");
       console.error("Error fetching salespersons:", error);
     } finally {
       setLoading(false);
@@ -47,20 +49,21 @@ const Salespersons = () => {
 
   // Add salesperson
   const handleAdd = async () => {
-
     if (!newSalesperson.name || !newSalesperson.commission || !newSalesperson.phone_number) {
-      alert("Please fill all fields.");
+      toast.error("Please fill all fields.");
       return;
     }
     newSalesperson.phone_number = '+91' + newSalesperson.phone_number;
     try {
-      await addSalesPerson(newSalesperson);
+      const res = await addSalesPerson(newSalesperson);
       // Refresh the list after adding
       fetchSalespersons();
       setNewSalesperson({ name: "", commission: "", phone_number: "" });
       setIsAddDialogOpen(false);
+      toast.success(res.data.message || 'New Salesperson added!');
+      setRefresh(!refresh);
     } catch (error) {
-      console.error("Error adding salesperson:", error);
+      toast.error(error || 'Error while adding new salesperson');
     }
   };
 
@@ -72,8 +75,9 @@ const Salespersons = () => {
       await deleteSalesPersons(id);
       // Refresh the list after deleting
       fetchSalespersons();
+      toast.success('Salesperson Deleted!');
     } catch (error) {
-      console.error("Error deleting salesperson:", error);
+      toast.error('Error while deleting salesperson');
     }
   };
 
@@ -90,8 +94,10 @@ const Salespersons = () => {
       fetchSalespersons();
       setSelectedSalesperson(null);
       setNewCommission("");
+      toast.success('Commission updated');
     } catch (error) {
       console.error("Error updating commission:", error);
+      toast.error('Error while updating commission'); 
     }
   };
 
@@ -176,7 +182,7 @@ const Salespersons = () => {
           </table>
         </div>
       )}
-      <SalespersonOrders/>
+      <SalespersonOrders refresh={refresh}/>
 
       {/* Add Salesperson Dialog */}
       {isAddDialogOpen && (
