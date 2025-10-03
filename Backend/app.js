@@ -42,7 +42,7 @@ import salesPersonRouter from "./routes/salesperson.routes.js"
 import loyaltyCardRouter from "./routes/loyaltycards.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
 import billRouter from "./routes/bill.routes.js";
-
+import purchaseRouter from "./routes/purchases.routes.js";
 // routes declaration
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/admins", adminRouter)
@@ -57,6 +57,7 @@ app.use("/api/v1/salespersons",salesPersonRouter)
 app.use("/api/v1/loyaltycards",loyaltyCardRouter)
 app.use("/api/v1/dashboard", dashboardRouter)
 app.use("/api/v1/bills",billRouter);
+app.use("/api/v1/purchases",purchaseRouter);
 
 // for error handling
 app.use(errorHandler);

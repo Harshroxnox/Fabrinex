@@ -301,3 +301,20 @@ CREATE TABLE Bills (
     cloudinary_id VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE Purchases (
+    purchaseID INT AUTO_INCREMENT PRIMARY KEY,
+    metaData JSON,
+    purchaseDate DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE PurchaseItems (
+    itemID INT AUTO_INCREMENT PRIMARY KEY,
+    purchaseID INT NOT NULL,
+    barcode CHAR(13) NOT NULL,
+    hsn_code VARCHAR(50),
+    quantity INT NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+    FOREIGN KEY (purchaseID) REFERENCES Purchases (purchaseID) ON DELETE CASCADE,
+    UNIQUE KEY uk_purchase_barcode (purchaseID, barcode)
+);

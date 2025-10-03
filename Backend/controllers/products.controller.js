@@ -625,6 +625,10 @@ export const createVariant = async (req, res, next) => {
     const discountedPrice = price - (price * (discount / 100));
     const profit = discountedPrice - myWallet;
 
+    if (profit < 0) {
+      throw new AppError(400, "Invalid profit : Profit getting less than 0 check your my_wallet amount and discount ");
+    }
+
     // UPLOAD IMAGE 
     const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
     cloudinaryID = mainImgCloudinary.public_id;
@@ -744,6 +748,9 @@ export const updateVariant = async (req, res, next) => {
       // Calculate profit
       const discountedPrice = price - (price * (discount / 100));
       const profit = discountedPrice - my_wallet;
+      if (profit < 0) {
+        throw new AppError(400, "Invalid profit : Profit getting less than 0 check your my_wallet amount and discount ");
+      }
 
       fields.my_wallet = my_wallet;
       fields.profit = profit;
@@ -1260,7 +1267,7 @@ export const getLabels = async (req, res, next) => {
     for (const v of variants) {
       // Generate barcode as PNG buffer
       const png = await bwipjs.toBuffer({
-        bcid: 'ean13',       // Barcode type
+        bcid: 'code128',       // Barcode type
         text: v.barcode,     // Barcode value
         scale: 3,
         height: 10,
@@ -1337,7 +1344,7 @@ export const getLabelsByDate = async  (req, res, next) => {
         for (const v of variants) {
           // Generate barcode as PNG buffer
           const png = await bwipjs.toBuffer({
-            bcid: 'ean13',       // Barcode type
+            bcid: 'code128',       // Barcode type
             text: v.barcode,     // Barcode value
             scale: 3,
             height: 10,

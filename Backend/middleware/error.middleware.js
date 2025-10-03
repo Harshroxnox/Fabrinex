@@ -17,7 +17,7 @@ const errorHandler = (error, req, res, next) => {
   }
 
   // Fallback
-  return res.status(500).json({ error: "Internal server error" });
+  return res.status(500).json({ error: error.message});
 };
 
 export default errorHandler;
