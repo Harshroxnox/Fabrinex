@@ -633,7 +633,7 @@ export const createVariant = async (req, res, next) => {
     const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
     cloudinaryID = mainImgCloudinary.public_id;
 
-    const barcode = received_barcode ? received_barcode :
+    const barcode = received_barcode !== "null" ? received_barcode :
      await generateUniqueBarcode("ProductVariants");
 
     const [result] = await db.execute(

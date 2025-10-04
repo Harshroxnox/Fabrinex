@@ -229,18 +229,15 @@ export const getRoleAdmin = async (req, res, next) => {
 
 export const updateAdmin = async (req, res, next) => {
   const adminID = validID(req.params.adminID);
-  const password = validPassword(req.body.password);
-  const roles = req.body.roles;
+  // Destructure password and roles from the request body
+  const { password, roles } = req.body;
 
   try {
-    // admin id validation
-    if(adminID === null){
+    // Admin ID validation
+    if (adminID === null) {
       throw new AppError(422, "Invalid admin id");
     }
-    // password validation
-    if(password === null){
-      throw new AppError(422, "Invalid Password. Password must contain atleast 1 capital letter,1 special Character, 1 numeric digit");
-    }
+
     // Roles validation
     const invalidRoles = !Array.isArray(roles) || roles.length === 0 || roles.some(role => !constants.ADMIN_ROLES.includes(role));
     if (invalidRoles) {
@@ -256,12 +253,21 @@ export const updateAdmin = async (req, res, next) => {
       throw new AppError(404, "Admin not found");
     }
 
-    // 2. Update password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await db.execute(
-      `UPDATE AdminUsers SET password = ? WHERE adminID = ?`,
-      [hashedPassword, adminID]
-    );
+    // 2. OPTIONALLY update password if provided
+    if (password) {
+      // Validate the provided password
+      const validatedPassword = validPassword(password);
+      if (validatedPassword === null) {
+        throw new AppError(422, "Invalid Password. Password must contain at least 1 capital letter, 1 special character, and 1 numeric digit");
+      }
+      
+      // Hash the new password and update it in the database
+      const hashedPassword = await bcrypt.hash(validatedPassword, 10);
+      await db.execute(
+        `UPDATE AdminUsers SET password = ? WHERE adminID = ?`,
+        [hashedPassword, adminID]
+      );
+    }
 
     // 3. Delete old roles
     await db.execute(
@@ -281,7 +287,6 @@ export const updateAdmin = async (req, res, next) => {
     next(error);
   }
 };
-
 
 export const deleteAdmin = async (req, res, next) => {
   const adminID  = validID(req.params.adminID);
