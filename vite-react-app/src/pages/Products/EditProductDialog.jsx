@@ -11,7 +11,6 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
     category: product?.category || "",
   });
 
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   
   useEffect(() => {
@@ -41,21 +40,20 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
     setLoading(true);
     
     if (!editedProduct.name.trim()) {
-      setError("Product name is required");
+      toast.error("Product name is required");
       setLoading(false);
       return;
     }
     
     if (!editedProduct.category.trim()) {
-      setError("Category is required");
+      toast.error("Category is required");
       setLoading(false);
       return;
     }
     const { data, error } = await updateProduct(product.productID, editedProduct);
     
     if (error) {
-      toast.error("Error updating product");
-      setError(error);
+      toast.error("Error updating product: " + error);
     } else {
       onSave?.(data);
       toast.success("Product Updated successfully");
@@ -83,8 +81,6 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
     <div className="dialog-overlay">
       <div className="dialog-content">
         <h2>Edit Product</h2>
-
-        {error && <p className="error-message">{error}</p>}
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">

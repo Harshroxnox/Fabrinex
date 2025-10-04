@@ -13,4 +13,15 @@ const handleRequest = async (fn) => {
   }
 };
 
-export const getMetrics = () => handleRequest(() => axiosInstance.get("/dashboard/get-metrics"));
+export const getMetrics = ({ year, month }) => {
+  const params = new URLSearchParams();
+  if (year) params.append('year', year);
+  if (month) params.append('month', month);
+
+  const queryString = params.toString();
+  const url = `/dashboard/get-metrics${queryString ? `?${queryString}` : ''}`;
+
+  return handleRequest(() => axiosInstance.get(url));
+};
+
+export const getTodaysMetrics = () => handleRequest(() => axiosInstance.get("/dashboard/todays-metrics"));

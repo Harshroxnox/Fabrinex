@@ -36,17 +36,18 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
 
   const validateProduct = () => {
     if (!newProduct.name.trim()) {
-      setError('Product name is required');
+      toast.error('Product name is required');
       return false;
     }
     if (!newProduct.category.trim()) {
-      setError('Category is required');
+      toast.error('Category is required');
       return false;
     }
     return true;
   };
 
   const handleNext = () => {
+
     if (validateProduct()) {
       setCurrentStep(2);
       setError('');
@@ -99,8 +100,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
         if (variant.secondaryImages?.length > 0) {
           const { error: imageError } = await uploadSecondaryImages(variantID, variant.secondaryImages);
           if (imageError){
-            toast.error('Failed to upload secondary images');
-            throw new Error(`Failed to upload secondary images: ${imageError}`);
+            // toast.error('Failed to upload secondary images');
+            throw new Error(`Secondary Image ${imageError}`);
           } 
         }
       });
@@ -116,7 +117,7 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
       onClose();
 
     } catch (err) {
-      toast.error('Error saving product or variants');
+      toast.error('Error saving product or variants' + err);
       console.error("Error saving product or variants:", err);
     } finally {
       setLoading(false);

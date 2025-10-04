@@ -1,15 +1,16 @@
 import React, { useContext, useState } from 'react';
 import './EditAdmin.css';
 import { LoginContext } from '../../contexts/LoginContext';
+import toast from 'react-hot-toast';
 
 const EditAdmin = ({ admin, onClose, onSave }) => {
   const [editedAdmin, setEditedAdmin] = useState({ 
       ...admin,
       roles: Array.isArray(admin.roles) ? [...admin.roles] : [admin.role || 'Content Admin']
   });
-  const {updateAdmin}= useContext(LoginContext);
-  const [password,setPassword]= useState('');
-  const [confirmpassword,setConfirmPassword]= useState('');
+  const { updateAdmin } = useContext(LoginContext);
+  const [password, setPassword] = useState('');
+  const [confirmpassword, setConfirmPassword] = useState('');
   const [availableRoles] = useState([
     'superadmin',
     'admin',
@@ -17,11 +18,12 @@ const EditAdmin = ({ admin, onClose, onSave }) => {
     'inventory-manager',
     'marketing'
   ]);
+
   const handleRoleChange = (role) => {
     setEditedAdmin(prev => {
       const newRoles = prev.roles.includes(role)
-        ? prev.roles.filter(r => r !== role) // Remove role if already selected
-        : [...prev.roles, role]; // Add role if not selected
+        ? prev.roles.filter(r => r !== role) // Remove role
+        : [...prev.roles, role]; // Add role
       return {
         ...prev,
         roles: newRoles
@@ -29,28 +31,38 @@ const EditAdmin = ({ admin, onClose, onSave }) => {
     });
   };
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  if(editedAdmin.roles.length === 0){
-    alert('Please select at least one role');
-    return;
-  }
-  console.log(password);
-  console.log(confirmpassword);
-  if(password!==confirmpassword){
-    alert('Passwords do not match');
-    return;
-  }
-  const updatedFormData = {
-    password,
-    roles: editedAdmin.roles
+    // 1. Always validate roles
+    if (editedAdmin.roles.length === 0) {
+      alert('Please select at least one role');
+      return;
+    }
+
+    const updatedFormData = {
+      roles: editedAdmin.roles
+    };
+
+    // 2. Conditionally validate and add password
+    // This block only runs if the user types in the password field
+    if (password) {
+      if (password !== confirmpassword) {
+        alert('Passwords do not match');
+        return;
+      }
+      // Add password to the form data only if it's provided
+      updatedFormData.password = password;
+    }
+
+    console.log("Submitted form data:", updatedFormData);
+    await updateAdmin(admin.adminID, updatedFormData);
+    onSave(editedAdmin); 
+    toast.success('Admin updated successfully');
+    onClose(); // Close modal on successful save
   };
-  console.log("Submitted form data:", updatedFormData);
-  await updateAdmin(admin.adminID, updatedFormData);
-  onSave(editedAdmin);//if you intend to submit editedAdmin separately
-};
-return(
+
+  return (
     <div className="edit-admin-modal-overlay">
       <div className="edit-admin-modal">
         <h5>Edit Admin</h5>
@@ -64,23 +76,25 @@ return(
             />
           </div>
           <div className="edit-admin-form-group">
-            <label>Password</label>
+            <label>New Password (Optional)</label>
             <input
               type="password" 
               name="password"
+              placeholder="Leave blank to keep current password"
               value={password} 
               onChange={(e) => setPassword(e.target.value)}
-              required
+              // The 'required' attribute has been removed
             />
           </div>
           <div className='edit-admin-form-group'>
-            <label>Confirm Password</label>
+            <label>Confirm New Password</label>
             <input
               type="password" 
-              name="password"
+              name="confirmpassword"
+              placeholder="Confirm new password"
               value={confirmpassword} 
-              onChange={(e)=>setConfirmPassword(e.target.value)}
-              required
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              // The 'required' attribute has been removed
             />
           </div>
           

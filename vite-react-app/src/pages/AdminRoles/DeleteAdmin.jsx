@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import './DeleteAdmin.css';
 import { LoginContext } from '../../contexts/LoginContext';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const DeleteAdmin = ({ admin, onClose, onConfirm }) => {
   const {deleteAdmin, logout}= useContext(LoginContext);
@@ -15,6 +16,7 @@ const DeleteAdmin = ({ admin, onClose, onConfirm }) => {
     }
     deleteAdmin(admin.adminID);
     onConfirm(admin.adminID);
+    toast.success('Admin deleted successfully');
   };
 
   return (

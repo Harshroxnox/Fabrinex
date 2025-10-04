@@ -53,7 +53,7 @@ function Login() {
             <input
               type="text"
               className="login-form-input"
-              placeholder="username"
+              placeholder="login"
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </div>

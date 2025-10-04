@@ -18,7 +18,7 @@ const SalespersonOrders = (refresh) => {
       const res = await getAllSalesPersons();
       setSalespersons(res.data.salesPersons || []);
     } catch (error) {
-      console.error("Error fetching salespersons:", error);
+      toast.error("Error fetching salespersons:", error);
     } finally {
       setLoading(false);
     }

@@ -3,6 +3,7 @@ import { ChevronDown } from "lucide-react";
 import { LoginContext } from "../../contexts/LoginContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -20,6 +21,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
+    toast.success("Logged out successfully");
     navigate("/");
     setIsDropdownOpen(false);
   };

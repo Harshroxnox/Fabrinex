@@ -65,7 +65,7 @@ const OrderCreationCRM = () => {
 
   //roles of the admin
   const roles = localStorage.getItem("role");
-  const canCreateOrder = roles.includes("superadmin") || roles.includes("admin");
+  const canCreateOrder = roles.includes("superadmin") ;
   const fetchOrders = useCallback(async (page,limit) => {
     try {
       setLoading(true);
@@ -73,7 +73,7 @@ const OrderCreationCRM = () => {
       setOrdersData(res.orders || []);
       setTotalPages(Math.ceil(res.total/limit));
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      toast.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
     }
@@ -183,7 +183,7 @@ const handleAdd = async (newOrder) => {
     await createOrderOffline(newOrder);
     return true;  // signal success
   } catch (error) {
-    console.error("Error creating order:", error);
+    toast.error("Error creating order:", error);
     return false; // signal failure
   }
 };
@@ -285,7 +285,7 @@ const handleCreateOrder = async () => {
       const res = await axios.get("http://localhost:5000/api/v1/orders/filter", {params});
       setOrdersData(res.data.orders || []);
     } catch (err) {
-      console.error("Error fetching filtered orders:" ,err);
+      toast.error("Error fetching filtered orders:" ,err);
     }
   }
   useEffect( () => {
@@ -300,7 +300,6 @@ const handleCreateOrder = async () => {
   const uniqueLocations = [...new Set(ordersData.map(order => order.location))];
   const uniquePaymentMethods = [...new Set(ordersData.map(order => order.payment_method))];
 
-  const uniqueSalesPersons = ['Virat' , 'Louis Litt' , 'Rachel Zane' , 'Anurag'];
   if (currentView === 'create') {
     return (
       <div style={styles.container}>

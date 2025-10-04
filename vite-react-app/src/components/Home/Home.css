@@ -183,3 +183,58 @@
     font-size: 0.85rem;
   }
 }
+
+/* Add this to your existing Home.css file */
+
+.filters-container {
+  /* display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem; */
+  
+  align-items: center;
+}
+.select-wrapper {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  align-items: center;
+}
+.select-wrapper label{
+  font-size: large;
+
+}
+
+.filters-container select {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  background-color: white;
+}
+/* In Home.css */
+
+/* Keep your existing styles for .filters-container, .select-wrapper, etc. */
+
+.admin-graphs-container {
+  flex: 1;
+  min-width: 48%;
+  padding: 1.5rem;
+  background-color: #fff;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid #a6aaad;
+}
+
+.admin-graphs-container h3 {
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* The chart-pair and chart-item classes are no longer needed for this section */

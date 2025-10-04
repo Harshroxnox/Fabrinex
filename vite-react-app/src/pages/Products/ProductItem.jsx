@@ -28,12 +28,11 @@ const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
     try {
       const { data, error } = await getProductByIDByAdmin(product.productID);
       if (error) {
-        console.error("Error fetching variants:", error);
-        return;
+        throw new Error(error);
       }
       setVariants(data.product.variants);
     } catch (err) {
-      console.error("Unexpected error fetching variants:", err);
+      toast.error("Failed to fetch variant details" + err);
     } finally {
       setLoading(false);
     }
@@ -65,7 +64,7 @@ const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
       );
 
       if (createError) {
-        toast.error(`Failed to create variant: ${createError}`)
+        throw new Error(createError);
         // throw new Error(`Failed to create variant: ${createError}`);
       }
 
@@ -78,8 +77,7 @@ const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
         );
 
         if (uploadError) {
-          toast.error("Variant created, but failed to upload secondary images");
-          console.warn(`Variant created, but failed to upload secondary images: ${uploadError}`);
+          throw new Error(uploadError);  
         }
       }
       
@@ -99,14 +97,14 @@ const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
       const { data, error } = await deleteProduct(product.productID);
 
       if (error){
-        toast.error("Variant not deleted!");
+        // toast.error("Variant not deleted!");
         throw new Error(error);
       } 
       setIsDeleteDialogOpen(false);
       if (onDeleted) onDeleted();
       toast.success("Variant Deleted!");
     } catch (err) {
-      toast.error("Variant not deleted!");
+      toast.error("Variant not deleted! : " + err);
     } finally {
       setLoading(false);
     }

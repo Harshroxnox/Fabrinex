@@ -12,8 +12,6 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
   const [loading, setLoading] = useState(false);
   const [variant, setVariant] = useState({});
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [error, setError] = useState("");
-
   const [editedVariant, setEditedVariant] = useState({
     price: "",
     discount: "0",
@@ -32,8 +30,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
       if (error) throw new Error(error);
       setVariant(data.variant);
     } catch (err) {
-      console.error("Error fetching variant:", err);
-      setError("Failed to fetch variant details");
+      toast.error("Failed to fetch variant details" + err);
     } finally {
       setLoading(false);
     }
@@ -108,8 +105,8 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
           secondary_images: prev.secondary_images.filter((_, i) => i !== idx),
         }));
       } catch (err) {
-        console.error("Error deleting secondary image:", err);
-        setError("Failed to delete secondary image");
+        toast.error("Error deleting secondary image:", err);
+        // setError("Failed to delete secondary image");
       }
     } else {
       setEditedVariant((prev) => ({
@@ -124,7 +121,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
     setLoading(true);
 
     if (!editedVariant.price) {
-      setError("Price is required");
+      toast.error("Price is required");
       setLoading(false);
       return;
     }
@@ -133,7 +130,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
       parseFloat(editedVariant.discount) < 0 ||
       parseFloat(editedVariant.discount) > 100
     ) {
-      setError("Discount must be between 0 and 100");
+      toast.error("Discount must be between 0 and 100");
       setLoading(false);
       return;
     }
@@ -157,7 +154,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
       );
 
       if (updateError){
-        toast.error("Error updating variant");
+        // toast.error("Error updating variant" + updateError);
         throw new Error(updateError);
       } 
       // handle secondary images
@@ -166,7 +163,11 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
         .map((img) => img.file);
 
       if (newFiles.length > 0) {
-        await uploadSecondaryImages(variant.variantID, newFiles);
+        const { error: uploadError } = await uploadSecondaryImages(variant.variantID, newFiles);
+        if (uploadError){
+          // toast.error("Error uploading secondary images");
+          throw new Error(updateError);
+        }
       }
 
       onSave?.({
@@ -179,8 +180,6 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
       onClose();
     } catch (err) {
       toast.error(`Error updating variant: ${err}`);
-      console.error("Error updating variant:", err);
-      setError("Failed to update variant");
     } finally {
       setLoading(false);
     }

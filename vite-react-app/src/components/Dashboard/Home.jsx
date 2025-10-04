@@ -1,133 +1,212 @@
+
+
 import React, { useEffect, useState } from 'react';
-import { LineChart, PieChart, BarChart } from 'react-chartkick';
+import { LineChart, PieChart } from 'react-chartkick';
 import 'chartkick/chart.js';
-import { getMetrics } from '../../contexts/api/dashboard';
+import { getMetrics, getTodaysMetrics } from '../../contexts/api/dashboard';
 import "../Home/Home.css";
 import BestSellingPricesChart from '../Dashboard/BestSellingPricesChart';
 
+const generateYearOptions = () => {
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  for (let i = currentYear; i >= 2022; i--) {
+    years.push(i);
+  }
+  return years;
+};
+
+const monthOptions = [
+  { value: 1, name: 'January' }, { value: 2, name: 'February' },
+  { value: 3, name: 'March' }, { value: 4, name: 'April' },
+  { value: 5, name: 'May' }, { value: 6, name: 'June' },
+  { value: 7, name: 'July' }, { value: 8, name: 'August' },
+  { value: 9, name: 'September' }, { value: 10, name: 'October' },
+  { value: 11, name: 'November' }, { value: 12, name: 'December' },
+];
+
 const Home = () => {
   const [metrics, setMetrics] = useState(null);
+  const [todaysMetrics, setTodaysMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
-    const fetchMetrics = async () => {
+    const fetchAllMetrics = async () => {
       setLoading(true);
-      const { data, error } = await getMetrics();
-      if (error) {
-        console.error("Error fetching metrics:", error);
-      } else {
-        setMetrics(data);
-      }
+      const [mainData, todayData] = await Promise.all([
+        getMetrics({ year: selectedYear, month: selectedMonth }),
+        getTodaysMetrics()
+      ]);
+
+      if (mainData.error) console.error("Error fetching metrics:", mainData.error);
+      else setMetrics(mainData.data);
+      
+      if (todayData.error) console.error("Error fetching today's metrics:", todayData.error);
+      else setTodaysMetrics(todayData.data);
+      
       setLoading(false);
     };
 
-    fetchMetrics();
-  }, []);
+    fetchAllMetrics();
+  }, [selectedYear, selectedMonth]);
 
   if (loading) return <div>Loading dashboard...</div>;
-  if (!metrics) return <div>No metrics available</div>;
+  if (!metrics) return <div>No metrics available.</div>;
 
-  const piechartColors = ["#ACD3A8","#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7",  "#E69DB8"];
-  const piechartData = metrics.productSalesCategory.map(cat => [cat.category, parseInt(cat.total_units_sold)]);
+  // --- Chart Data Processing for Combo Charts ---
+  const selectedMonthName = monthOptions.find(m => m.value === selectedMonth)?.name.substring(0, 3) || '';
 
-  const now = new Date();
-  const currentMonth = now.toLocaleDateString("default", {month:"short"});
-  const year = new Date().getFullYear();
-  // const currentMonth = now.getMonth() + 1;
-  const dailySalesData = metrics.monthSalesChart.reduce((acc, cur) => {
-    acc[`${currentMonth} ${cur.day} , ${year}`] = cur.sales;
+  const dailyEarningsData = metrics.monthlySummary.chartData.reduce((acc, cur) => {
+    acc[`${selectedMonthName} ${cur.day}, ${selectedYear}`] = cur.total_earnings;
     return acc;
   }, {});
 
-  const monthlySalesData = metrics.yearSalesChart.reduce((acc, cur) => {
+  const dailySalesCountData = metrics.monthlySummary.chartData.reduce((acc, cur) => {
+    acc[`${selectedMonthName} ${cur.day}, ${selectedYear}`] = cur.sales_count;
+    return acc;
+  }, {});
+
+  const monthlyEarningsData = metrics.yearlySummary.chartData.reduce((acc, cur) => {
+    acc[cur.month_name] = cur.total_earnings;
+    return acc;
+  }, {});
+
+  const monthlySalesCountData = metrics.yearlySummary.chartData.reduce((acc, cur) => {
     acc[cur.month_name] = cur.sales_count;
     return acc;
   }, {});
 
+  // Data formatted for react-chartkick multi-series combo charts
+  const dailyComboChartData = [
+    { name: "Earnings", data: dailyEarningsData, type: 'column' },
+    { name: "Sales Count", data: dailySalesCountData, yAxisID: 'y1' }
+  ];
+
+  const monthlyComboChartData = [
+    { name: "Earnings", data: monthlyEarningsData, type: 'column' },
+    { name: "Sales Count", data: monthlySalesCountData, yAxisID: 'y1' }
+  ];
+
+  // Options for Chart.js to create a second Y-axis
+  const comboChartOptions = {
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Earnings (₹)' }
+      },
+      y1: {
+        type: 'linear',
+        position: 'right',
+        beginAtZero: true,
+        title: { display: true, text: 'Sales Count' },
+        grid: { drawOnChartArea: false }
+      }
+    }
+  };
+
+  const piechartColors = ["#ACD3A8", "#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7", "#E69DB8"];
+  const piechartData = metrics.productSummary.salesByCategory.map(cat => [cat.category, parseInt(cat.total_units_sold)]);
+
   return (
     <div className='home'>
-      {/* ------------------ 1st row: Key Metrics ------------------- */}
+      {/* Filters and Key Metrics are unchanged */}
+      <div className="filters-container">
+        <div className="select-wrapper">
+          <label>Year: </label>
+          <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))}>
+            {generateYearOptions().map(year => <option key={year} value={year}>{year}</option>)}
+          </select>
+        </div>
+        <div className="select-wrapper">
+          <label>Month: </label>
+          <select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
+            {monthOptions.map(month => <option key={month.value} value={month.value}>{month.name}</option>)}
+          </select>
+        </div>
+      </div>
+
       <div className="row-graphs">
+        {todaysMetrics && (
+          <>
+            <div className="text-card">
+              <h1>Today's Revenue</h1>
+              <h2>₹{todaysMetrics.todaysRevenue.toLocaleString()}</h2>
+              <h3>{(todaysMetrics.revenueChange ?? 0).toFixed(2)}% from yesterday</h3>
+            </div>
+            <div className="text-card">
+              <h1>Today's Sales</h1>
+              <h2>{todaysMetrics.todaysSales}</h2>
+              <h3>{(todaysMetrics.salesChange ?? 0).toFixed(2)}% from yesterday</h3>
+            </div>
+          </>
+        )}
         <div className="text-card">
-          <h1>Total Revenue</h1>
-          <h2>₹{metrics.monthRev.toLocaleString()}</h2>
-          <h3>{metrics.monthRevChange.toFixed(2)}% from last month</h3>
+          <h1>Monthly Revenue</h1>
+          <h2>₹{metrics.monthlySummary.revenue.toLocaleString()}</h2>
+          <h3>{(metrics.monthlySummary.revenueChange ?? 0).toFixed(2)}% from last month</h3>
         </div>
         <div className="text-card">
-          <h1>Sales</h1>
-          <h2>{metrics.monthSales}</h2>
-          <h3>{metrics.monthSalesChange.toFixed(2)}% from last month</h3>
-        </div>
-        <div className="text-card">
-          <h1>Profit</h1>
-          <h2>₹{metrics.monthProfit.toLocaleString()}</h2>
-          <h3>{metrics.monthProfitChange.toFixed(2)}% from last month</h3>
-        </div>
-        <div className="text-card">
-          <h1>Tax</h1>
-          <h2>₹{metrics.monthTax.toLocaleString()}</h2>
-          <h3>{metrics.monthTaxChange.toFixed(2)}% from last month</h3>
+          <h1>Monthly Sales</h1>
+          <h2>{metrics.monthlySummary.salesCount}</h2>
+          <h3>{(metrics.monthlySummary.salesCountChange ?? 0).toFixed(2)}% from last month</h3>
         </div>
         <div className="text-card">
           <h1>Customers</h1>
-          <h2>{metrics.noUsers}</h2>
-          <h3>{metrics.userMonthGrowth.toFixed(2)}% growth</h3>
+          <h2>{metrics.userSummary.totalUsers}</h2>
+          <h3>{(metrics.userSummary.periodGrowth ?? 0).toFixed(2)}% growth this month</h3>
         </div>
       </div>
 
-      {/* ------------------ 2nd row: Sales Charts ------------------- */}
+      {/* --- Updated Chart Section --- */}
       <div className="row-graphs">
-        <div className="admin-graphs-monthly">
-          <p style={{fontSize:'2rem'}}>Monthly Sales</p>
-          <LineChart 
-            colors={["#373F4C"]}
-            curve={false}
-            data={dailySalesData}
-            height="25vh"
-            width="45vw"
-            download={{background: "#fff"}}
+        <div className="admin-graphs-container">
+          <h3>Daily Stats for {monthOptions.find(m => m.value === selectedMonth)?.name} {selectedYear}</h3>
+          <LineChart
+            data={dailyComboChartData}
+            library={comboChartOptions}
+            height="40vh"
+            xtitle="Day"
+            dataset={{
+              // borderColor: { 'Sales Count': '#373F4C' },
+              backgroundColor: { 'Earnings': '#28a745' }
+            }}
+            download={{ background: "#fff" }}
           />
         </div>
-        <div className="admin-graphs">
-          <h1>Yearly Sales</h1>
-          <LineChart 
-            colors={["#373F4C"]}
-            curve={false}
-            data={monthlySalesData}
-            height="25vh"
-            width="25vw"
-            download={{background: "#fff"}}
+        <div className="admin-graphs-container">
+          <h3>Monthly Stats for {selectedYear}</h3>
+          <LineChart
+            data={monthlyComboChartData}
+            library={comboChartOptions}
+            height="40vh"
+            xtitle="Month"
+            dataset={{
+              // borderColor: { 'Sales Count': '#373F4C' },
+              backgroundColor: { 'Earnings': '#28a745' }
+            }}
+            download={{ background: "#fff" }}
           />
         </div>
       </div>
 
-      {/* ------------------ 3rd row: Product Category Pie ------------------- */}
       <div className="admin-graphs">
         <h1>Product Sales Category Wise</h1>
         <div className='admin-piecharts'>
-
-        <PieChart 
-          donut={true}
-          colors={piechartColors}
-          data={piechartData}
-          height="55vh"
-          width="35vw"
-          download={{background: "#fff"}}
-        />
-        <div className="piechart-text">
-          {metrics.productSalesCategory.map((cat, idx) => (
-            <div key={idx} className="piechart-row">
-              <div className="piechart-color" style={{backgroundColor: piechartColors[idx]}}></div>
-              <div className="piechart-label">{cat.category}:</div>
-              <div className="piechart-value">{cat.total_units_sold} units</div>
-            </div>
-          ))}
+          <PieChart donut={true} colors={piechartColors} data={piechartData} height="55vh" width="35vw" download={{background: "#fff"}}/>
+          <div className="piechart-text">
+            {metrics.productSummary.salesByCategory.map((cat, idx) => (
+              <div key={idx} className="piechart-row">
+                <div className="piechart-color" style={{backgroundColor: piechartColors[idx]}}></div>
+                <div className="piechart-label">{cat.category}:</div>
+                <div className="piechart-value">{cat.total_units_sold} units</div>
+              </div>
+            ))}
+          </div>
         </div>
-        </div>
-
       </div>
 
-      {/* ------------------ 4th row: Hot Selling Products ------------------- */}
       <div className="hot-products card">
         <h1>Hot Selling Products</h1>
         <table className='admin-table'>
@@ -139,7 +218,7 @@ const Home = () => {
             </tr>
           </thead>
           <tbody>
-            {metrics.hotSellingProducts.map((prod, idx) => (
+            {metrics.productSummary.hotSelling.map((prod, idx) => (
               <tr key={idx}>
                 <td>{prod.product_name}</td>
                 <td>{prod.total_units_sold}</td>
@@ -150,7 +229,6 @@ const Home = () => {
         </table>
       </div>
 
-      {/* ------------------ 5th row: Low Stock Variants ------------------- */}
       <div className="low-stock card">
         <h1>Low Stock Variants</h1>
         <table className='admin-table'>
@@ -163,7 +241,7 @@ const Home = () => {
             </tr>
           </thead>
           <tbody>
-            {metrics.lowStockVariants.map((v, idx) => (
+            {metrics.productSummary.lowStock.map((v, idx) => (
               <tr key={idx}>
                 <td>{v.product_name}</td>
                 <td>{v.color}</td>

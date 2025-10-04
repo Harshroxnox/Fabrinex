@@ -70,6 +70,9 @@ const {getAllAdmins}=useContext(LoginContext);
     setAdmins([...admins, { ...newAdmin, adminID: admins.length + 1 }]);
     setShowAddModal(false);
   };
+  const roles = localStorage.getItem("role");
+  const canCreateOrder = roles.includes("superadmin");
+ 
 
   const renderRoles = (roles) => {
     return (
@@ -93,7 +96,7 @@ const {getAllAdmins}=useContext(LoginContext);
     <div className="admin-roles-container">
        <div className="salespersons-header">
           <h5>Admin Roles</h5>
-          <button className="add-salesperson-btn" onClick={()=> setShowAddModal(true)}  >
+          <button className="add-salesperson-btn" onClick={()=> setShowAddModal(true)} disabled = {!canCreateOrder}  >
             <Plus size={18} color="white" />
             Add Admin
           </button>
@@ -134,8 +137,8 @@ const {getAllAdmins}=useContext(LoginContext);
                       <td>{admin.email}</td>
                       <td>{renderRoles(admin.roles)}</td>
                       <td className="admin-roles-actions">
-                        <EditButton onClick={()=> handleEdit(admin)}/>
-                        <DeleteButton onClick={()=> handleDelete(admin)}/>
+                        <EditButton onClick={()=> handleEdit(admin)} disabled = {!canCreateOrder} />
+                        <DeleteButton onClick={()=> handleDelete(admin)} disabled = {!canCreateOrder}/>
                       </td>
                     </tr>
                   ))

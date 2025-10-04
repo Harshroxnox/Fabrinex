@@ -11,7 +11,6 @@ const ProductsList = () => {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [loading,setLoading]=useState(false);
-  const [error, setError] = useState('');
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -27,7 +26,7 @@ const ProductsList = () => {
       setProducts(data.products);
       setFilteredProducts(data.products);
     } catch (err) {
-      console.error("Error fetching products:", err);
+      toast.error("Error fetching products: " + err.message);
     }
     finally{
       setLoading(false);
@@ -76,13 +75,14 @@ const ProductsList = () => {
       setIsAddDialogOpen(false);
       const {data, error} = await getAllProducts();
       if(error) {
-        toast.error(`Error refreshing products: ${error}`);
-        return ;
+        throw new Error(error);
       }
       setProducts(data.products);
       setFilteredProducts(data.products);
+      // toast.success("Product added successfully");
     } catch (err) {
-      toast.error(`Unexpected error refreshing products: ${err.message}`);
+      toast.error("Error refreshing products: " + err.message);
+    // toast.error(`Unexpected error refreshing products: ${err.message}`);
     }
     finally{
       setLoading(false);
@@ -163,7 +163,6 @@ const handleDownloadByDate = async () => {
         onReset={handleResetFilters}
       />
 
-      {error && <p className="error-message">{error}</p>}
 
       {loading && !products.length ? (
         <div className="loading-indicator">Loading products...</div>

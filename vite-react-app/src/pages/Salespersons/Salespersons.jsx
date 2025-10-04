@@ -36,7 +36,7 @@ const Salespersons = () => {
       setSalespersons(res.data.salesPersons || []);
     } catch (error) {
       toast.error("Error fetching salespersons");
-      console.error("Error fetching salespersons:", error);
+      // console.error("Error fetching s/alespersons:", error);
     } finally {
       setLoading(false);
     }
@@ -96,7 +96,7 @@ const Salespersons = () => {
       setNewCommission("");
       toast.success('Commission updated');
     } catch (error) {
-      console.error("Error updating commission:", error);
+      // console.error("Error updating commission:", error);
       toast.error('Error while updating commission'); 
     }
   };

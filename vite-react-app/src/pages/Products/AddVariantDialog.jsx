@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ProductsList.css';
+import toast from 'react-hot-toast';
 
 const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
   const [variant, setVariant] = useState({
@@ -18,7 +19,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
   const [secondaryImages, setSecondaryImages] = useState([]);
   const [secondaryPreviews, setSecondaryPreviews] = useState([]);
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -76,16 +76,23 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
     e.preventDefault();
 
     if (!variant.color || !variant.size || !variant.price || !variant.stock || !variant.main_image) {
-      setError('Please fill all required fields and upload a main image.');
+      toast.error('Please fill all required fields and upload a main image.');
       return;
     }
     if (parseFloat(variant.discount) < 0 || parseFloat(variant.discount) > 100) {
-      setError('Discount must be between 0 and 100');
+      toast.error('Discount must be between 0 and 100');
       return;
     }
     const received_barcode = variant.barcode;
     delete variant.barcode; // remove barcode 
-    setError('');
+
+    const discountedPrice = variant.price - (variant.price * (variant.discount / 100));
+    const profit = discountedPrice - variant.myWallet;
+    if(profit < 0) {
+      toast.error('Selling price after discount cannot be less than My Wallet price.');
+      return;
+    }
+
     onAdd({
       ...variant,
       price: parseFloat(variant.price).toFixed(2),
@@ -111,9 +118,8 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
     <div className="dialog-overlay">
       <div className="dialog-content">
         <h2 className="variant-heading">Add Variant</h2>
-        {error && <p className="error-message">{error}</p>}
+
         <form onSubmit={handleSubmit}>
-          {/* All other form inputs remain the same... */}
           <div className="form-row">
             <div className="form-group">
               <label>Color*</label>
@@ -165,15 +171,13 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
             </div>
           </div>
           
-          {/* === NEW, SIMPLIFIED IMAGE INPUT SECTION === */}
-
           <div className="form-group">
             <label>Main Image*</label>
             <input
               type="file"
               accept="image/*"
               onChange={handleMainImageChange}
-              required={!variant.main_image} // required only if no image is already selected
+              required={!variant.main_image}
             />
           </div>
 
@@ -187,7 +191,6 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
             </div>
           )}
 
-          {/* Secondary image logic remains the same */}
           <div className="form-group">
             <label>Add Secondary Images</label>
             <input
