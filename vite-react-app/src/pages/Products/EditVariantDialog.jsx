@@ -82,6 +82,10 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
 
   // secondary images change
   const handleSecondaryFiles = (e) => {
+    if (editedVariant.secondary_images.length >= 5) {
+      toast.error("You can upload a maximum of 5 secondary images.");
+      return;
+    }
     const files = Array.from(e.target.files);
     const newImages = files.map((file) => ({
       file,
@@ -189,7 +193,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
 
   return (
     <div className="dialog-overlay">
-      <div className="dialog-content">
+      <div className="dialog-content no-scrollbar">
         <h2>
           Edit Variant ({variant.color}, {variant.size})
         </h2>
@@ -265,7 +269,7 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
 
           {/* main image */}
           <div className="form-group">
-            <label>Update Main Image</label>
+            <label>Main Image ( File Size less than 5 mb)*</label>
             <input
               type="file"
               accept="image/*"
@@ -286,7 +290,8 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
 
           {/* secondary images */}
           <div className="form-group">
-            <label>Secondary Images</label>
+            <label>Add Secondary Images (Optional)</label>
+            <label> Upto 5 Images of sizes less than 5MB</label>
             <input
               type="file"
               accept="image/*"
@@ -296,7 +301,8 @@ const EditVariantDialog = ({ isOpen, onClose, variantId, productId, onSave }) =>
             />
           </div>
 
-          {editedVariant.secondary_images.length > 0 && (
+          {editedVariant.secondary_images.length > 0 
+           && (
             <div className="secondary-images-preview">
               {editedVariant.secondary_images.map((img, idx) => (
                 <div key={idx} className="secondary-image-item">

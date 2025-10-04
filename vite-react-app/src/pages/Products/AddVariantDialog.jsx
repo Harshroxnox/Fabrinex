@@ -116,7 +116,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
 
   return (
     <div className="dialog-overlay">
-      <div className="dialog-content">
+      <div className="dialog-content no-scrollbar">
         <h2 className="variant-heading">Add Variant</h2>
 
         <form onSubmit={handleSubmit}>
@@ -172,7 +172,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
           </div>
           
           <div className="form-group">
-            <label>Main Image*</label>
+            <label>Main Image ( File Size less than 5 mb)*</label>
             <input
               type="file"
               accept="image/*"
@@ -192,7 +192,8 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
           )}
 
           <div className="form-group">
-            <label>Add Secondary Images</label>
+            <label>Add Secondary Images (Optional)</label>
+            <label> Upto 5 Images of sizes less than 5MB</label>
             <input
               type="file"
               accept="image/*"

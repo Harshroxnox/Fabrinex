@@ -10,6 +10,7 @@ const handleRequest = async (fn) => {
     const response = await fn();
     return { data: response.data, error: null };
   } catch (error) {
+    console.log(error);
     return {
       data: null,
       error: error.response?.data.error || error.message,

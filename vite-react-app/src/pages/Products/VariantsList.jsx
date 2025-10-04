@@ -60,8 +60,8 @@ const VariantsList = ({ variants, productId, onDeleted }) => {
 
   return (
     <div className="variants-container">
-      <div className="variants-table-container">
-        <table className="variants-table">
+      <div className="variants-table-container no-scrollbar">
+        <table className="variants-table no-scrollbar">
           <thead>
             <tr>
               <th>Image</th>

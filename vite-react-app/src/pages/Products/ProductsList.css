@@ -98,10 +98,10 @@
   background-color: #1f2937;
 }
 .reset-btn{
-  background-color: black;
+  background-color: #1f2937;
   color:white;
   border:none;
-  padding: 0 1.5rem;
+  padding: 1rem 1.5rem;
   border-radius: 2rem;
   cursor:pointer;
   font-size:0.875rem;

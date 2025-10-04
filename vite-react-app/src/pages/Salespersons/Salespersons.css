@@ -95,6 +95,7 @@
   border: 0.5px solid rgb(207, 202, 202);
   border-radius: 0.75rem;
   overflow: hidden;
+  /* overflow: auto; */
   font-size: medium;
   /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
 }
@@ -103,6 +104,8 @@
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
+  /* overflow:scroll; */
+  
 }
 
 .salesperson-list th {

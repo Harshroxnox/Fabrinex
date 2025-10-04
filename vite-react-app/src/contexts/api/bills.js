@@ -7,7 +7,7 @@ const handleRequest = async (fn) => {
     } catch (error) {
         return {
             data : null,
-            error : error.response?.data?.message  || "An unexpected error occurred.",
+            error : error.response?.data.error   || "An unexpected error occurred.",
         }
     }
 }

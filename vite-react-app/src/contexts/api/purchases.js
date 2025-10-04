@@ -10,7 +10,7 @@ const handleRequest = async (fn) => {
   } catch (error) {
     return {
       data: null,
-      error: error.response?.data?.message || error.message,
+      error: error.response?.data.error  || error.message,
     };
   }
 };

@@ -100,6 +100,14 @@ const ProductsList = () => {
   
 const handleDownloadByDate = async () => {
     // console.log(dateFrom, dateTo);
+    if(!dateFrom || !dateTo){
+      toast.error("Please select both date from and date to");
+      return ;
+    }
+    if(dateFrom > dateTo){
+      toast.error("Date From cannot be greater than Date To");
+      return ;
+    }
     const {data , error} = await downloadLabelsByDate({dateFrom,dateTo});
     if(error){
       toast.error(`Download failed:  ${error}`);
