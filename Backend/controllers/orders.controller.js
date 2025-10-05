@@ -414,7 +414,16 @@ export const filter = async (req, res, next) => {
     } = req.query;
 
 
-    let sql = `SELECT * FROM Orders WHERE 1=1`;
+    let sql = `SELECT 
+        o.*, 
+        u.name AS customer_name 
+      FROM 
+        Orders AS o 
+      LEFT JOIN 
+        Users AS u ON o.userID = u.userID 
+      WHERE 
+        1=1
+    `;
     const params = [];
 
     if(date_from){
@@ -422,7 +431,7 @@ export const filter = async (req, res, next) => {
       if(date_from === null){
         throw new AppError(400, "Invalid Date From");
       }
-      sql += " AND created_at >= ?";
+      sql += " AND o.created_at >= ?";
       params.push(date_from);
     }
 
@@ -431,7 +440,7 @@ export const filter = async (req, res, next) => {
       if(date_to === null){
         throw new AppError(400, "Invalid Date To");
       }
-      sql += " AND created_at < DATE_ADD(?, INTERVAL 1 DAY)";
+      sql += " AND o.created_at < DATE_ADD(?, INTERVAL 1 DAY)";
       params.push(date_to);
     }
 
@@ -439,7 +448,7 @@ export const filter = async (req, res, next) => {
       if(!constants.ORDER_STATUSES.includes(order_status)){
         throw new AppError(400, 'Invalid order status');
       }
-      sql += " AND order_status = ?";
+      sql += " AND o.order_status = ?";
       params.push(order_status);
     }
 
@@ -447,7 +456,7 @@ export const filter = async (req, res, next) => {
       if(!constants.PAYMENT_STATUSES.includes(payment_status)){
         throw new AppError(400, 'Invalid payment status');
       }
-      sql += " AND payment_status = ?";
+      sql += " AND o.payment_status = ?";
       params.push(payment_status);
     }
 
@@ -455,7 +464,7 @@ export const filter = async (req, res, next) => {
       if(!constants.PAYMENT_METHODS.includes(payment_method)){
         throw new AppError(400, 'Invalid order status');
       }
-      sql += " AND payment_method = ?";
+      sql += " AND o.payment_method = ?";
       params.push(payment_method);
     }
 
@@ -464,7 +473,7 @@ export const filter = async (req, res, next) => {
       if(amount_from === null){
         throw new AppError(400, "Invalid Amount From");
       }
-      sql += " AND amount >= ?";
+      sql += " AND o.amount >= ?";
       params.push(amount_from);
     }
 
@@ -473,7 +482,7 @@ export const filter = async (req, res, next) => {
       if(amount_to === null){
         throw new AppError(400, "Invalid Amount To");
       }
-      sql += " AND amount <= ?";
+      sql += " AND o.amount <= ?";
       params.push(amount_to);
     }
 
