@@ -18,7 +18,8 @@ import {
     getVariantByIdAdmin,
     getVariantByBarcodeAdmin,
     getLabels,
-    getLabelsByDate
+    getLabelsByDate,
+    getVariantPriceAndQuantity
 } from '../controllers/products.controller.js';
 import { authMiddleware, checkAdminRoles } from '../middleware/authMiddleware.js';
 import { upload } from '../middleware/multer.middleware.js';
@@ -44,6 +45,7 @@ router.route('/update-variant/:variantID').put(upload.single("main_image"), upda
 router.route('/delete-variant/:variantID').delete(deleteVariant);
 router.route('/upload-secondary-images/:variantID').post(upload.array("images",5), uploadSecondaryImages); // This accepts upto max 5 images
 router.route('/delete-secondary-image/:variantImageID').delete(deleteSecondaryImage);
+router.route('/get-variant-price-quantity/:barcode').get(getVariantPriceAndQuantity); // get variant price and quantity by barcode
 
 // admin get routes
 router.route("/get-product-admin/:productID").get(authMiddleware('admin'), checkAdminRoles(['superadmin']), getProductByIdAdmin);

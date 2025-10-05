@@ -1382,3 +1382,49 @@ export const getLabelsByDate = async  (req, res, next) => {
     next(error);
   }
 }
+
+export const getVariantPriceAndQuantity = async (req, res, next) => {
+
+      const barcode = req.params.barcode;
+
+    if (!barcode) {
+        return res.status(400).json({ msg: 'Barcode parameter is required.' });
+    }
+
+    try {
+
+        const [variantRows] = await db.execute(
+            'SELECT variantID FROM ProductVariants WHERE barcode = ?',
+            [barcode]
+        );
+
+        if (variantRows.length === 0) {
+            return res.status(404).json({ msg: `Variant with barcode '${barcode}' not found.` });
+        }
+
+        const variantID = variantRows[0].variantID;
+
+        const [salesData] = await db.execute(
+            `SELECT
+                price_at_purchase,
+                SUM(quantity) AS total_quantity_sold
+             FROM
+                OrderItems
+             WHERE
+                variantID = ?
+             GROUP BY
+                price_at_purchase
+             ORDER BY
+                price_at_purchase DESC`,
+            [variantID]
+        );
+
+        if (salesData.length === 0) {
+            return res.status(200).json([]);
+        }
+       return res.status(200).json(salesData);
+
+    } catch (err) {
+        next(err);
+    }
+  }
