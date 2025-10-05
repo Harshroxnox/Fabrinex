@@ -28,6 +28,9 @@ export const getVariantBarcodeAdmin = (barcode) =>
 export const getBestSellingPrices = () =>
   handleRequest(() => axiosInstance.get("/dashboard/best-selling-prices"));
 
+export const getVariantSalesByBarcode = (barcode) =>
+  handleRequest( () => axiosInstance.get(`/products/get-variant-price-quantity/${barcode}`));
+
 //Base API instance
 const api = axios.create({
   baseURL: `${API_BASE_URL}/products`,

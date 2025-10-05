@@ -89,22 +89,22 @@ const Home = () => {
     { name: "Sales Count", data: monthlySalesCountData, yAxisID: 'y1' }
   ];
 
-  // Options for Chart.js to create a second Y-axis
-  const comboChartOptions = {
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: { display: true, text: 'Earnings (₹)' }
-      },
-      y1: {
-        type: 'linear',
-        position: 'right',
-        beginAtZero: true,
-        title: { display: true, text: 'Sales Count' },
-        grid: { drawOnChartArea: false }
-      }
-    }
-  };
+  // // Options for Chart.js to create a second Y-axis
+  // const comboChartOptions = {
+  //   scales: {
+  //     y: {
+  //       beginAtZero: true,
+  //       title: { display: true, text: 'Earnings (₹)' }
+  //     },
+  //     y1: {
+  //       type: 'linear',
+  //       position: 'right',
+  //       beginAtZero: true,
+  //       title: { display: true, text: 'Sales Count' },
+  //       grid: { drawOnChartArea: false }
+  //     }
+  //   }
+  // };
 
   const piechartColors = ["#ACD3A8", "#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7", "#E69DB8"];
   const piechartData = metrics.productSummary.salesByCategory.map(cat => [cat.category, parseInt(cat.total_units_sold)]);
@@ -165,13 +165,9 @@ const Home = () => {
           <h3>Daily Stats for {monthOptions.find(m => m.value === selectedMonth)?.name} {selectedYear}</h3>
           <LineChart
             data={dailyComboChartData}
-            library={comboChartOptions}
+            // library={comboChartOptions}
             height="40vh"
             xtitle="Day"
-            dataset={{
-              // borderColor: { 'Sales Count': '#373F4C' },
-              backgroundColor: { 'Earnings': '#28a745' }
-            }}
             download={{ background: "#fff" }}
           />
         </div>
@@ -179,13 +175,9 @@ const Home = () => {
           <h3>Monthly Stats for {selectedYear}</h3>
           <LineChart
             data={monthlyComboChartData}
-            library={comboChartOptions}
+            // library={comboChartOptions}
             height="40vh"
             xtitle="Month"
-            dataset={{
-              // borderColor: { 'Sales Count': '#373F4C' },
-              backgroundColor: { 'Earnings': '#28a745' }
-            }}
             download={{ background: "#fff" }}
           />
         </div>
