@@ -8,8 +8,7 @@ export const getAllOrders = async (page,limit) => {
         const res = await axios.get(`${API_BASE_URL}/orders/get-all-orders?page=${page}&limit=${limit}`);
         return res.data;
     } catch (error) {
-        console.log("error fetching order data");
-
+        throw error;
     }
 }
 
@@ -18,8 +17,17 @@ export const getOrder = async (orderID) => {
         const res = await axios.get(`${API_BASE_URL}/orders/get-order/${orderID}`);
         return res.data;
     } catch (error) {
-        console.log("error fetching data");
+        throw error;
     }
 }
 
 export const createOrderOffline =(data) =>  axiosInstance.post("/orders/create-order-offline", data);
+export const filterOrder = async (params) => {
+    try {
+        const res = await axios.get(`${API_BASE_URL}/orders/filter`, {params});
+        return res.data;
+    } catch (error) {
+        throw error;
+    }
+}
+

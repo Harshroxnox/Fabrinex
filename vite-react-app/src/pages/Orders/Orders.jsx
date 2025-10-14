@@ -2,7 +2,7 @@ import React, { useCallback,useEffect, useState } from 'react';
 import { ChevronDown, Search, MapPin, Calendar, DollarSign, CreditCard, CheckCircle, XCircle, Clock, Filter, Plus, Scan, Minus, ShoppingCart, ArrowLeft, Package, X, FileInput, UserCheck2Icon } from 'lucide-react';
 import Invoice from '../../components/Invoice/Invoice';
 import { styles } from './Orders';
-import { createOrderOffline, getAllOrders } from '../../contexts/api/orders';
+import { createOrderOffline, filterOrder, getAllOrders } from '../../contexts/api/orders';
 import { paymentStatusColor, paymentStatusIcon, statusColor } from '../../utils/colorSelection.jsx';
 import { getVariantBarcodeAdmin } from '../../contexts/api/products.js';
 import { getDiscountByBarcode } from '../../contexts/api/loyaltyCards.js';
@@ -232,46 +232,6 @@ const handleCreateOrder = async () => {
   }
 };
 
-
-  // // Orders page functions
-  // const filteredOrders = ordersData.filter(order => {
-  //   const statusMatch = statusFilter === 'All' || order.status === statusFilter;
-  //   const paymentStatusMatch = paymentStatusFilter === 'All' || order.payment_status === paymentStatusFilter;
-  //   const locationMatch = locationFilter === 'All' || order.location === locationFilter;
-  //   const paymentMethodMatch = paymentMethodFilter === 'All' || order.payment_method === paymentMethodFilter;
-    
-  //   const totalAmountMatch = (() => {
-  //     switch (totalAmountFilter) {
-  //       case 'Under $150':
-  //         return order.total < 150;
-  //       case '$150 - $200':
-  //         return order.total >= 150 && order.total <= 200;
-  //       case 'Over $200':
-  //         return order.total > 200;
-  //       default:
-  //         return true;
-  //     }
-  //   })();
-
-  //   const dateMatch = (() => {
-  //     if (!dateFromFilter && !dateToFilter) return true;
-  //     const orderDate = new Date(order.created_at);
-  //     const fromDate = dateFromFilter ? new Date(dateFromFilter) : null;
-  //     const toDate = dateToFilter ? new Date(dateToFilter) : null;
-      
-  //     if (fromDate && toDate) {
-  //       return orderDate >= fromDate && orderDate <= toDate;
-  //     } else if (fromDate) {
-  //       return orderDate >= fromDate;
-  //     } else if (toDate) {
-  //       return orderDate <= toDate;
-  //     }
-  //     return true;
-  //   })();
-
-  //   return statusMatch && paymentStatusMatch && locationMatch && paymentMethodMatch && totalAmountMatch && dateMatch;
-  // });
-
   const fetchFilteredOrders = async () => {
     try {
       const params = {};
@@ -282,10 +242,12 @@ const handleCreateOrder = async () => {
       if (dateToFilter) params.date_to = dateToFilter;
       if (totalAmountFrom) params.amount_from = totalAmountFrom;
       if (totalAmountTo) params.amount_to = totalAmountTo;
-      const res = await axios.get("http://localhost:5000/api/v1/orders/filter", {params});
-      setOrdersData(res.data.orders || []);
+      
+      const data = await filterOrder(params);
+      setOrdersData(data.orders || []);
     } catch (err) {
-      toast.error("Error fetching filtered orders:" ,err);
+      console.error("Error fetching filtered orders:", err);
+      toast.error(`Error fetching filtered orders: ${err.message || "Unknown error"}`);
     }
   }
   useEffect( () => {
