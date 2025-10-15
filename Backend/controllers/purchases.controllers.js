@@ -4,26 +4,68 @@ import { db } from '../index.js';
 import { validDate, validID, validString } from '../utils/validators.utils.js';
 
 export const createPurchase = async (req ,res , next) => {
-    const { metaData , purchaseDate, items} = req.body;
+  const {
+    invoiceNumber,
+    invoiceDate,
+    sellerDetails,
+    buyerDetails,
+    transporterDetails,
+    purchaseDate,
+    totalAmount,
+    gstAmount,
+    grandTotal,
+    remarks,
+    items 
+  } = req.body;
+
     let conn;
     try {
         conn = await db.getConnection();
         await conn.beginTransaction();
+        
+        const purchaseQuery = `
+            INSERT INTO Purchases (
+                invoiceNumber, invoiceDate, sellerDetails, buyerDetails, 
+                transporterDetails, purchaseDate, totalAmount, gstAmount, 
+                grandTotal, remarks
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
 
-        const purchaseQuery = 'INSERT INTO Purchases (metaData, purchaseDate) VALUES (?, ?)';
-        const [purchaseResult ] = await conn.query(purchaseQuery, [
-            JSON.stringify(metaData),
-            purchaseDate
+        const [purchaseResult] = await conn.query(purchaseQuery, [
+            invoiceNumber,
+            invoiceDate,
+            JSON.stringify(sellerDetails),     // Stringify JSON objects
+            JSON.stringify(buyerDetails),      // Stringify JSON objects
+            JSON.stringify(transporterDetails),// Stringify JSON objects
+            purchaseDate,
+            totalAmount,
+            gstAmount,
+            grandTotal,
+            remarks
         ]);
 
         const purchaseId = purchaseResult.insertId;
+         if (!items || items.length === 0) {
+            throw new Error('Purchase must contain at least one item.');
+        }
         const itemsToInsert = items.map(item => [
             purchaseId,
+            item.itemCode,
             item.barcode,
-            item.hsn_code,
-            item.quantity
+            item.description, // Can be null if not provided
+            item.hsnCode,
+            item.taxPercent,
+            item.rate,
+            item.quantity,
+            item.unit,
+            item.value
         ]);
-        const itemsQuery = 'INSERT INTO PurchaseItems (purchaseID , barcode, hsn_code, quantity) VALUES ? ';
+        const itemsQuery = `
+            INSERT INTO PurchaseItems (
+                purchaseID, itemCode, barcode, description, hsnCode, taxPercent, 
+                rate, quantity, unit, value
+            ) VALUES ?
+        `;
         await conn.query(itemsQuery, [itemsToInsert]);
         
         await conn.commit();
@@ -35,57 +77,72 @@ export const createPurchase = async (req ,res , next) => {
     }
     catch (error) {
         if (conn) await conn.rollback();
-        next(error);
+        if (error.code === 'ER_DUP_ENTRY') {
+             next(new Error(`Failed to create purchase. A barcode was duplicated within this single purchase.`));
+        } else {
+             next(error);
+        }
     } finally {
         if (conn) conn.release();
     }   
 };
 
 export const getPurchaseById = async (req, res, next) => {
-    const purchaseID = validID(req.params.purchaseID);
+
+    console.log(req.params.id);
+    const purchaseID = validID(req.params.id); 
     try {
         if (purchaseID === null) {
-            throw new AppError(400, "Invalid purchaseID");
+            throw new AppError(400, "Invalid Purchase ID provided.");
         }
-        // SQL JOIN to get data from both tables at once
+
         const [rows] = await db.execute(`
             SELECT
-                p.purchaseID,
-                p.metaData,
-                p.purchaseDate,
-                pi.itemID,
-                pi.barcode,
-                pi.hsn_code,
-                pi.quantity
+                p.purchaseID, p.invoiceNumber, p.invoiceDate, p.sellerDetails, 
+                p.buyerDetails, p.transporterDetails, p.purchaseDate, p.totalAmount, 
+                p.gstAmount, p.grandTotal, p.remarks,
+                pi.itemID, pi.itemCode, pi.barcode, pi.description, pi.hsnCode, pi.taxPercent,
+                pi.rate, pi.quantity, pi.unit, pi.value
             FROM Purchases AS p
             INNER JOIN PurchaseItems AS pi ON p.purchaseID = pi.purchaseID
             WHERE p.purchaseID = ?;
         `, [purchaseID]);
 
-        // If no rows are returned, the purchase was not found
         if (rows.length === 0) {
             return res.status(404).json({
                 success: false,
                 message: 'Purchase not found'
             });
         }
-        const totalItems = rows.length;
-        const totalQuantity = rows.reduce( ( sum, item) => sum + item.quantity , 0);
-        
+
         const purchaseDetails = {
             purchaseID: rows[0].purchaseID,
-            metaData: rows[0].metaData,
+            invoiceNumber: rows[0].invoiceNumber,
+            invoiceDate: rows[0].invoiceDate,
+            sellerDetails: rows[0].sellerDetails,
+            buyerDetails: rows[0].buyerDetails,
+            transporterDetails: rows[0].transporterDetails,
             purchaseDate: rows[0].purchaseDate,
-            totalItems: totalItems,
-            totalQuantity: totalQuantity,
+            totalAmount: rows[0].totalAmount,
+            gstAmount: rows[0].gstAmount,
+            grandTotal: rows[0].grandTotal,
+            remarks: rows[0].remarks,
             items: rows.map(row => ({
                 itemID: row.itemID,
+                itemCode: row.itemCode,
                 barcode: row.barcode,
-                hsn_code: row.hsn_code,
-                quantity: row.quantity
+                description: row.description,
+                hsnCode: row.hsnCode,
+                taxPercent: row.taxPercent,
+                rate: row.rate,
+                quantity: row.quantity,
+                unit: row.unit,
+                value: row.value
             }))
         };
+
         res.status(200).json({
+            success: true,
             message: "Fetched purchase successfully",
             data: purchaseDetails
         });
@@ -96,44 +153,38 @@ export const getPurchaseById = async (req, res, next) => {
 
 export const getAllPurchases = async (req, res, next) => {
     try {
-        const limit = validID(req.query.limit);
-        const page = validID(req.query.page);
+        const limit = validID(req.query.limit) || 10;
+        const page = validID(req.query.page) || 1;
 
-        if (limit === null || limit > constants.MAX_LIMIT) {
-        throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
-        }
-
-        if (page === null) {
-        throw new AppError(400, "Page must be a valid number");
+        if (limit > constants.MAX_LIMIT) {
+            throw new AppError(400, `Limit must be below ${constants.MAX_LIMIT}`);
         }
 
         const offset = (page - 1) * limit;
+        
         const [purchases] = await db.execute(`
             SELECT
                 purchaseID, 
-                metaData, 
-                purchaseDate 
+                invoiceNumber, 
+                invoiceDate, 
+                sellerDetails, 
+                grandTotal
             FROM 
                 Purchases 
-            ORDER BY purchaseDate, purchaseID DESC
+            ORDER BY invoiceDate DESC, purchaseID DESC
             LIMIT ? OFFSET ?
         `, [`${limit}`, `${offset}`]);
 
-        const [count] = await db.execute(`
-            SELECT COUNT(*) AS count
-            FROM Purchases
-        `);
+        const [[{ total }]] = await db.execute(`SELECT COUNT(*) AS total FROM Purchases`);
         
-        const totalPurchases = count[0].count;
-
         res.status(200).json({
             success: true,
             data: purchases,
             pagination: {
-                total: totalPurchases,
-                page: page,
-                limit: limit,
-                totalPages: Math.ceil(totalPurchases / limit)
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
             }
         });
     } catch (error) {
@@ -143,116 +194,114 @@ export const getAllPurchases = async (req, res, next) => {
 
 
 export const searchPurchasesBySeller = async (req, res, next) => {
-  try {
-    const supplier = validString(req.query.supplier);
-    const limit = validID(req.query.limit);
-    const page = validID(req.query.page);
+    try {
+      console.log(req.query.supplier);
+        const supplier = validString(req.query.supplier);
+        console.log(supplier);
+        const limit = validID(req.query.limit) || 10;
+        const page = validID(req.query.page) || 1;
 
-    if (limit === null || limit > constants.MAX_LIMIT) {
-      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
+        if (limit > constants.MAX_LIMIT) {
+            throw new AppError(400, `Limit must be below ${constants.MAX_LIMIT}`);
+        }
+        
+        if (!supplier) {
+            throw new AppError(400, "Please provide a supplier name to search for.");
+        }
+
+        const offset = (page - 1) * limit;
+        const searchTerm = `%${supplier}%`;
+
+        const query = `
+            SELECT 
+                purchaseID, 
+                invoiceNumber, 
+                invoiceDate, 
+                sellerDetails, 
+                grandTotal
+            FROM 
+                Purchases 
+            WHERE 
+                sellerDetails->>'$.name' LIKE ?
+            ORDER BY 
+                invoiceDate DESC, purchaseID DESC 
+            LIMIT ? OFFSET ?
+        `;
+        const [purchases] = await db.execute(query, [searchTerm, `${limit}`, `${offset}`]);
+
+        const countQuery = `
+            SELECT COUNT(*) as total 
+            FROM Purchases 
+            WHERE sellerDetails->>'$.name' LIKE ?
+        `;
+        const [[{ total }]] = await db.execute(countQuery, [searchTerm]);
+
+        res.status(200).json({
+            success: true,
+            data: purchases,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        next(error);
     }
-
-    if (page === null) {
-      throw new AppError(400, "Page must be a valid number");
-    }
-    
-    if (supplier === null) {
-      throw new AppError(400, "Please provide a supplier name to search for.");
-    }
-
-    const offset = (page - 1) * limit;
-    const searchTerm = `%${supplier}%`;
-
-    const [purchases] = await db.execute(
-        `SELECT 
-        purchaseID, 
-        metaData, 
-        purchaseDate 
-        FROM 
-        Purchases 
-        WHERE metaData->>'$.supplier' LIKE ?
-        ORDER BY purchaseDate, purchaseID DESC 
-        LIMIT ? OFFSET ?
-        `, [searchTerm ,`${limit}`, `${offset}` ]
-    );
-
-    const [totalResult] = await db.execute(
-        `SELECT COUNT(*) as total 
-        FROM Purchases 
-        WHERE metaData->>'$.supplier' LIKE ?
-        `, [searchTerm]
-    );
-    const totalPurchases = totalResult[0].total;
-
-    res.status(200).json({
-      success: true,
-      data: purchases,
-      pagination: {
-        total: totalPurchases,
-        page: page,
-        limit: limit,
-        totalPages: Math.ceil(totalPurchases / limit)
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
 };
 
 export const searchPurchasesByDateRange = async (req, res, next) => {
-  try {
-    const { startDate, endDate } = req.query;
-    const limit = validID(req.query.limit);
-    const page = validID(req.query.page);
+    try {
+        const { startDate, endDate } = req.query;
+        const limit = validID(req.query.limit) || 10;
+        const page = validID(req.query.page) || 1;
 
-    if (!startDate || !endDate) {
-      throw new AppError(400, 'Please provide both a startDate and an endDate.');
+        if (!startDate || !endDate) {
+            throw new AppError(400, 'Please provide both a startDate and an endDate (YYYY-MM-DD).');
+        }
+
+        if (limit > constants.MAX_LIMIT) {
+            throw new AppError(400, `Limit must be below ${constants.MAX_LIMIT}`);
+        }
+
+        const offset = (page - 1) * limit;
+
+        const query = `
+            SELECT 
+                purchaseID, 
+                invoiceNumber, 
+                invoiceDate, 
+                sellerDetails, 
+                grandTotal
+            FROM 
+                Purchases 
+            WHERE 
+                invoiceDate BETWEEN ? AND ?
+            ORDER BY 
+                invoiceDate DESC, purchaseID DESC 
+            LIMIT ? OFFSET ?
+        `;
+        const [purchases] = await db.execute(query, [startDate, endDate, `${limit}`, `${offset}`]);
+
+        const countQuery = `
+            SELECT COUNT(*) as total 
+            FROM Purchases 
+            WHERE invoiceDate BETWEEN ? AND ?
+        `;
+        const [[{ total }]] = await db.execute(countQuery, [startDate, endDate]);
+
+        res.status(200).json({
+            success: true,
+            data: purchases,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
+    } catch (error) {
+        next(error);
     }
-
-    if (limit === null || limit > constants.MAX_LIMIT) {
-      throw new AppError(400, `Limit must be a valid number below ${constants.MAX_LIMIT}`);
-    }
-
-    if (page === null) {
-      throw new AppError(400, "Page must be a valid number");
-    }
-
-    const offset = (page - 1) * limit;
-    const start = `${startDate} 00:00:00`;
-    const end = `${endDate} 23:59:59`;
-
-    const [purchases] = await db.execute(
-        `SELECT 
-        purchaseID, 
-        metaData, 
-        purchaseDate 
-        FROM 
-        Purchases 
-        WHERE purchaseDate BETWEEN ? AND ?
-        ORDER BY purchaseDate, purchaseID DESC 
-        LIMIT ? OFFSET ?
-        `, [start, end, `${limit}`, `${offset}` ]
-    );
-
-    const [totalResult] = await db.execute(
-        `SELECT COUNT(*) as total 
-        FROM Purchases 
-        WHERE purchaseDate BETWEEN ? AND ?`
-      , [start, end]
-    );
-    const totalPurchases = totalResult[0].total;
-
-    res.status(200).json({
-      success: true,
-      data: purchases,
-      pagination: {
-        total: totalPurchases,
-        page: page,
-        limit: limit,
-        totalPages: Math.ceil(totalPurchases / limit)
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
 };

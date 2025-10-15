@@ -304,17 +304,32 @@ CREATE TABLE Bills (
 
 CREATE TABLE Purchases (
     purchaseID INT AUTO_INCREMENT PRIMARY KEY,
-    metaData JSON,
-    purchaseDate DATE NOT NULL,
+    invoiceNumber VARCHAR(100) NULL,
+    invoiceDate DATE NULL,
+    sellerDetails JSON NULL,
+    buyerDetails JSON NULL,
+    transporterDetails JSON NULL,
+    purchaseDate DATE NULL,
+    totalAmount DECIMAL(12,2) NULL,
+    gstAmount DECIMAL(12,2) NULL,
+    grandTotal DECIMAL(12,2) NULL,
+    remarks TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE PurchaseItems (
     itemID INT AUTO_INCREMENT PRIMARY KEY,
     purchaseID INT NOT NULL,
-    barcode CHAR(13) NOT NULL,
-    hsn_code VARCHAR(50),
-    quantity INT NOT NULL DEFAULT 0 CHECK (quantity >= 0),
+    barcode VARCHAR(100) NULL,
+    itemCode VARCHAR(100) NULL,
+    description TEXT NULL,
+    hsnCode VARCHAR(50) NULL,
+    taxPercent DECIMAL(5,2) NULL,
+    rate DECIMAL(10,2) NULL,
+    quantity INT DEFAULT 0 CHECK (quantity >= 0),
+    unit VARCHAR(20) NULL,
+    value DECIMAL(12,2) NULL,
     FOREIGN KEY (purchaseID) REFERENCES Purchases (purchaseID) ON DELETE CASCADE,
-    UNIQUE KEY uk_purchase_barcode (purchaseID, barcode)
+
+    CONSTRAINT uc_purchase_barcode UNIQUE (purchaseID, barcode)
 );
