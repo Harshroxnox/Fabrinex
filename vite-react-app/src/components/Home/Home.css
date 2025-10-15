@@ -186,26 +186,30 @@
 
 /* Add this to your existing Home.css file */
 
-.filters-container {
-  /* display: flex;
+.dashboard-filters-container {
+  display: flex;
   gap: 1rem;
   margin-bottom: 1.5rem;
-  padding: 1rem; */
-  
+
+  font-size: large;
   align-items: center;
 }
-.select-wrapper {
+.dashboard-select-wrapper {
   display: flex;
   gap: 1rem;
   padding: 1rem;
   background-color: #f9f9f9;
   border-radius: 8px;
-  border: 1px solid #eee;
+  border: 1px solid #9b9494;
   align-items: center;
+  
 }
-.select-wrapper label{
+.dashboard-select-wrapper label{
   font-size: large;
-
+}
+.dashboard-select-wrapper select {
+  padding: 0.2rem;
+  border-radius: 8px;
 }
 
 .filters-container select {

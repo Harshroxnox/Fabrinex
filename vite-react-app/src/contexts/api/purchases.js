@@ -28,8 +28,8 @@ export const getAllPurchases = ({ page, limit }) =>
 export const getPurchaseById = (purchaseID) =>
   handleRequest(() => api.get(`/get-purchase-by-id/${purchaseID}`));
 
-export const searchPurchasesBySeller = ({ searchTerm, page = 1, limit = 10 }) =>
-  handleRequest(() => api.get(`/search-by-seller?supplier=${searchTerm}&page=${page}&limit=${limit}`));
-
+export const searchPurchasesBySeller = (queryParams) => {
+  return handleRequest(() => api.get('/search-by-seller', { params: queryParams }));
+};
 export const searchPurchasesByDateRange = ({ startDate, endDate, page = 1, limit = 10 }) =>
   handleRequest(() => api.get(`/search/date-range?startDate=${startDate}&endDate=${endDate}&page=${page}&limit=${limit}`));

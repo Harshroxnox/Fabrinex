@@ -13,7 +13,10 @@
 
 }
 
-
+.purchase-dialog-metadata{
+  padding: 1rem;
+  border-radius: 16px;
+}
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

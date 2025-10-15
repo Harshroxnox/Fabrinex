@@ -112,14 +112,14 @@ const Home = () => {
   return (
     <div className='home'>
       {/* Filters and Key Metrics are unchanged */}
-      <div className="filters-container">
-        <div className="select-wrapper">
+      <div className="dashboard-filters-container">
+        <div className="dashboard-select-wrapper">
           <label>Year: </label>
           <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))}>
             {generateYearOptions().map(year => <option key={year} value={year}>{year}</option>)}
           </select>
         </div>
-        <div className="select-wrapper">
+        <div className="dashboard-select-wrapper">
           <label>Month: </label>
           <select value={selectedMonth} onChange={(e) => setSelectedMonth(parseInt(e.target.value))}>
             {monthOptions.map(month => <option key={month.value} value={month.value}>{month.name}</option>)}

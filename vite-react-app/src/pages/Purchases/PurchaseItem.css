@@ -1,77 +1,85 @@
-.purchase-item {
-border: 0.01rem solid #e5e7eb;
-  border-radius: 1rem;
-  padding: 1rem;
-  background-color: #f9fafb;
-  /* margin-bottom: 0.5rem; */
+.purchase-item-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s ease-in-out;
+  overflow: hidden;
 }
 
-.purchase-item.expanded {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+.purchase-item-card.expanded {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.purchase-header {
+.purchase-summary-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
+  padding: 1rem;
   cursor: pointer;
 }
 
-.purchase-info {
-  flex : 1;
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
-.purchase-category{
-    display: inline-block;
-  background-color: #e5e7eb;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #374151;
-  margin-right: 0.5rem;
-}
-.purchase-name{
+.invoice-number {
   font-weight: 600;
-  color: black;
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  color: #111827;
 }
 
-
-
-.purchase-date {
-  font-size: 0.9em;
-  color: #666;
-  background-color: #f0f0f0;
-  padding: 3px 8px;
-  border-radius: 12px;
-}
-
-.purchase-metadata {
-    color: #6b7280;
+.seller-name {
   font-size: 0.875rem;
-  margin-top: 0.5rem;
+  color: #6b7280;
 }
 
-.purchase-actions {
+.financial-section {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.invoice-date {
+  color: #4b5563;
+}
+
+.grand-total {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1f2937;
 }
 
 .expand-icon {
-  font-size: 16px;
-  color: #888;
+  font-size: 1rem;
+  color: #9ca3af;
+  transition: transform 0.2s;
 }
 
-.purchase-items-section {
-  padding: 0 15px 15px 15px;
-  border-top: 1px solid #f0f0f0;
+.expanded .expand-icon {
+  transform: rotate(180deg);
 }
 
+.purchase-details-section {
+  padding: 0 1rem 1rem 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.purchase-totals {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  padding: 0.75rem 0;
+}
+
+.loading-text,
 .no-items-message {
-  color: #888;
-  font-style: italic;
+  padding: 1rem 0;
+  color: #6b7280;
+  text-align: center;
 }
