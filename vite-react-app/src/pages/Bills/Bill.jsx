@@ -112,7 +112,7 @@ const BillManagement = () => {
       {loading ? (
         <div className="loading-state">Loading bills...</div>
       ) : (
-        <div className="table-container">
+        <div className="bills-table-container">
           <table className="bills-list">
             <thead>
               <tr>

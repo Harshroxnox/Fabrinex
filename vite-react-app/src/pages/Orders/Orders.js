@@ -4,10 +4,10 @@ export const styles = {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
       border: '0.01rem solid black',
       borderRadius: '2rem',
-      width: '84vw',
+      // width: '50vw',
       overflow: 'hidden',
       minHeight: '600px',
-      margin: '0 auto',
+      marginRight: '1rem',
       padding:'35px'
     },
     mainContent: {
@@ -255,13 +255,13 @@ export const styles = {
     },
     filterDropdown: {
       position: 'absolute',
-      top: '100%',
+      top: '110%',
       right: '0',
       backgroundColor: '#FDFDFD',
       border: '0.01rem solid #a2a2a2',
       borderRadius: '1rem',
       padding: '1rem',
-      minWidth: '640px',
+      // minWidth: '640px',
       boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       zIndex: 1000,
       display: 'grid',

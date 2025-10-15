@@ -5,7 +5,8 @@
   border: 0.01rem solid black;
   border-radius: 2rem;
   box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
-  width: 84vw;
+  /* width: 84vw; */
+  margin-right: 1rem;
 }
 
 .integrationsMain {

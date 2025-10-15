@@ -45,7 +45,7 @@ const Admin = () => {
   };
 
   return (
-    <div className="admin-container">
+    <div className="admin-container no-scrollbar">
       <div className="admin-box">
         <div className="admin-sidebar">
           <button
@@ -161,7 +161,7 @@ const Admin = () => {
           </div>
         </div>
 
-        <div className="admin-main">
+        <div className="admin-main no-scrollbar">
           {renderMain()}
         </div>
       </div>

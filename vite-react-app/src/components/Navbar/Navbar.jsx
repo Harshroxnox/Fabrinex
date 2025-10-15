@@ -11,7 +11,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { logout } = useContext(LoginContext);
 
-  if (location.pathname === "/") {
+  if (location.pathname === "/login") {
     return null;
   }
 

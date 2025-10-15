@@ -103,7 +103,7 @@ const LoyaltyCards = () => {
       {loading ? (
         <div className="loading-state">Loading loyalty cards...</div>
       ) : (
-        <div className="table-container">
+        <div className="loyalty-cards-table-container">
           <table className="loyalty-cards-list">
             <thead>
               <tr>

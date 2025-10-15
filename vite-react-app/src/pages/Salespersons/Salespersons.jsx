@@ -107,7 +107,7 @@ const Salespersons = () => {
   );
 
   return (
-    <div className="salesperson-container">
+    <div className="salesperson-container no-scrollbar">
       <div className="salespersons-header">
         <h5>Salespersons</h5>
         <button className="add-salesperson-btn" onClick={() => setIsAddDialogOpen(true)}>
@@ -135,7 +135,7 @@ const Salespersons = () => {
       {loading ? (
         <div className="loading-state">Loading salespersons...</div>
       ) : (
-        <div className="table-container">
+        <div className="salesperson-table-container no-scrollbar">
           <table className="salesperson-list">
             <thead>
               <tr>

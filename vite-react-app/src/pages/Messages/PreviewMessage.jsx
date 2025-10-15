@@ -7,7 +7,7 @@
           <div className="sms-preview">
             <div className="preview-header">
               <span>SMS Preview</span>
-              <div className="preview-meta">NoorShop • SMS</div>
+              <div className="preview-meta">Noor Creations • SMS</div>
             </div>
             <div className="preview-content">
               {template.content}
@@ -19,7 +19,7 @@
           <div className="whatsapp-preview">
             <div className="preview-header">
               <span>WhatsApp Preview</span>
-              <div className="preview-meta">NoorShop • WhatsApp</div>
+              <div className="preview-meta">Noor Creations• WhatsApp</div>
             </div>
             <div className="preview-content">
               {template.content.split('\n').map((line, i) => (
@@ -33,7 +33,7 @@
           <div className="email-preview">
             <div className="preview-header">
               <span>Email Preview</span>
-              <div className="preview-meta">NoorShop • Email</div>
+              <div className="preview-meta">Noor Creations • Email</div>
             </div>
             <div 
               className="preview-content"

@@ -3,11 +3,12 @@
   font-family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
   border: 0.01rem solid black;
   border-radius: 2rem;
-  width: 84vw;
+  /* width: 84vw; */
   overflow: hidden;
   min-height: 600px;
-  margin: 0 auto;
+  /* margin: 0 auto; */
   padding:35px;
+  margin-right: 1rem;
 }
 
 .loyalty-cards-header {
@@ -94,11 +95,14 @@
   height:100%;
 }
 
-.table-container {
+.loyalty-cards-table-container {
   background: white;
+  border: 0.5px solid rgb(207, 202, 202);
   border-radius: 0.75rem;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* overflow: hidden; */
+  /* overflow: scroll; */
+  overflow-x: auto;
+  font-size: medium;
 }
 
 .loyalty-cards-list {

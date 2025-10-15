@@ -12,8 +12,8 @@ const App = () => {
     <Toaster position="top-right" />
     <Navbar/>
       <Routes >
-        <Route path="/" element={<Login />}/>
-        <Route path="/admin" element= {
+        <Route path="/login" element={<Login />}/>
+        <Route path="/" element= {
           <ProtectedRoute>
             <Admin/>
           </ProtectedRoute>

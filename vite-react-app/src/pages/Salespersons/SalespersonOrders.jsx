@@ -86,7 +86,7 @@ const SalespersonOrders = (refresh) => {
 
       {/* Orders Table */}
       {orders.length > 0 ? (
-        <table className="salesperson-info-table">
+        <table className="salesperson-info-table no-scrollbar">
           <thead>
             <tr>
               <th>Order ID</th>

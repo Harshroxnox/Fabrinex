@@ -21,7 +21,7 @@ const CustomerPage = () => {
 
   //pagination
   const [page,setPage] = useState(1);
-  const [limit, setLimit] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [totalPages, setTotalPages] = useState(5);
 
   const {getAllUsers}= useContext(LoginContext);

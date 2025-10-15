@@ -16,7 +16,7 @@ function Login() {
       const res = await login(form); // wait for the promise to resolve
       if (res.message === "success") {
         toast.success("Login successful!");
-        navigate("/admin");
+        navigate("/");
       } else {
         toast.error("Wrong credentials - User not found");
       }

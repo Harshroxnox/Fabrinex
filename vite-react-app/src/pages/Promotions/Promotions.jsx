@@ -29,8 +29,9 @@ const PromotionsPage = () => {
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
       border: '0.01rem solid black',
       borderRadius: '2rem',
-      width: '84vw',
-      overflow: 'hidden'
+      // width: '84vw',
+      overflow: 'hidden',
+      marginRight: '1rem',
     },
     mainContent: {
       display: 'flex',
