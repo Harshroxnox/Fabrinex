@@ -3,16 +3,22 @@ import html2pdf from "html2pdf.js";
 import { getOrder } from "../../contexts/api/orders";
 import "./Invoice.css";
 
-const Invoice = ({ order }) => {
-  const id = order;
+const Invoice = (orderId ) => {
+  // console.log("Rendering Invoice for Order ID:", orderId);
+  const id = orderId.order;
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const downloadPDF = () => {
     const invoice = document.getElementById("invoice");
-    html2pdf()
-      .from(invoice)
-      .save(`invoice_${orderData?.order?.orderID || id}.pdf`);
+    const opt = {
+      margin: 0,
+      filename: `invoice_${orderData?.order?.orderID || id}.pdf`,
+      image: { type: "jpeg", quality: 1 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "mm", format: [80, 297], orientation: "portrait" },
+    };
+    html2pdf().from(invoice).set(opt).save();
   };
 
   const fetchData = useCallback(async () => {
@@ -21,7 +27,7 @@ const Invoice = ({ order }) => {
       const res = await getOrder(id);
       setOrderData(res);
     } catch (error) {
-      console.error("error fetching order data", error);
+      console.error("Error fetching order data:", error);
     } finally {
       setLoading(false);
     }
@@ -34,128 +40,177 @@ const Invoice = ({ order }) => {
   if (loading) return <p>Loading invoice...</p>;
   if (!orderData) return <p>No invoice found.</p>;
 
-  const promoDiscount = parseFloat(orderData.order.promo_discount);
+  const { order, items } = orderData;
+  const gstRate = parseFloat(items[0].tax);
+  const discountPercent = parseFloat(order.promo_discount);
 
-  // --- Billing calculations ---
-  const itemsWithTotals = orderData.items.map((item) => {
+  // --- Calculations ---
+  const itemsWithTotals = items.map((item, i) => {
     const price = parseFloat(item.price_at_purchase);
     const qty = parseInt(item.quantity);
-    const taxRate = parseFloat(item.tax) / 100;
-    const discountPerItem = promoDiscount*(price)/100;
-    // proportional discount (split equally across items)
-    const discountedPrice = price - discountPerItem;
-    const baseTotal = discountedPrice * qty;
-    const taxAmt = baseTotal * taxRate;
-    const lineTotal = baseTotal + taxAmt;
-
-    return {
-      ...item,
-      discountedPrice,
-      taxAmt,
-      lineTotal,
-    };
+    const discountAmt = (price * discountPercent) / 100;
+    const discountedPrice = price - discountAmt;
+    const taxableAmt = discountedPrice * qty;
+    const gstAmt = (taxableAmt * gstRate) / 100;
+    const totalAmt = taxableAmt + gstAmt;
+    return { ...item, discountedPrice, gstAmt, totalAmt };
   });
 
-  const subtotal = itemsWithTotals.reduce(
-    (sum, item) => sum + item.discountedPrice * item.quantity,
+  const taxableTotal = itemsWithTotals.reduce(
+    (sum, i) => sum + i.discountedPrice * i.quantity,
     0
   );
+  const gstTotal = itemsWithTotals.reduce((sum, i) => sum + i.gstAmt, 0);
+  const cgst = gstTotal / 2;
+  const sgst = gstTotal / 2;
+  const totalBeforeRound = taxableTotal + gstTotal;
+  const roundedTotal = Math.round(totalBeforeRound);
+  const roundOff = (roundedTotal - totalBeforeRound).toFixed(2);
 
-  const totalTax = itemsWithTotals.reduce(
-    (sum, item) => sum + item.taxAmt,
-    0
-  );
+  // --- Convert numbers to words ---
+  const numberToWords = (num) => {
+    const a = [
+      "",
+      "One",
+      "Two",
+      "Three",
+      "Four",
+      "Five",
+      "Six",
+      "Seven",
+      "Eight",
+      "Nine",
+      "Ten",
+      "Eleven",
+      "Twelve",
+      "Thirteen",
+      "Fourteen",
+      "Fifteen",
+      "Sixteen",
+      "Seventeen",
+      "Eighteen",
+      "Nineteen",
+    ];
+    const b = [
+      "",
+      "",
+      "Twenty",
+      "Thirty",
+      "Forty",
+      "Fifty",
+      "Sixty",
+      "Seventy",
+      "Eighty",
+      "Ninety",
+    ];
 
-  const deliveryCharge = 0;
-  const grandTotal = subtotal + totalTax + deliveryCharge;
+    if (num === 0) return "Zero";
+    if (num > 999999) return "Amount too large";
+    let str = "";
+    const n = ("000000" + num).substr(-6).match(/^(\d{2})(\d{2})(\d{2})$/);
+    if (!n) return;
+    str +=
+      n[1] != 0
+        ? (a[Number(n[1])] || b[n[1][0]] + " " + a[n[1][1]]) + " Thousand "
+        : "";
+    str +=
+      n[2] != 0
+        ? (a[Number(n[2])] || b[n[2][0]] + " " + a[n[2][1]]) + " Hundred "
+        : "";
+    str +=
+      n[3] != 0
+        ? (str != "" ? "and " : "") +
+          (a[Number(n[3])] || b[n[3][0]] + " " + a[n[3][1]])
+        : "";
+    return str + " Only";
+  };
 
   return (
     <div className="invoice-container">
-      <div id="invoice" className="invoice-box">
-        <div className="invoice-header">
-          <div className="invoice-bill-to">
-            <h4>Bill To:</h4>
-            <p>{orderData.order.customer_name}</p>
-            <p>{orderData.order.address_line}</p>
-            <p>
-              {orderData.order.city}, {orderData.order.state} -{" "}
-              {orderData.order.pincode}
-            </p>
-            <p>{orderData.order.order_location}</p>
-          </div>
+      <div id="invoice" className="thermal-invoice">
+        <h2 className="shop-name">Noor Creations</h2>
+        <p className="shop-address">
+          MOTI BAZAR PARADE JAMMU<br />
+          Phone: 6006464546
+        </p>
+        <p><strong>GSTIN:</strong> 01HXZPS2503D1Z8</p>
+        <h3 className="invoice-title">TAX INVOICE</h3>
 
-          <div className="invoice-details">
-            <p>
-              <strong>Invoice #</strong> {orderData.order.orderID}
-            </p>
-            <p>
-              <strong>Invoice Date:</strong>{" "}
-              {new Date(orderData.order.created_at).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Payment Method:</strong>{" "}
-              {orderData.order.payment_method}
-            </p>
-            <p>
-              <strong>Payment Status:</strong>{" "}
-              {orderData.order.payment_status}
-            </p>
-            <p>
-              <strong>Order Status:</strong> {orderData.order.order_status}
-            </p>
-          </div>
+        <div className="invoice-info">
+          <p><strong>Invoice No/Date:</strong> {order.orderID} / {new Date(order.created_at).toLocaleDateString()}</p>
+          <p><strong>Customer Name:</strong> {order.customer_name || "Cash"}</p>
+          <p><strong>Cust Mobile No:</strong> — </p>
         </div>
 
-        <div className="invoice-bill-to" style={{ marginBottom: "10px" }}>
-          <p style={{ fontSize: "15px", fontWeight: "500" }}>Billed By:</p>
-          <p style={{ fontSize: "15px", fontWeight: "350" }}>{orderData.order.salesperson_name}</p>
-        </div>
-
-        <table className="invoice-items-table">
+        <table className="bill-table">
           <thead>
             <tr>
-              <th>Item</th>
-              <th>Category</th>
-              <th>Color</th>
-              <th>Size</th>
-              <th>Per Unit Price</th>
-              <th>Discounted Price (%{orderData.order.promo_discount})</th>
-              <th>Tax </th>
-              <th>Quantity</th>
-              <th>Total</th>
+              <th>SI</th>
+              <th>Product</th>
+              <th>Price</th>
+              <th>Disc(%)</th>
+              <th>Amt</th>
             </tr>
           </thead>
           <tbody>
-            {itemsWithTotals.map((item, index) => (
-              <tr key={index}>
-                <td>{item.name}</td>
-                <td>{item.category}</td>
-                <td>{item.color}</td>
-                <td>{item.size}</td>
-                <td>₹{parseFloat(item.price_at_purchase).toFixed(2)}</td>
-                <td>₹{item.discountedPrice.toFixed(2)}</td>
-                <td>₹{item.taxAmt.toFixed(2)} (% {item.tax})</td>
-                <td>{item.quantity}</td>
-                <td>₹{item.lineTotal.toFixed(2)}</td>
-              </tr>
+            {itemsWithTotals.map((item, i) => (
+              <React.Fragment key={i}>
+                <tr>
+                  <td>{i + 1}</td>
+                  <td>{item.product_name}</td>
+                  <td>{parseFloat(item.price_at_purchase).toFixed(2)}</td>
+                  <td>{discountPercent}%</td>
+                  <td>{item.totalAmt.toFixed(2)}</td>
+                </tr>
+                <tr className="sub-row">
+                  <td></td>
+                  <td>Qty: {item.quantity} | HSN: 540752</td>
+                  <td>GST%: {gstRate}%</td>
+                  <td>GST Amt:</td>
+                  <td>{item.gstAmt.toFixed(2)}</td>
+                </tr>
+              </React.Fragment>
             ))}
           </tbody>
         </table>
 
-        <div className="invoice-summary">
-          <p>
-            <strong>Subtotal:</strong> ₹{subtotal.toFixed(2)}
-          </p>
-          <p>
-            <strong>Total Tax:</strong> ₹{totalTax.toFixed(2)}
-          </p>
-          <p>
-            <strong>Delivery Charge:</strong> ₹{deliveryCharge.toFixed(2)}
-          </p>
-          <p className="invoice-total">
-            <strong>Total:</strong> ₹{grandTotal.toFixed(2)}
-          </p>
+        <div className="total-section">
+          <p><strong>Total:</strong> ₹{totalBeforeRound.toFixed(2)}</p>
+          <p><strong>Add: Rounded Off (+{roundOff})</strong></p>
+          <p><strong>Net Total:</strong> ₹{roundedTotal.toFixed(2)}</p>
         </div>
+
+        <p className="in-words">
+          Rupees {numberToWords(roundedTotal)}
+        </p>
+
+        <table className="gst-summary">
+          <thead>
+            <tr>
+              <th>Tax Rate</th>
+              <th>Taxable Amt</th>
+              <th>CGST Amt</th>
+              <th>SGST Amt</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>{gstRate}%</td>
+              <td>{taxableTotal.toFixed(2)}</td>
+              <td>{cgst.toFixed(2)}</td>
+              <td>{sgst.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div className="summary">
+          <p><strong>Total GST:</strong> ₹{gstTotal.toFixed(2)}</p>
+          <p><strong>Total Sale:</strong> ₹{(roundedTotal + 1000).toFixed(2)}</p>
+          <p><strong>Total Savings:</strong> ₹1000.00</p>
+          <p><strong>Net Payable:</strong> ₹{roundedTotal.toFixed(2)}</p>
+        </div>
+
+        <p className="footer">THANK YOU. VISIT US AGAIN.</p>
       </div>
 
       <button onClick={downloadPDF} className="invoice-download-btn">

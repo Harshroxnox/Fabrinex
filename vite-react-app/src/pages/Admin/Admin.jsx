@@ -1,6 +1,6 @@
 import './Admin.css';
 import React, { useState } from 'react';
-// import Home from '../../components/Home/Home';
+import { AnimatePresence, motion } from 'framer-motion';
 import MessagingSection from '../Messages/Messages.jsx';
 import WebPage from '../Web/Web.jsx';
 import PromotionsPage from '../Promotions/Promotions.jsx';
@@ -24,24 +24,18 @@ const Admin = () => {
     if (activeBtn === "Dashboard") return <Home />;
     if (activeBtn === "Orders") return <OrderCreationCRM />;
     if (activeBtn === "Products") return <ProductsList />;
-    if (activeBtn === "Customers") return <CustomerPage/>;
-    if (activeBtn === "SalesPersons") return <SalesPersons/>;
-    if (activeBtn === "LoyaltyCards") return <LoyaltyCards/>;
-    if (activeBtn === "Bills") return <BillManagement/>;
-    if (activeBtn === "Purchases") return <PurchaseList/>;
+    if (activeBtn === "Customers") return <CustomerPage />;
+    if (activeBtn === "SalesPersons") return <SalesPersons />;
+    if (activeBtn === "LoyaltyCards") return <LoyaltyCards />;
+    if (activeBtn === "Bills") return <BillManagement />;
+    if (activeBtn === "Purchases") return <PurchaseList />;
     if (activeBtn === "Messaging") return <MessagingSection />;
     if (activeBtn === "Web") return <WebPage />;
     if (activeBtn === "Promotions") return <PromotionsPage />;
     if (activeBtn === "Settings/AdminRoles") return <AdminRoles />;
-    if (activeBtn === "Settings/Integrations") return <IntegrationsPage/>;
+    if (activeBtn === "Settings/Integrations") return <IntegrationsPage />;
     if (activeBtn === "Settings") return <Settings />;
-
-    return (
-      <>
-        <p>{`Currently you have selected ${activeBtn}`}</p>
-        <p>This section will keep on changing depending upon what is selected from side panel</p>
-      </>
-    );
+    return <p>{`Currently you have selected ${activeBtn}`}</p>;
   };
 
   return (
@@ -55,79 +49,40 @@ const Admin = () => {
             Dashboard
           </button>
 
-          <button
-            onClick={() => setActiveBtn("Orders")}
-            className={activeBtn === "Orders" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Orders")} className={activeBtn === "Orders" ? "active-btn" : ""}>
             Orders
           </button>
-
-          <button
-            onClick={() => setActiveBtn("Products")}
-            className={activeBtn === "Products" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Products")} className={activeBtn === "Products" ? "active-btn" : ""}>
             Products
           </button>
-
-          <button
-            onClick={() => setActiveBtn("Customers")}
-            className={activeBtn === "Customers" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Customers")} className={activeBtn === "Customers" ? "active-btn" : ""}>
             Customers
           </button>
-          <button
-            onClick={() => setActiveBtn("SalesPersons")}
-            className={activeBtn === "SalesPersons" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("SalesPersons")} className={activeBtn === "SalesPersons" ? "active-btn" : ""}>
             SalesPersons
           </button>
-          <button
-            onClick={() => setActiveBtn("LoyaltyCards")}
-            className={activeBtn === "LoyaltyCards" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("LoyaltyCards")} className={activeBtn === "LoyaltyCards" ? "active-btn" : ""}>
             Loyalty Cards
           </button>
-          <button
-            onClick={() => setActiveBtn("Bills")}
-            className={activeBtn === "Bills" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Bills")} className={activeBtn === "Bills" ? "active-btn" : ""}>
             Bills
           </button>
-           <button
-            onClick={() => setActiveBtn("Purchases")}
-            className={activeBtn === "Purchases" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Purchases")} className={activeBtn === "Purchases" ? "active-btn" : ""}>
             Purchases
           </button>
-          <button
-            onClick={() => setActiveBtn("Messaging")}
-            className={activeBtn === "Messaging" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Messaging")} className={activeBtn === "Messaging" ? "active-btn" : ""}>
             Messaging
           </button>
-
-          <button
-            onClick={() => setActiveBtn("Promotions")}
-            className={activeBtn === "Promotions" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Promotions")} className={activeBtn === "Promotions" ? "active-btn" : ""}>
             Promotions
           </button>
-
-          <button
-            onClick={() => setActiveBtn("Web")}
-            className={activeBtn === "Web" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Web")} className={activeBtn === "Web" ? "active-btn" : ""}>
             Web
           </button>
-
-          <button
-            onClick={() => setActiveBtn("Analytics")}
-            className={activeBtn === "Analytics" ? "active-btn" : ""}
-          >
+          <button onClick={() => setActiveBtn("Analytics")} className={activeBtn === "Analytics" ? "active-btn" : ""}>
             Analytics
           </button>
 
-          {/* Settings dropdown */}
           <div>
             <button
               onClick={() => setSettingsOpen(!settingsOpen)}
@@ -135,7 +90,6 @@ const Admin = () => {
             >
               Settings ▾
             </button>
-
             {settingsOpen && (
               <div style={{ marginLeft: "1rem", display: "flex", flexDirection: "column", gap: "0.2rem" }}>
                 <button
@@ -162,7 +116,18 @@ const Admin = () => {
         </div>
 
         <div className="admin-main no-scrollbar">
-          {renderMain()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeBtn}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="w-full h-full"
+            >
+              {renderMain()}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>

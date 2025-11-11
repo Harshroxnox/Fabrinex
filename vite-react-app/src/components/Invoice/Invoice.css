@@ -1,100 +1,113 @@
 .invoice-container {
-  padding: 30px;
-  background: #f4f4f4;
-  font-family: Arial, sans-serif;
   display: flex;
   flex-direction: column;
   align-items: center;
-  z-index: 100;
+  font-family: "Courier New", monospace;
 }
 
-.invoice-box {
+.thermal-invoice {
+  width: 80mm;
   background: white;
-  padding: 20px 30px;
-  max-width: 800px;
-  width: 100%;
+  padding: 6px;
+  font-size: 11px;
+  color: black;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-  font-size: 26px;
-  color: #333;
 }
 
-.invoice-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
+.shop-name {
+  text-align: center;
+  font-size: 15px;
+  font-weight: bold;
 }
 
-.invoice-bill-to h4 {
+.shop-address {
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.invoice-title {
+  text-align: center;
+  border-top: 1px dashed black;
+  border-bottom: 1px dashed black;
+  padding: 3px 0;
+  margin: 6px 0;
+  font-weight: bold;
+}
+
+.invoice-info {
+  font-size: 10.5px;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+
+.bill-table {
+  width: 100%;
+  border-collapse: collapse;
   margin-bottom: 5px;
 }
 
-.invoice-bill-to p,
-.invoice-details p {
-  margin: 2px 0;
-  font-size: 13px;
+.bill-table th,
+.bill-table td {
+  text-align: left;
+  padding: 2px;
+  border-bottom: 1px dashed #ccc;
 }
 
-.invoice-amount-due {
-  margin-top: 10px;
-  font-size: 16px;
-  font-weight: bold;
+.sub-row td {
+  font-size: 10px;
+  border-bottom: 1px dashed #ccc;
 }
 
-.invoice-items-table {
+.total-section {
+  border-top: 1px dashed black;
+  font-size: 11px;
+  margin-top: 5px;
+  padding-top: 5px;
+}
+
+.in-words {
+  margin-top: 4px;
+  font-size: 10px;
+  font-style: italic;
+}
+
+.gst-summary {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 20px;
+  margin-top: 5px;
+  font-size: 10.5px;
 }
 
-.invoice-items-table th {
-  background: #eee;
+.gst-summary th,
+.gst-summary td {
+  padding: 2px;
+  border-bottom: 1px dashed #ccc;
   text-align: left;
-  padding: 10px;
-  font-size: 13px;
 }
 
-.invoice-items-table td {
-  padding: 10px;
-  border: 1px solid #ccc;
-  font-size: 13px;
+.summary {
+  margin-top: 5px;
+  border-top: 1px dashed #000;
+  padding-top: 5px;
+  font-size: 11px;
 }
 
-.invoice-notes {
-  margin-bottom: 20px;
-}
-
-.invoice-notes p {
-  margin: 4px 0;
-  font-size: 13px;
-}
-
-.invoice-summary {
-  text-align: right;
-}
-
-.invoice-summary p {
-  margin: 5px 0;
-  font-size: 13px;
-}
-
-.invoice-total {
+.footer {
+  text-align: center;
+  border-top: 1px dashed black;
+  margin-top: 6px;
+  padding-top: 4px;
   font-weight: bold;
-  font-size: 15px;
 }
 
 .invoice-download-btn {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background: #007bfc;
+  margin-top: 12px;
+  background: black;
   color: white;
   border: none;
-  border-radius: 6px;
+  padding: 6px 10px;
   cursor: pointer;
-  font-size: 14px;
-}
-
-.invoice-download-btn:hover {
-  background: #005fd0;
+  border-radius: 4px;
+  font-size: 12px;
 }
