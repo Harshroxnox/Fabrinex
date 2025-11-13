@@ -7,7 +7,8 @@ import {
     createOrderOffline,
     filter,
     updateOrderOffline,
-    getSingleOrder
+    getSingleOrder,
+    getReturnsByDateRange
 } from '../controllers/orders.controller.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
@@ -21,6 +22,7 @@ router.route("/get-single-order/:orderID").get(authMiddleware('admin'),getSingle
 router.route("/get-order/:orderID").get(getOrder);
 router.route("/get-orders-user").get(authMiddleware('user'), getOrdersByUser);
 
+router.route("/returns-by-range").get(authMiddleware('admin'), getReturnsByDateRange);
 // admin specific
 router.route("/get-all-orders").get(getAllOrders);
 router.route("/filter").get(filter);

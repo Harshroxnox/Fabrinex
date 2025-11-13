@@ -819,3 +819,80 @@ export const getAllOrders = async (req, res, next) => {
   }
 };
 
+
+export const getReturnsByDateRange = async (req, res, next) => {
+    const { dateFrom, dateTo, page = 1, limit = 10 } = req.query;
+    let conn;
+
+    if (!dateFrom || !dateTo) {
+        return next(new AppError(400, 'Both dateFrom (YYYY-MM-DD) and dateTo (YYYY-MM-DD) are required.'));
+    }
+
+    const startDate = `${dateFrom} 00:00:00`;
+    const endDate = `${dateTo} 23:59:59`;
+
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    const offset = (parsedPage - 1) * parsedLimit;
+
+    try {
+        conn = await db.getConnection();
+
+        // -----------------------------
+        // COUNT Query (Works fine)
+        // -----------------------------
+        const countSql = `
+            SELECT COUNT(oi.orderItemID) AS total
+            FROM OrderItems AS oi
+            JOIN Orders AS o ON oi.orderID = o.orderID
+            WHERE oi.quantity < 0 
+            AND o.created_at BETWEEN ? AND ?;
+        `;
+
+        const [countRows] = await conn.execute(countSql, [startDate, endDate]);
+        const totalReturns = countRows[0].total;
+
+        // -----------------------------
+        // SELECT Query (FIXED LIMIT/OFFSET)
+        // -----------------------------
+        const selectSql = `
+            SELECT 
+                oi.orderID, 
+                u.name AS customer_name, 
+                oi.name AS product_name, 
+                oi.variantID, 
+                ABS(oi.quantity) AS returned_quantity,
+                oi.price_at_purchase,
+                oi.color,
+                oi.size,
+                o.created_at,
+                (oi.price_at_purchase * ABS(oi.quantity)) AS total_credit
+            FROM OrderItems AS oi
+            JOIN Orders AS o ON oi.orderID = o.orderID
+            JOIN Users u ON o.userID = u.userID
+            WHERE 
+                oi.quantity < 0 
+                AND o.created_at BETWEEN ? AND ? 
+            ORDER BY o.created_at DESC
+            LIMIT ${parsedLimit} OFFSET ${offset};
+        `;
+
+        const [returnItems] = await conn.execute(selectSql, [startDate, endDate]);
+
+        res.status(200).json({
+            message: `Returns from ${dateFrom} to ${dateTo} fetched successfully.`,
+            returns: returnItems,
+            total: totalReturns,
+            page: parsedPage,
+            limit: parsedLimit
+        });
+
+    } catch (error) {
+        console.error("SQL Execution Error:", error.message);
+        if (conn) await conn.rollback();
+        next(error);
+
+    } finally {
+        if (conn) conn.release();
+    }
+};
