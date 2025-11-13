@@ -192,7 +192,7 @@ CREATE TABLE OrderItems (
     main_image VARCHAR(255) NOT NULL,
     size VARCHAR(50) NOT NULL,
     tax DECIMAL(5,2) NOT NULL CHECK (tax >= 0 AND tax < 100),
-    quantity INT NOT NULL DEFAULT 1 CHECK (quantity >= 1),
+    quantity INT NOT NULL DEFAULT 1 CHECK,
     price_at_purchase DECIMAL(10, 2) NOT NULL CHECK (price_at_purchase > 0),
     FOREIGN KEY (orderID) REFERENCES Orders(orderID) ON DELETE CASCADE,
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE RESTRICT

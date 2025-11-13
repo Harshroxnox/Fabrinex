@@ -399,6 +399,161 @@ export const createOrderOffline = async (req, res, next) => {
   }
 };
 
+export const updateOrderOffline = async (req, res, next) => {
+  // Get orderID from URL parameters
+  const orderID = validID(req.params.orderID); 
+  
+  // items will be an array like:
+  // [ { "variantID": "uuid-abc", "quantity": -1 }, // A return
+  //   { "variantID": "uuid-xyz", "quantity": 1 } ]  // An exchange
+  const { items } = req.body; 
+  let conn;
+
+  try {
+    // === 1. VALIDATIONS ===
+    if (orderID === null) {
+      throw new AppError(422, 'Invalid Order ID');
+    }
+
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw new AppError(400, 'Items array is required for update');
+    }
+
+    // Make connection for transaction
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    // === 2. FETCH ORIGINAL ORDER ===
+    const [orderRows] = await conn.execute(
+      `SELECT * FROM Orders WHERE orderID = ?`,
+      [orderID]
+    );
+
+    if (orderRows.length === 0) {
+      throw new AppError(404, 'Order not found');
+    }
+
+    // Store original values to apply the net change later
+    const originalOrder = orderRows[0];
+    let netAmountChange = 0;
+    let netProfitChange = 0;
+    let netTaxChange = 0;
+
+    // === 3. PROCESS EACH RETURN/EXCHANGE ITEM ===
+    for (const item of items) {
+      const { variantID, quantity } = item;
+
+      if (!variantID || typeof quantity !== 'number' || quantity === 0) {
+        throw new AppError(400, 'Invalid item data. Each item must have a variantID and a non-zero quantity.');
+      }
+
+      // Getting price and product info at time of exchange
+      const [variantRow] = await conn.execute(`
+        SELECT 
+          pv.variantID, pv.productID, pv.color, pv.size, pv.my_wallet, 
+          pv.main_image, pv.price, pv.discount, pv.stock,
+          p.name, p.category, p.tax
+        FROM ProductVariants AS pv
+        JOIN Products AS p ON pv.productID = p.productID
+        WHERE pv.variantID = ?`,
+        [variantID]
+      );
+
+      if (variantRow.length === 0) {
+        throw new AppError(400, `Invalid product variantID: ${variantID}`);
+      }
+
+      const variant = variantRow[0];
+
+      // === 4. STOCK MANAGEMENT ===
+      
+      // If quantity is positive (exchange), check if stock is available
+      if (quantity > 0 && variant.stock < quantity) {
+        throw new AppError(400, `Not enough stock for ${variant.name} (${variant.size}, ${variant.color}). Required: ${quantity}, Available: ${variant.stock}`);
+      }
+
+      // Update stock:
+      // If quantity = -1 (return), stock = stock - (-1) => stock increases
+      // If quantity = 1 (exchange), stock = stock - 1  => stock decreases
+      await conn.execute(
+        `UPDATE ProductVariants SET stock = stock - ? WHERE variantID = ?`,
+        [quantity, variantID]
+      );
+
+      // === 5. CALCULATE FINANCIALS FOR THIS ITEM ===
+      const productTax = variant.tax;
+      const { price, discount, my_wallet } = variant;
+      
+      // Calculate price just like in createOrder
+      const actualPrice = price - (price * (discount / 100));
+      const taxedPrice = actualPrice + (actualPrice * (productTax / 100));
+
+      // Add this item's financial impact to the net change
+      // If quantity is negative, this will correctly subtract from the totals
+      netAmountChange += (taxedPrice * quantity);
+      netProfitChange += (actualPrice - my_wallet) * quantity;
+      netTaxChange += (actualPrice * (productTax / 100)) * quantity;
+
+      // === 6. INSERT ADJUSTMENT INTO OrderItems ===
+      // This creates a permanent record of the return/exchange
+      await conn.execute(`
+        INSERT INTO OrderItems (
+          orderID, variantID, name, category, tax, color, 
+          main_image, size, quantity, price_at_purchase
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          orderID,
+          variant.variantID,
+          variant.name,
+          variant.category,
+          variant.tax,
+          variant.color,
+          variant.main_image,
+          variant.size,
+          quantity, // This will be negative for returns
+          actualPrice
+        ]
+      );
+    }
+
+    // === 7. UPDATE THE MAIN ORDER WITH NET CHANGES ===
+    const finalAmount = originalOrder.amount + netAmountChange;
+    const finalProfit = originalOrder.profit + netProfitChange;
+    const finalTax = originalOrder.tax + netTaxChange;
+
+    await conn.execute(
+      "UPDATE Orders SET amount = ?, profit = ?, tax = ? WHERE orderID = ?",
+      [finalAmount, finalProfit, finalTax, orderID]
+    );
+
+    // Commit database changes
+    await conn.commit();
+
+    // === 8. RESPOND WITH BALANCE INFORMATION ===
+    let balanceMessage = '';
+    if (netAmountChange < 0) {
+      balanceMessage = `Refund due to customer: ${Math.abs(netAmountChange).toFixed(2)}`;
+    } else if (netAmountChange > 0) {
+      balanceMessage = `Additional charge required: ${netAmountChange.toFixed(2)}`;
+    } else {
+      balanceMessage = 'Even exchange, no balance change.';
+    }
+
+    res.status(200).json({
+      message: 'Order updated successfully',
+      orderID,
+      balanceInfo: balanceMessage,
+      netAmountChange: netAmountChange.toFixed(2)
+    });
+
+  } catch (error) {
+    if (conn) await conn.rollback(); // rollback if failed
+    next(error);
+
+  } finally {
+    if (conn) conn.release(); // always release connection
+  }
+};
 
 export const filter = async (req, res, next) => {
   try {
