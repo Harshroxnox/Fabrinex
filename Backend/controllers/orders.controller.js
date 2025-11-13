@@ -555,6 +555,51 @@ export const updateOrderOffline = async (req, res, next) => {
     if (conn) conn.release(); // always release connection
   }
 };
+
+export const getSingleOrder = async (req, res, next) => {
+  const orderID = validID(req.params.orderID);
+  let conn;
+
+  try {
+    if (orderID === null) {
+      throw new AppError(422, 'Invalid Order ID');
+    }
+
+    conn = await db.getConnection();
+
+    // 1. Get the main order details
+    const [orderRows] = await conn.execute(
+      `SELECT * FROM Orders WHERE orderID = ?`,
+      [orderID]
+    );
+
+    if (orderRows.length === 0) {
+      throw new AppError(404, 'Order not found');
+    }
+
+    // 2. Get ALL items (original, returns, exchanges)
+    // We order by the primary key to get them in chronological order
+    const [items] = await conn.execute(
+      `SELECT * FROM OrderItems WHERE orderID = ? ORDER BY orderItemID ASC`,
+      [orderID]
+    );
+
+    const order = orderRows[0];
+    // Attach the full item history to the order object
+    order.items = items; 
+
+    res.status(200).json({
+      message: 'Order details fetched successfully',
+      order
+    });
+
+  } catch (error) {
+    next(error);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
 export const filter = async (req, res, next) => {
   try {
     // NOTE: Date format must be YYYY-MM-DD
