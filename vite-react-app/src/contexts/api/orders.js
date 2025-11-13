@@ -31,3 +31,21 @@ export const filterOrder = async (params) => {
     }
 }
 
+export const updateOrderForExchange = async (orderID, items) => {
+    try {
+        const res = await axiosInstance.put(`/orders/update-order-offline/${orderID}`, { items });
+        return res.data;
+    } catch (error) {
+        throw error.response?.data || error;
+    }
+}
+
+export const getReturnsByDateRange = async (dateFrom, dateTo, page, limit) => {
+    try {
+        const params = { dateFrom, dateTo, page, limit }; // Pass pagination params
+        const res = await axiosInstance.get("/orders/returns-by-range", { params }); 
+        return res.data; // Assumes backend returns { returns: [...], total: 1000 }
+    } catch (error) {
+        throw error;
+    }
+};
