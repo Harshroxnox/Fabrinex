@@ -15,7 +15,7 @@ const router = Router();
 // order routes
 router.route("/create-order").post(authMiddleware('user'), createOrder);
 router.route("/create-order-offline").post(authMiddleware('admin'), createOrderOffline);
-router.route("/update-order-offline/:orderID").post(authMiddleware('admin'), updateOrderOffline);
+router.route("/update-order-offline/:orderID").put(authMiddleware('admin'), updateOrderOffline);
 router.route("/get-order/:orderID").get(getOrder);
 router.route("/get-orders-user").get(authMiddleware('user'), getOrdersByUser);
 

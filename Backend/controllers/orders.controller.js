@@ -401,12 +401,12 @@ export const createOrderOffline = async (req, res, next) => {
 
 export const updateOrderOffline = async (req, res, next) => {
   // Get orderID from URL parameters
-  const orderID = validID(req.params.orderID); 
-  
+  const orderID = validID(req.params.orderID);
+
   // items will be an array like:
   // [ { "variantID": "uuid-abc", "quantity": -1 }, // A return
   //   { "variantID": "uuid-xyz", "quantity": 1 } ]  // An exchange
-  const { items } = req.body; 
+  const { items } = req.body;
   let conn;
 
   try {
@@ -468,34 +468,34 @@ export const updateOrderOffline = async (req, res, next) => {
       // === 4. STOCK MANAGEMENT ===
       
       // If quantity is positive (exchange), check if stock is available
-      if (quantity > 0 && variant.stock < quantity) {
+      // *** FIX: Ensure stock is also treated as a number for comparison ***
+      if (quantity > 0 && parseFloat(variant.stock) < quantity) {
         throw new AppError(400, `Not enough stock for ${variant.name} (${variant.size}, ${variant.color}). Required: ${quantity}, Available: ${variant.stock}`);
       }
 
       // Update stock:
-      // If quantity = -1 (return), stock = stock - (-1) => stock increases
-      // If quantity = 1 (exchange), stock = stock - 1  => stock decreases
       await conn.execute(
         `UPDATE ProductVariants SET stock = stock - ? WHERE variantID = ?`,
         [quantity, variantID]
       );
 
       // === 5. CALCULATE FINANCIALS FOR THIS ITEM ===
-      const productTax = variant.tax;
-      const { price, discount, my_wallet } = variant;
-      
+      // *** FIX: Convert all variant financial data to numbers ***
+      const productTax = parseFloat(variant.tax);
+      const price = parseFloat(variant.price);
+      const discount = parseFloat(variant.discount);
+      const my_wallet = parseFloat(variant.my_wallet);
+
       // Calculate price just like in createOrder
       const actualPrice = price - (price * (discount / 100));
       const taxedPrice = actualPrice + (actualPrice * (productTax / 100));
 
       // Add this item's financial impact to the net change
-      // If quantity is negative, this will correctly subtract from the totals
       netAmountChange += (taxedPrice * quantity);
       netProfitChange += (actualPrice - my_wallet) * quantity;
       netTaxChange += (actualPrice * (productTax / 100)) * quantity;
 
       // === 6. INSERT ADJUSTMENT INTO OrderItems ===
-      // This creates a permanent record of the return/exchange
       await conn.execute(`
         INSERT INTO OrderItems (
           orderID, variantID, name, category, tax, color, 
@@ -506,7 +506,7 @@ export const updateOrderOffline = async (req, res, next) => {
           variant.variantID,
           variant.name,
           variant.category,
-          variant.tax,
+          variant.tax, // Storing the original string is fine
           variant.color,
           variant.main_image,
           variant.size,
@@ -517,9 +517,10 @@ export const updateOrderOffline = async (req, res, next) => {
     }
 
     // === 7. UPDATE THE MAIN ORDER WITH NET CHANGES ===
-    const finalAmount = originalOrder.amount + netAmountChange;
-    const finalProfit = originalOrder.profit + netProfitChange;
-    const finalTax = originalOrder.tax + netTaxChange;
+    // *** FIX: Convert original order amounts to numbers before adding ***
+    const finalAmount = parseFloat(originalOrder.amount) + netAmountChange;
+    const finalProfit = parseFloat(originalOrder.profit) + netProfitChange;
+    const finalTax = parseFloat(originalOrder.tax) + netTaxChange;
 
     await conn.execute(
       "UPDATE Orders SET amount = ?, profit = ?, tax = ? WHERE orderID = ?",
@@ -554,7 +555,6 @@ export const updateOrderOffline = async (req, res, next) => {
     if (conn) conn.release(); // always release connection
   }
 };
-
 export const filter = async (req, res, next) => {
   try {
     // NOTE: Date format must be YYYY-MM-DD
