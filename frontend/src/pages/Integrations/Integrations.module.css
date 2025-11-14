@@ -1,0 +1,375 @@
+.integrationsContainer {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 50%, #f5f5f5 100%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  border: 0.01rem solid black;
+  border-radius: 2rem;
+  box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.1);
+  /* width: 84vw; */
+  margin-right: 1rem;
+}
+
+.integrationsMain {
+  display: flex;
+  flex-direction: column;
+  padding-right: 3.5rem;
+  gap: 1rem;
+  min-width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.integrationsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.integrationsTitle {
+  font-size: 2rem;
+  text-decoration: none;
+  font-weight: 400;
+  margin: 0;
+  color: black;
+}
+
+.manageIntegrationsBtn {
+  background-color: #111827;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.manageIntegrationsBtn:hover {
+  background-color: #1f2937;
+}
+
+.searchFiltersCard {
+  border: 0.01rem solid #a2a2a2;
+  padding: 2rem;
+  border-radius: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fdfdfd 100%);
+  margin-bottom: 24px;
+}
+
+.searchContainer {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 65%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  width: 20px;
+  height: 20px;
+}
+
+.searchInput {
+  width: 100%;
+  padding-left: 40px;
+  padding-right: 16px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 300;
+  color: #2c2c2c;
+  background-color: #FDFDFD;
+  outline: none;
+}
+
+.searchInput:focus {
+  border-color: #6ba1a9;
+  box-shadow: 0 0 0 2px rgba(107, 161, 169, 0.1);
+}
+
+.filtersContainer {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filterWrapper {
+  position: relative;
+}
+
+.filterSelect {
+  appearance: none;
+  background-color: #FDFDFD;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 8px;
+  padding: 8px 32px 8px 16px;
+  font-size: 1rem;
+  font-weight: 300;
+  color: #2c2c2c;
+  cursor: pointer;
+  outline: none;
+  min-width: 140px;
+}
+
+.filterSelect:focus {
+  border-color: #6ba1a9;
+  box-shadow: 0 0 0 2px rgba(107, 161, 169, 0.1);
+}
+
+.chevronIcon {
+  position: absolute;
+  right: 8px;
+  top: 70%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #9ca3af;
+}
+
+.integrationsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+.integrationCard {
+  border: 0.01rem solid #a2a2a2;
+  padding: 2rem;
+  border-radius: 2rem;
+  background: linear-gradient(135deg, #ffffff 0%, #fdfdfd 100%);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.integrationCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--card-color), rgba(255,255,255,0.3));
+}
+
+.integrationCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.integrationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.integrationInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.integrationIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 500;
+  font-size: 24px;
+  background: linear-gradient(135deg, var(--card-color), rgba(255,255,255,0.2));
+}
+
+.integrationDetails h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #2c2c2c;
+}
+
+.integrationCategory {
+  color: #6ba1a9;
+  font-size: 0.9rem;
+  font-weight: 300;
+}
+
+.integrationStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.statusIconActive {
+  color: #10b981;
+}
+
+.statusIconInactive {
+  color: #ef4444;
+}
+
+.statusIconWarning {
+  color: #f59e0b;
+}
+
+.integrationDescription {
+  color: #6b7280;
+  font-size: 0.95rem;
+  font-weight: 300;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.integrationConfig {
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.configTitle {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 12px;
+}
+
+.configItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 4px 0;
+}
+
+.configItem:last-child {
+  margin-bottom: 0;
+}
+
+.configLabel {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 300;
+}
+
+.configValue {
+  font-size: 0.85rem;
+  color: #2c2c2c;
+  font-weight: 400;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.secretToggle {
+  background: none;
+  border: none;
+  color: #6ba1a9;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.secretToggle:hover {
+  background-color: #f3f4f6;
+}
+
+.integrationFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.lastUpdated {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-weight: 300;
+}
+
+.configureBtn {
+  background-color: #6ba1a9;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.configureBtn:hover {
+  background-color: #5a8a92;
+}
+
+.configureBtn:disabled {
+  background-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.statsOverview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.statCard {
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  border: 0.01rem solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.statNumber {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #2c2c2c;
+  margin-bottom: 4px;
+}
+
+.statLabel {
+  font-size: 0.9rem;
+  color: #6b7280;
+  font-weight: 300;
+}
+
+@media (max-width: 768px) {
+  .integrationsMain {
+    padding-right: 1rem;
+  }
+
+  .integrationsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .filtersContainer {
+    flex-direction: column;
+  }
+
+  .filterSelect {
+    min-width: 100%;
+  }
+
+  .statsOverview {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

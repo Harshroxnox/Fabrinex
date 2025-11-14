@@ -1,0 +1,142 @@
+import './Admin.css';
+import React, { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import MessagingSection from '../Messages/Messages.jsx';
+import WebPage from '../Web/Web.jsx';
+import PromotionsPage from '../Promotions/Promotions.jsx';
+import Settings from '../Settings/Settings';
+import IntegrationsPage from '../Integrations/Integrations.jsx';
+import OrderCreationCRM from '../Orders/Orders.jsx';
+import AdminRoles from '../AdminRoles/AdminRoles.jsx';
+import CustomerPage from '../Customers/CustomerPage.jsx';
+import ProductsList from '../Products/ProductsList.jsx';
+import SalesPersons from '../Salespersons/Salespersons.jsx';
+import LoyaltyCards from '../LoyaltyCards/LoyaltyCards.jsx';
+import Home from '../../components/Dashboard/Home.jsx';
+import BillManagement from '../Bills/Bill.jsx';
+import PurchaseList from '../Purchases/PurchaseList.jsx';
+import DailyReturnsSection from '../Returns/DailyReturnsSection.jsx';
+
+const Admin = () => {
+  const [activeBtn, setActiveBtn] = useState("Dashboard");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  const renderMain = () => {
+    if (activeBtn === "Dashboard") return <Home />;
+    if (activeBtn === "Orders") return <OrderCreationCRM />;
+    if (activeBtn === "Products") return <ProductsList />;
+    if (activeBtn === "Returns") return <DailyReturnsSection/>;
+    if (activeBtn === "Customers") return <CustomerPage />;
+    if (activeBtn === "SalesPersons") return <SalesPersons />;
+    if (activeBtn === "LoyaltyCards") return <LoyaltyCards />;
+    if (activeBtn === "Bills") return <BillManagement />;
+    if (activeBtn === "Purchases") return <PurchaseList />;
+    if (activeBtn === "Messaging") return <MessagingSection />;
+    if (activeBtn === "Web") return <WebPage />;
+    if (activeBtn === "Promotions") return <PromotionsPage />;
+    if (activeBtn === "Settings/AdminRoles") return <AdminRoles />;
+    if (activeBtn === "Settings/Integrations") return <IntegrationsPage />;
+    if (activeBtn === "Settings") return <Settings />;
+    return <p>{`Currently you have selected ${activeBtn}`}</p>;
+  };
+
+  return (
+    <div className="admin-container no-scrollbar">
+      <div className="admin-box">
+        <div className="admin-sidebar">
+          <button
+            onClick={() => setActiveBtn("Dashboard")}
+            className={`home-btn ${activeBtn === "Dashboard" ? "active-btn" : ""}`}
+          >
+            Dashboard
+          </button>
+
+          <button onClick={() => setActiveBtn("Orders")} className={activeBtn === "Orders" ? "active-btn" : ""}>
+            Orders
+          </button>
+          <button onClick={() => setActiveBtn("Products")} className={activeBtn === "Products" ? "active-btn" : ""}>
+            Products
+          </button>
+          <button onClick={() => setActiveBtn("Returns")} className={activeBtn === "Returns" ? "active-btn" : ""}>
+            Returns
+          </button>
+          <button onClick={() => setActiveBtn("Customers")} className={activeBtn === "Customers" ? "active-btn" : ""}>
+            Customers
+          </button>
+          <button onClick={() => setActiveBtn("SalesPersons")} className={activeBtn === "SalesPersons" ? "active-btn" : ""}>
+            SalesPersons
+          </button>
+          <button onClick={() => setActiveBtn("LoyaltyCards")} className={activeBtn === "LoyaltyCards" ? "active-btn" : ""}>
+            Loyalty Cards
+          </button>
+          <button onClick={() => setActiveBtn("Bills")} className={activeBtn === "Bills" ? "active-btn" : ""}>
+            Bills
+          </button>
+          <button onClick={() => setActiveBtn("Purchases")} className={activeBtn === "Purchases" ? "active-btn" : ""}>
+            Purchases
+          </button>
+          <button onClick={() => setActiveBtn("Messaging")} className={activeBtn === "Messaging" ? "active-btn" : ""}>
+            Messaging
+          </button>
+          <button onClick={() => setActiveBtn("Promotions")} className={activeBtn === "Promotions" ? "active-btn" : ""}>
+            Promotions
+          </button>
+          <button onClick={() => setActiveBtn("Web")} className={activeBtn === "Web" ? "active-btn" : ""}>
+            Web
+          </button>
+          <button onClick={() => setActiveBtn("Analytics")} className={activeBtn === "Analytics" ? "active-btn" : ""}>
+            Analytics
+          </button>
+
+          <div>
+            <button
+              onClick={() => setSettingsOpen(!settingsOpen)}
+              className={activeBtn.startsWith("Settings") ? "active-btn" : ""}
+            >
+              Settings ▾
+            </button>
+            {settingsOpen && (
+              <div style={{ marginLeft: "1rem", display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                <button
+                  onClick={() => {
+                    setActiveBtn("Settings/AdminRoles");
+                    setSettingsOpen(false);
+                  }}
+                  className={activeBtn === "Settings/AdminRoles" ? "active-btn" : ""}
+                >
+                  Admin Roles
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveBtn("Settings/Integrations");
+                    setSettingsOpen(false);
+                  }}
+                  className={activeBtn === "Settings/Integrations" ? "active-btn" : ""}
+                >
+                  Integrations
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="admin-main no-scrollbar">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeBtn}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="w-full h-full"
+            >
+              {renderMain()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Admin;

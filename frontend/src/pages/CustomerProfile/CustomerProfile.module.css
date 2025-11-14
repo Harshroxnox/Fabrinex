@@ -1,0 +1,374 @@
+.customerProfileContainer {
+  background-color: #f9fafb;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  border: 0.01rem solid black;
+  border-radius: 2rem;
+  width: 84vw;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+.customerProfileContent {
+  display: flex;
+  flex-direction: column;
+  padding: 32px 24px;
+  gap: 2rem;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.profileHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.headerLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  text-decoration: none;
+  font-weight: 600;
+  margin: 0;
+  color: black;
+}
+
+.pageSubtitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  font-weight: 300;
+}
+
+.profileGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.profileLeftColumn,
+.profileRightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.profileCard {
+  border: 0.01rem solid #a2a2a2;
+  padding: 2rem;
+  border-radius: 2rem;
+  background-color: #FDFDFD;
+  overflow: hidden;
+}
+
+.customerHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  position: relative;
+}
+
+.customerAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.customerAvatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.customerBasicInfo {
+  flex: 1;
+}
+
+.customerName {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: black;
+  margin: 0 0 0.25rem 0;
+}
+
+.customerSince {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 0.25rem 0;
+  font-weight: 300;
+}
+
+.customerId {
+  font-size: 0.875rem;
+  color: #2c2c2c;
+  margin: 0;
+  font-weight: 300;
+}
+
+.editProfileBtn {
+  background-color: #111827;
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.editProfileBtn:hover {
+  background-color: #1f2937;
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: black;
+  margin: 0 0 1.5rem 0;
+}
+
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.contactItem {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 1rem;
+  align-items: center;
+}
+
+.contactLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contactValue {
+  font-size: 0.875rem;
+  color: #2c2c2c;
+  font-weight: 300;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.profileTable {
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 0.8rem;
+  font-size: 1rem;
+  width: 100%;
+  min-width: 100%;
+}
+
+.profileTable thead {
+  background-color: #FDFDFD;
+}
+
+.profileTable th {
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 0.1rem solid #a2a2a2;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.profileTable tbody {
+  background-color: #FDFDFD;
+}
+
+.profileTable tr {
+  transition: background-color 0.2s;
+}
+
+.profileTable tr:hover {
+  background-color: #f9fafb;
+}
+
+.profileTable td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 0.1rem solid #a2a2a2;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.profileTable tr.lastRow td {
+  border-bottom: none;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.statusCompleted,
+.statusResolved {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.statusShipped {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.statusCancelled {
+  background-color: #fee2e2;
+  color: #dc2626;
+}
+
+.statusClosed {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.statusOpen {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.statusDefault {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.summaryStats {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 300;
+}
+
+.statValue {
+  font-size: 2rem;
+  font-weight: 600;
+  color: black;
+}
+
+.notesTextarea {
+  width: 100%;
+  background-color: #FDFDFD;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 1rem;
+  padding: 1rem;
+  font-size: 0.875rem;
+  font-weight: 300;
+  color: #2c2c2c;
+  outline: none;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.notesTextarea::placeholder {
+  color: #9ca3af;
+}
+
+.notesTextarea:focus {
+  border-color: #1d4ed8;
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.customerTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 0.5rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 0.01rem solid #d1d5db;
+}
+
+@media (max-width: 1024px) {
+  .profileGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .customerProfileContent {
+    padding: 24px 16px;
+  }
+
+  .profileCard {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .customerHeader {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1rem;
+  }
+
+  .editProfileBtn {
+    position: static;
+  }
+
+  .contactItem {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .contactLabel {
+    font-weight: 600;
+  }
+
+  .summaryStats {
+    gap: 1.5rem;
+  }
+
+  .pageTitle {
+    font-size: 1.5rem;
+  }
+}

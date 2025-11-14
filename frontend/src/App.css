@@ -1,0 +1,44 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Satoshi', 'sans-serif';
+  color: #292929;
+}
+
+#root {
+  background-color: #f4f4f4;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  width: 1.2rem;
+}
+/* Hide scrollbars but allow scrolling */
+html, body {
+  overflow: auto;
+  scrollbar-width: none;      /* Firefox */
+  -ms-overflow-style: none;   /* IE and Edge */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+/* Create a class to apply to any element */
+.no-scrollbar {
+  /* For Firefox */
+  scrollbar-width: none;
+
+  /* For Internet Explorer and old Edge */
+  -ms-overflow-style: none;
+}
+
+/* For WebKit-based browsers (Chrome, Safari, new Edge, Opera) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}

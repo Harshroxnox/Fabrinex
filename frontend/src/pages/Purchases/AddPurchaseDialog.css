@@ -1,0 +1,133 @@
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+
+}
+
+.purchase-dialog-metadata{
+  padding: 1rem;
+  border-radius: 16px;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dialog-content {
+  background: #fff;
+  padding: 25px 35px;
+  border-radius: 12px;
+  max-width: 800px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.dialog-content h2 {
+  margin-top: 0;
+  margin-bottom: 25px;
+  color: #2c3e50;
+  font-size: 24px;
+  text-align: center;
+}
+
+.purchase-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.add-item-btn {
+  background-color: rgba(10, 30, 83, 0.533);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 2rem;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: left;
+  gap: 0.5rem;
+}
+
+
+
+.staged-items-container {
+  max-height: 280px;
+  overflow-y: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #fdfdfd;
+}
+
+.empty-list-message {
+  padding: 30px 20px;
+  text-align: center;
+  color: #7f8c8d;
+  font-style: italic;
+}
+
+.staged-items-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.staged-items-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  color: #34495e;
+  font-size: 14px;
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 2px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+}
+
+
+.staged-items-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #ecf0f1;
+  vertical-align: middle;
+  font-size: large;
+}
+
+.staged-items-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.staged-items-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.remove-item-btn {
+  padding: 5px 10px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.remove-item-btn:hover {
+  background-color: #c0392b;
+}
