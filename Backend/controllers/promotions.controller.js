@@ -231,8 +231,6 @@ export const applyPromotions = async (req, res) => {
 
     
     if (orderTotal < promo.min_order_price) {
-      console.log(promo.min_order_price)
-      console.log(orderTotal)
       return res.status(400).json({ error: "Order total below minimum for this promotion." });
     }
 

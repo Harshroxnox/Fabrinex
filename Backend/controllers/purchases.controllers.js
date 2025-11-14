@@ -89,7 +89,6 @@ export const createPurchase = async (req ,res , next) => {
 
 export const getPurchaseById = async (req, res, next) => {
 
-    console.log(req.params.id);
     const purchaseID = validID(req.params.id); 
     try {
         if (purchaseID === null) {
@@ -195,9 +194,7 @@ export const getAllPurchases = async (req, res, next) => {
 
 export const searchPurchasesBySeller = async (req, res, next) => {
     try {
-      console.log(req.query.supplier);
         const supplier = validString(req.query.supplier);
-        console.log(supplier);
         const limit = validID(req.query.limit) || 10;
         const page = validID(req.query.page) || 1;
 

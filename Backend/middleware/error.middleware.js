@@ -4,7 +4,6 @@ import logger from "../utils/logger.js";
 const errorHandler = (error, req, res, next) => {
   // Log the actual error for debugging
   logger.error(error?.message || error);
-  console.log(error?.message || error);
 
   // Handle custom file type error , (changed by {Akshat } in commit fixed bill routes )
   if (typeof error?.message === "string" && error.message.includes("Invalid file type")) {

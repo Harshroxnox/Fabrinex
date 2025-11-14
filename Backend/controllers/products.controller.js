@@ -16,7 +16,6 @@ export const createProduct = async (req, res, next) => {
   const tax = validDecimal(req.body.tax);
   const { description, category } = req.body;
 
-  console.log(tax);
   try {
     // check if name is valid
     if(name === null){
