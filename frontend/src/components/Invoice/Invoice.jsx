@@ -170,7 +170,7 @@ const numberToWords = (num) => {
                 </tr>
                 <tr className="sub-row">
                   <td></td>
-                  <td>Qty: {item.quantity} | HSN: 540752</td>
+                  <td>Qty: {item.quantity}</td>
                   <td>GST%: {gstRate}%</td>
                   <td>GST Amt:</td>
                   <td>{item.gstAmt.toFixed(2)}</td>

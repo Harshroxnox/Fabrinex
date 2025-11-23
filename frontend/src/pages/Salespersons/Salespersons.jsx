@@ -111,7 +111,7 @@ const Salespersons = () => {
       <div className="salespersons-header">
         <h5>Salespersons</h5>
         <button className="add-salesperson-btn" onClick={() => setIsAddDialogOpen(true)}>
-          <Plus size={18} />
+          <Plus size={18} color="white" />
           Add Salesperson
         </button>
       </div>

@@ -1209,7 +1209,8 @@ export const getVariantByBarcodeAdmin = async (req, res, next) => {
         pv.stock,
         pv.created_at,
         p.name AS product_name, 
-        p.category
+        p.category,
+        p.tax
       FROM ProductVariants pv
       JOIN Products p ON pv.productID = p.productID
       WHERE pv.barcode = ? AND pv.is_active = TRUE

@@ -27,7 +27,6 @@ const fetchProductVariantByBarcode = (barcode) =>
 
 const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders }) => {
 
-  const [originalOrder, setOriginalOrder] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -39,30 +38,47 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
   const [searchLoading, setSearchLoading] = useState(false);
   const [newExchangeQuantity, setNewExchangeQuantity] = useState(1);
 
-  // ===========================================
-  // FETCH ORDER DETAILS
-  // ===========================================
   const fetchOrderDetails = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await getOrder(orderID);
-      setOriginalOrder(res.order);
+      // console.log("Fetched Order Data for Exchange:", res);
+      const discountPercent = parseFloat(res.order.promo_discount || 0);
+      
+        const calculatedItems = res.items.map(item => {
+        const price = parseFloat(item.price_at_purchase);
+        const gstRate = parseFloat(item.tax || 0);
 
-      // IMPORTANT FIX: include orderItemID for unique keys
-      setExchangePayload(
-        res.items.map(item => ({
-          orderItemID: item.orderItemID, // UNIQUE KEY
+        // 1. Calculate Discount
+        const discountAmt = (price * discountPercent) / 100;
+        const discountedPrice = price - discountAmt;
+
+        // 2. Calculate Tax on the discounted price
+        const gstAmt = (discountedPrice * gstRate) / 100;
+
+        // 3. Final Refundable Amount per Unit
+        const finalUnitPrice = discountedPrice + gstAmt;
+        // console.log(finalUnitPrice);
+        return {
+          orderItemID: item.orderItemID,
           variantID: item.variantID,
           name: item.name,
           color: item.color,
           size: item.size,
-          price: parseFloat(item.price_at_purchase),
+          
+          // STORE THE CALCULATED FINAL PRICE HERE
+          price: finalUnitPrice, 
+          rawPrice: price, // Keep original for reference if needed
+          
           originalQuantity: item.quantity,
           returnQuantity: 0,
-        }))
-      );
+        };
+      });
+
+      setExchangePayload(calculatedItems);
 
     } catch (error) {
+      console.error(error);
       toast.error('Could not fetch order details.');
       onClose();
     } finally {
@@ -75,11 +91,10 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
   }, [fetchOrderDetails]);
 
   // ===========================================
-  // FIXED: UPDATE RETURN QUANTITY PER ITEM
+  // UPDATE RETURN QUANTITY
   // ===========================================
   const handleReturnQuantityChange = (orderItemID, maxQuantity, value) => {
     let qty = parseInt(value, 10);
-
     if (isNaN(qty) || qty < 0) qty = 0;
     if (qty > maxQuantity) qty = maxQuantity;
 
@@ -105,10 +120,10 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
 
     try {
       const response = await fetchProductVariantByBarcode(barcodeInput.trim());
-
       const variant = response.variant;
+      // console.log(response);
+      
       if (!variant) throw new Error("Product variant not found.");
-
       if (parseFloat(variant.stock) <= 0) {
         toast.error("This product is out of stock.");
         return;
@@ -121,6 +136,8 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
         size: variant.size,
         price: parseFloat(variant.price),
         stock: parseFloat(variant.stock),
+        discount: parseFloat(variant.discount || 0),
+        tax: parseFloat(variant.tax || 0),
       });
 
     } catch (error) {
@@ -131,7 +148,7 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
   };
 
   // ===========================================
-  // ADD SEARCHED ITEM
+  // ADD / REMOVE NEW ITEMS
   // ===========================================
   const handleAddSearchedItem = () => {
     if (!searchedVariant || newExchangeQuantity <= 0 || newExchangeQuantity > searchedVariant.stock) {
@@ -164,7 +181,6 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
 
   const handleNewExchangeQuantityChange = (variantID, value) => {
     const qty = parseInt(value, 10);
-
     setNewExchangeItems(prev =>
       prev.map(item => {
         if (item.variantID === variantID) {
@@ -181,31 +197,31 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
     setNewExchangeItems(prev => prev.filter(item => item.variantID !== variantID));
   };
 
-  // ===========================================
-  // NET AMOUNT CALCULATION
-  // ===========================================
   const calculateNetChange = () => {
     let net = 0;
 
-    exchangePayload.forEach(item =>
-      net -= item.returnQuantity * item.price
-    );
+    // Subtract value of Returned Items (Credit)
+    // Uses the 'price' we calculated in fetchOrderDetails (includes tax/discount)
+    exchangePayload.forEach(item => {
+      if(item.returnQuantity > 0) {
+        net -= item.returnQuantity * item.price;
+      }
+    });
 
-    newExchangeItems.forEach(item =>
-      net += item.price * item.quantity
-    );
+    // Add value of New Items (Charge)
+    newExchangeItems.forEach(item => {
+      net += item.price * item.quantity;
+    });
 
     return net;
   };
 
   const netChange = calculateNetChange();
 
-  // ===========================================
-  // SUBMIT EXCHANGE
-  // ===========================================
   const handleSubmit = async () => {
     const itemsToSubmit = [];
 
+    // Add Returns (Negative Quantity)
     exchangePayload.forEach(item => {
       if (item.returnQuantity > 0) {
         itemsToSubmit.push({
@@ -215,6 +231,7 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
       }
     });
 
+    // Add New Items (Positive Quantity)
     newExchangeItems.forEach(item => {
       if (item.quantity > 0) {
         itemsToSubmit.push({
@@ -229,11 +246,14 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
       return;
     }
 
+    // console.log("Submitting Exchange Payload:", itemsToSubmit);
     setIsSubmitting(true);
     try {
       const result = await updateOrderForExchange(orderID, itemsToSubmit);
       toast.success("Exchange processed successfully!");
-      alert(result.balanceInfo);
+      
+      // The backend result usually contains the authoritative balance info
+      if(result.balanceInfo) toast.success(result.balanceInfo);
 
       onSuccessfulUpdate();
       fetchOrders();
@@ -244,25 +264,30 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
       setIsSubmitting(false);
     }
   };
-
-  // ===========================================
-  // UI
-  // ===========================================
+  const getTotalUnitPrice = (price, discount, tax) => {
+    const discountAmt = (price * discount) / 100;
+    const discountedPrice = price - discountAmt;
+    const taxAmt = (discountedPrice * tax) / 100;
+    return discountedPrice + taxAmt;
+  };
+ 
   if (isLoading) {
     return (
       <ModalLayout onClose={onClose}>
-        <div style={{ padding: '3rem', textAlign: 'center' }}>Loading...</div>
+        <div style={{ padding: '3rem', textAlign: 'center' }}>Loading Order Details...</div>
       </ModalLayout>
     );
   }
 
   return (
-    <ModalLayout onClose={onClose}>
+    <div className='no-scrollbar'>
+
+    <ModalLayout className='no-scrollbar' onClose={onClose}>
       <h2 style={{ ...styles.title, marginTop: 0 }}>
         <RotateCcw size={24} /> Return & Exchange | Order {orderID}
       </h2>
 
-      {/* RETURN ITEMS */}
+      {/* RETURN ITEMS SECTION */}
       <div style={sectionStyle}>
         <h3 style={sectionHeaderStyle}>
           <CornerDownLeft size={16} /> Items to Return (Credit)
@@ -272,16 +297,20 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
           <thead>
             <tr>
               <th style={thStyle}>Item</th>
-              <th style={thStyle}>Original Qty</th>
-              <th style={thStyle}>Price</th>
+              <th style={thStyle}>Purchased Qty</th>
+              <th style={thStyle}>Refundable Price(Per Unit)<br/><span style={{fontSize:'0.8em', fontWeight:'normal'}}>(Inc. Tax - Disc)</span></th>
               <th style={thStyle}>Qty to Return</th>
             </tr>
           </thead>
           <tbody>
             {exchangePayload.map(item => (
               <tr key={item.orderItemID}>
-                <td style={tdStyle}>{item.name} ({item.size}, {item.color})</td>
+                <td style={tdStyle}>
+                    <div style={{fontWeight:'500'}}>{item.name}</div>
+                    <div style={{fontSize:'0.85em', color:'#666'}}>{item.size} | {item.color}</div>
+                </td>
                 <td style={tdStyle}>{item.originalQuantity}</td>
+                {/* Displays the calculated effective price */}
                 <td style={tdStyle}>{formatPrice(item.price)}</td>
                 <td style={tdStyle}>
                   <input
@@ -305,7 +334,7 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
         </table>
       </div>
 
-      {/* EXCHANGE SECTION */}
+      {/* NEW ITEMS SECTION */}
       <div style={sectionStyle}>
         <h3 style={sectionHeaderStyle}>
           <PlusCircle size={16} /> Items for Exchange / New Purchase
@@ -324,7 +353,7 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
           </button>
         </form>
 
-        {/* SEARCHED VARIANT */}
+        {/* SEARCH RESULT CARD */}
         {searchedVariant && (
           <div style={variantResultStyle}>
             <div style={{ flexGrow: 1 , fontSize: '0.9rem'}}>
@@ -333,7 +362,7 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
               <p>Price: {formatPrice(searchedVariant.price)} | Stock: {searchedVariant.stock}</p>
             </div>
 
-            <div>
+            <div style={{display:'flex', alignItems:'center', gap:'8px'}}>
               <input
                 type="number"
                 min="1"
@@ -351,16 +380,19 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
           </div>
         )}
 
-        {/* NEW EXCHANGE ITEMS TABLE */}
+        {/* NEW ITEMS TABLE */}
         {newExchangeItems.length > 0 && (
-          <table style={{ ...tableStyle, marginTop: '1rem' }}>
+          <table style={{ ...tableStyle, marginTop: '1.2rem' }}>
             <thead>
               <tr>
                 <th style={thStyle}>Item</th>
-                <th style={thStyle}>Price</th>
+                <th style={thStyle}>Unit Price</th>
                 <th style={thStyle}>Stock</th>
+                <th style={thStyle}>Discount</th>
+                <th style={thStyle}>Tax</th>
+                <th style={thStyle}>Total Unit Price</th>
                 <th style={thStyle}>Qty</th>
-                <th style={thStyle}></th>
+                <th style={thStyle}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -369,6 +401,9 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
                   <td style={tdStyle}>{item.name}</td>
                   <td style={tdStyle}>{formatPrice(item.price)}</td>
                   <td style={tdStyle}>{item.stock}</td>
+                  <td style={tdStyle}>{item.discount}%</td>
+                  <td style={tdStyle}>{item.tax}%</td>
+                  <td style={tdStyle}>{getTotalUnitPrice(item.price, item.discount,item.tax)}</td>
                   <td style={tdStyle}>
                     <input
                       type="number"
@@ -386,8 +421,8 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
                   </td>
                   <td style={tdStyle}>
                     <X
-                      size={16}
-                      color="#ef4444"
+                      size={18}
+                      className="text-red-500 hover:text-red-700"
                       style={{ cursor: 'pointer' }}
                       onClick={() => handleRemoveExchangeItem(item.variantID)}
                     />
@@ -399,16 +434,17 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
         )}
       </div>
 
-      {/* NET CHANGE */}
+      {/* NET BALANCE SUMMARY */}
       <div style={summaryStyle}>
         <p style={summaryTextStyle}>Net Balance Change:</p>
         <p style={netChangeStyle(netChange)}>
-          {netChange < 0 ? "Customer Credit Due: " : "Customer Charge: "}
+          {/* Logic: If Net is negative, we owe the customer money (Credit). If Positive, they pay us. */}
+          {netChange < 0 ? "Refund to Customer: " : "Customer to Pay: "}
           {formatPrice(Math.abs(netChange))}
         </p>
       </div>
 
-      {/* ACTION BUTTONS */}
+      {/* FOOTER BUTTONS */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
         <button onClick={onClose} style={cancelButtonStyle}>Cancel</button>
         <button onClick={handleSubmit} style={submitButtonStyle} disabled={isSubmitting}>
@@ -416,6 +452,8 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
         </button>
       </div>
     </ModalLayout>
+    </div>
+
   );
 };
 

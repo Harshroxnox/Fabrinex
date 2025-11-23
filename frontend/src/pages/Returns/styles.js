@@ -1,98 +1,126 @@
 export const returnsStyles = {
   container: {
-    backgroundColor: '#f9fafb',
+    backgroundColor: '#ffffff',
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-    border: '0.01rem solid #776969ff', // Slightly lighter border for container
-    borderRadius: '2rem',
+    border: '1px solid #4b4f59ff',
+    borderRadius: '1.5rem',
     overflow: 'hidden',
     minHeight: '600px',
     marginRight: '1rem',
-    padding: '35px',
-    fontSize: '0.9rem',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-  },
-
-  listWrapper: {
-    border: '0.01rem solid #a2a2a2',
-    padding: '2rem',
-    borderRadius: '2rem',
-    backgroundColor: '#FDFDFD',
-    fontSize: 'large',
-    display: 'grid',
-    gap: '20px',
+    padding: '30px',
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // Softer, modern shadow
   },
 
   headerTitle: {
     fontSize: '1.5rem',
     fontWeight: '700',
-    color: '#1f2937',
-    marginBottom: '1rem', // Keeping separate from date filter for clarity
+    color: '#111827',
+    marginBottom: '1.5rem',
+    display: 'flex',
+    alignItems: 'center',
   },
 
   filterGroup: {
     display: 'flex',
     gap: '1rem',
     alignItems: 'center',
-    marginBottom: '1.5rem',
+    marginBottom: '2rem',
+    flexWrap: 'wrap',
   },
 
   input: {
-    padding: '0.75rem 1rem',
+    padding: '0.6rem 1rem',
     border: '1px solid #d1d5db',
     borderRadius: '0.5rem',
-    width: '180px', 
-    fontSize: '1rem',
+    width: 'auto',
+    minWidth: '150px',
+    fontSize: '0.95rem',
+    outline: 'none',
+    color: '#374151',
   },
 
   filterButton: {
-    backgroundColor: '#111827', // Using the dark color from .add-purchase-btn
+    backgroundColor: '#111827',
     color: 'white',
-    padding: '12px 20px',
-    borderRadius: '2rem',
+    padding: '10px 20px',
+    borderRadius: '0.5rem', // Matched to inputs
     border: 'none',
-    fontSize: '1rem',
+    fontSize: '0.95rem',
     fontWeight: '500',
     cursor: 'pointer',
-    transition: 'background-color 0.2s',
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
+    transition: 'background-color 0.2s',
   },
 
   tableContainer: {
+    width: '100%',
     overflowX: 'auto',
-    borderRadius: '1rem', // Slightly rounder borders for consistency
-    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.08)', // More pronounced shadow
-    backgroundColor: '#FDFDFD',
-    border: '1px solid #e5e7eb', // Light border for definition
-    marginTop: '1rem',
+    borderRadius: '0.75rem',
+    border: '1px solid #e5e7eb',
   },
   
   table: {
     width: '100%',
     borderCollapse: 'collapse',
+    minWidth: '800px', // Ensures table doesn't squish too much
   },
+
   th: {
     textAlign: 'left',
-    padding: '1rem 1.25rem',
-    borderBottom: '2px solid #e5e7eb',
-    color: '#4b5563',
+    padding: '1rem 1.5rem',
+    borderBottom: '1px solid #e5e7eb',
+    backgroundColor: '#f9fafb', // Light gray background for headers
+    color: '#374151',
     fontWeight: '600',
-    fontSize: '0.9rem',
-    backgroundColor: '#f3f4f6', // Light gray header background
+    fontSize: '0.875rem', // Standard readable size (14px)
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
   },
+
   td: {
-    padding: '1rem 1.25rem',
-    borderBottom: '1px solid #f3f4f6', // Very light row separator
+    padding: '1rem 1.5rem',
+    borderBottom: '1px solid #f3f4f6',
+    color: '#4b5563',
+    fontSize: '0.95rem', // Slightly larger than header for readability
     verticalAlign: 'middle',
-    fontSize: '0.9rem',
-    color: '#1f2937',
   },
 
   loadingMessage: {
     textAlign: 'center',
-    padding: '40px',
-    fontSize: '18px',
-    color: '#777',
+    padding: '3rem',
+    fontSize: '1rem',
+    color: '#6b7280',
+    fontStyle: 'italic',
   },
+
+  paginationContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: '15px',
+    marginTop: '25px',
+    padding: '10px',
+  },
+
+  paginationButton: {
+    padding: '8px 16px',
+    border: '1px solid #e5e7eb',
+    backgroundColor: '#fff',
+    color: '#3b82f6',
+    borderRadius: '0.375rem',
+    cursor: 'pointer',
+    fontWeight: '600',
+    fontSize: '14px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '5px',
+  },
+
+  paginationText: {
+    fontSize: '14px',
+    color: '#6b7280',
+    fontWeight: '500',
+  }
 };

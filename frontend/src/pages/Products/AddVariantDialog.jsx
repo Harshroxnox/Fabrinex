@@ -75,7 +75,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!variant.color || !variant.size || !variant.price || !variant.stock || !variant.main_image) {
+    if (!variant.price || !variant.stock || !variant.myWallet) {
       toast.error('Please fill all required fields and upload a main image.');
       return;
     }
@@ -123,11 +123,11 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
           <div className="form-row">
             <div className="form-group">
               <label>Color*</label>
-              <input type="text" name="color" value={variant.color} onChange={handleChange} required />
+              <input type="text" name="color" value={variant.color} onChange={handleChange} />
             </div>
             <div className="form-group">
               <label>Size*</label>
-              <input type="text" name="size" value={variant.size} onChange={handleChange} required />
+              <input type="text" name="size" value={variant.size} onChange={handleChange}/>
             </div>
           </div>
 
@@ -167,7 +167,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
           <div className="form-row">
             <div className="form-group">
               <label>Source*</label>
-              <input type="text" name="source" value={variant.source} onChange={handleChange} required />
+              <input type="text" name="source" value={variant.source} onChange={handleChange}/>
             </div>
           </div>
           
@@ -177,7 +177,7 @@ const AddVariantDialog = ({ isOpen, onClose, onAdd }) => {
               type="file"
               accept="image/*"
               onChange={handleMainImageChange}
-              required={!variant.main_image}
+              // required={!variant.main_image}
             />
           </div>
 

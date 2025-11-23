@@ -827,7 +827,7 @@ export const getReturnsByDateRange = async (req, res, next) => {
     let conn;
 
     if (!dateFrom || !dateTo) {
-        return next(new AppError(400, 'Both dateFrom (YYYY-MM-DD) and dateTo (YYYY-MM-DD) are required.'));
+        return next(new AppError(400, 'Both dateFrom and dateTo are required.'));
     }
 
     const startDate = `${dateFrom} 00:00:00`;
@@ -839,10 +839,6 @@ export const getReturnsByDateRange = async (req, res, next) => {
 
     try {
         conn = await db.getConnection();
-
-        // -----------------------------
-        // COUNT Query (Works fine)
-        // -----------------------------
         const countSql = `
             SELECT COUNT(oi.orderItemID) AS total
             FROM OrderItems AS oi
@@ -854,21 +850,36 @@ export const getReturnsByDateRange = async (req, res, next) => {
         const [countRows] = await conn.execute(countSql, [startDate, endDate]);
         const totalReturns = countRows[0].total;
 
-        // -----------------------------
-        // SELECT Query (FIXED LIMIT/OFFSET)
-        // -----------------------------
-        const selectSql = `
+       const selectSql = `
             SELECT 
                 oi.orderID, 
                 u.name AS customer_name, 
                 oi.name AS product_name, 
                 oi.variantID, 
-                ABS(oi.quantity) AS returned_quantity,
-                oi.price_at_purchase,
                 oi.color,
                 oi.size,
                 o.created_at,
-                (oi.price_at_purchase * ABS(oi.quantity)) AS total_credit
+                
+                -- The Quantity Returned (converted to positive)
+                ABS(oi.quantity) AS returned_quantity,
+
+                -- The Base Price (Discounted, No Tax)
+                oi.price_at_purchase AS base_price,
+
+                -- The Tax Rate stored on the item
+                oi.tax AS tax_rate,
+
+                -- CALCULATION: (Base Price + Tax Amount)
+                -- We treat tax as a number. If it's 0 or null, we default to 0.
+                (oi.price_at_purchase + (oi.price_at_purchase * (IFNULL(oi.tax, 0) / 100))) 
+                AS unit_refund_amount_inc_tax,
+
+                -- TOTAL REFUND: Unit Refund * Quantity
+                (
+                    (oi.price_at_purchase + (oi.price_at_purchase * (IFNULL(oi.tax, 0) / 100))) 
+                    * ABS(oi.quantity)
+                ) AS total_credit
+
             FROM OrderItems AS oi
             JOIN Orders AS o ON oi.orderID = o.orderID
             JOIN Users u ON o.userID = u.userID
@@ -882,7 +893,7 @@ export const getReturnsByDateRange = async (req, res, next) => {
         const [returnItems] = await conn.execute(selectSql, [startDate, endDate]);
 
         res.status(200).json({
-            message: `Returns from ${dateFrom} to ${dateTo} fetched successfully.`,
+            message: `Returns fetched successfully.`,
             returns: returnItems,
             total: totalReturns,
             page: parsedPage,

@@ -36,7 +36,7 @@ export const modalContentStyle = {
   borderRadius: '12px',
   padding: '2.5rem',
   maxWidth: '95vw',
-  width: '800px',
+  width: '900px',
   maxHeight: '90vh',
   overflowY: 'auto',
   position: 'relative',
@@ -72,9 +72,10 @@ export const sectionHeaderStyle = {
 };
 
 export const tableStyle = {
+    // marginTop: '1rem',
     width: '100%',
     borderCollapse: 'collapse',
-    fontSize: '0.9rem',
+    fontSize: '1.2rem',
 };
 
 export const thStyle = {
