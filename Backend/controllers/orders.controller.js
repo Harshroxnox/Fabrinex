@@ -435,6 +435,7 @@ export const updateOrderOffline = async (req, res, next) => {
 
     // Store original values to apply the net change later
     const originalOrder = orderRows[0];
+    const promo_discount = parseFloat(originalOrder.promo_discount);
     let netAmountChange = 0;
     let netProfitChange = 0;
     let netTaxChange = 0;
@@ -480,20 +481,22 @@ export const updateOrderOffline = async (req, res, next) => {
       );
 
       // === 5. CALCULATE FINANCIALS FOR THIS ITEM ===
-      // *** FIX: Convert all variant financial data to numbers ***
       const productTax = parseFloat(variant.tax);
       const price = parseFloat(variant.price);
       const discount = parseFloat(variant.discount);
       const my_wallet = parseFloat(variant.my_wallet);
 
-      // Calculate price just like in createOrder
+      // applied variant discount 
       const actualPrice = price - (price * (discount / 100));
-      const taxedPrice = actualPrice + (actualPrice * (productTax / 100));
+      // applied promo discount if any
+      const discountedPrice = actualPrice - (actualPrice * (promo_discount / 100));
+      // applied tax 
+      const taxedPrice = discountedPrice + (discountedPrice * (productTax/100));
 
       // Add this item's financial impact to the net change
       netAmountChange += (taxedPrice * quantity);
-      netProfitChange += (actualPrice - my_wallet) * quantity;
-      netTaxChange += (actualPrice * (productTax / 100)) * quantity;
+      netProfitChange += (discountedPrice - my_wallet) * quantity;
+      netTaxChange += (discountedPrice * (productTax/100)) * quantity;
 
       // === 6. INSERT ADJUSTMENT INTO OrderItems ===
       await conn.execute(`
@@ -517,7 +520,6 @@ export const updateOrderOffline = async (req, res, next) => {
     }
 
     // === 7. UPDATE THE MAIN ORDER WITH NET CHANGES ===
-    // *** FIX: Convert original order amounts to numbers before adding ***
     const finalAmount = parseFloat(originalOrder.amount) + netAmountChange;
     const finalProfit = parseFloat(originalOrder.profit) + netProfitChange;
     const finalTax = parseFloat(originalOrder.tax) + netTaxChange;
