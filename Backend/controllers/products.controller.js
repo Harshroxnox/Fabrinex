@@ -556,18 +556,19 @@ export const deleteReview = async (req, res, next) => {
 
 export const createVariant = async (req, res, next) => {
   const productID = validID(req.params.productID);
-  const color = validStringChar(req.body.color, 3, 50);
-  const size = validString(req.body.size, 1, 20);
+  let color = validStringChar(req.body.color, 3, 50);
+  let size = validString(req.body.size, 1, 20);
   const price = validDecimal(req.body.price);
   const myWallet = validDecimal(req.body.myWallet);
-  const source = validString(req.body.source);
+  let source = validString(req.body.source);
   const floor = validWholeNo(req.body.floor);
   const discount = validDecimal(req.body.discount);
   const stock = validWholeNo(req.body.stock);
   const received_barcode = validString(req.body.received_barcode);
 
   const mainImgPath = req.file ? req.file.path : null;
-  let cloudinaryID;
+  let cloudinaryID = "NA";
+	let mainImgUrl = "NA";
 
   try {
     // VALIDATIONS 
@@ -576,11 +577,11 @@ export const createVariant = async (req, res, next) => {
     }
 
     if (color === null) {
-      throw new AppError(400, "Invalid color");
+      color = "NA";
     }
 
     if (size === null) {
-      throw new AppError(400, "Invalid size");
+      size = "NA";
     }
 
     if (price === null || price <= 0) {
@@ -592,7 +593,7 @@ export const createVariant = async (req, res, next) => {
     }
 
     if (source === null) {
-      throw new AppError(400, "Invalid source");
+      source = "NA";
     }
 
     if (floor === null) {
@@ -605,10 +606,6 @@ export const createVariant = async (req, res, next) => {
 
     if (stock === null) {
       throw new AppError(400, "Invalid stock");
-    }
-
-    if (!mainImgPath) {
-      throw new AppError(400, "Main image not provided");
     }
 
     // Check if product is active
@@ -629,8 +626,11 @@ export const createVariant = async (req, res, next) => {
     }
 
     // UPLOAD IMAGE 
-    const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
-    cloudinaryID = mainImgCloudinary.public_id;
+    if(mainImgPath){
+			const mainImgCloudinary = await uploadOnCloudinary(mainImgPath);
+			cloudinaryID = mainImgCloudinary.public_id;
+			mainImgUrl = mainImgCloudinary.url;
+    }
 
     const barcode = received_barcode !== "null" ? received_barcode :
      await generateUniqueBarcode("ProductVariants");
@@ -650,7 +650,7 @@ export const createVariant = async (req, res, next) => {
         floor,
         discount,
         stock,
-        mainImgCloudinary.url,
+        mainImgUrl,
         cloudinaryID,
         barcode
       ]
