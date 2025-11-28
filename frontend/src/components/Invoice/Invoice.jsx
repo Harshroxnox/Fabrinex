@@ -3,35 +3,21 @@ import html2pdf from "html2pdf.js";
 import { getOrder } from "../../contexts/api/orders";
 import "./Invoice.css";
 
-const Invoice = (orderId ) => {
-  // console.log("Rendering Invoice for Order ID:", orderId);
-  const id = orderId.order;
+const Invoice = ({ order: orderId }) => {
   const [orderData, setOrderData] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const downloadPDF = () => {
-    const invoice = document.getElementById("invoice");
-    const opt = {
-      margin: 0,
-      filename: `invoice_${orderData?.order?.orderID || id}.pdf`,
-      image: { type: "jpeg", quality: 1 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: "mm", format: [80, 297], orientation: "portrait" },
-    };
-    html2pdf().from(invoice).set(opt).save();
-  };
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await getOrder(id);
+      const res = await getOrder(orderId);
       setOrderData(res);
     } catch (error) {
-      console.error("Error fetching order data:", error);
+      console.error("Error fetching order:", error);
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [orderId]);
 
   useEffect(() => {
     fetchData();
@@ -41,154 +27,203 @@ const Invoice = (orderId ) => {
   if (!orderData) return <p>No invoice found.</p>;
 
   const { order, items } = orderData;
+
   const gstRate = parseFloat(items[0].tax);
   const discountPercent = parseFloat(order.promo_discount);
 
-  // --- Calculations ---
-  const itemsWithTotals = items.map((item, i) => {
-    const price = parseFloat(item.price_at_purchase);
-    const qty = parseInt(item.quantity);
-    const discountAmt = (price * discountPercent) / 100;
-    const discountedPrice = price - discountAmt;
-    const taxableAmt = discountedPrice * qty;
-    const gstAmt = (taxableAmt * gstRate) / 100;
-    const totalAmt = taxableAmt + gstAmt;
-    return { ...item, discountedPrice, gstAmt, totalAmt };
-  });
-
-  const taxableTotal = itemsWithTotals.reduce(
-    (sum, i) => sum + i.discountedPrice * i.quantity,
+  const totalSale = items.reduce(
+    (sum, item) => sum + parseFloat(item.price_at_purchase) * item.quantity,
     0
   );
-  const gstTotal = itemsWithTotals.reduce((sum, i) => sum + i.gstAmt, 0);
+
+  const totalSavings = items.reduce((sum, item) => {
+    const price = parseFloat(item.price_at_purchase);
+    const qty = Number(item.quantity);
+    const discount = (price * qty * discountPercent) / 100;
+    return sum + discount;
+  }, 0);
+
+  const taxableTotal = totalSale - totalSavings;
+
+  const gstTotal = items.reduce((sum, item) => {
+    const price = parseFloat(item.price_at_purchase);
+    const qty = Number(item.quantity);
+    const discountAmt = (price * discountPercent) / 100;
+    const discountedPrice = price - discountAmt;
+    const taxable = discountedPrice * qty;
+    return sum + (taxable * gstRate) / 100;
+  }, 0);
+
   const cgst = gstTotal / 2;
   const sgst = gstTotal / 2;
+
   const totalBeforeRound = taxableTotal + gstTotal;
   const roundedTotal = Math.round(totalBeforeRound);
   const roundOff = (roundedTotal - totalBeforeRound).toFixed(2);
 
-  // --- Correct number to words (supports 0 .. 999999) ---
-// numberToWords using Indian numbering (thousand, lakh, crore)
-const numberToWords = (num) => {
-  num = Math.floor(Number(num)); // use integer part
-  if (isNaN(num)) return "";
-  if (num === 0) return "Zero Only";
-  if (num < 0) return "Minus " + numberToWords(Math.abs(num));
+  const numberToWords = (num) => {
+    num = Math.floor(Number(num));
+    if (isNaN(num)) return "";
+    if (num === 0) return "Zero Only";
 
-  const ones = [
-    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
-    "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
-    "Sixteen", "Seventeen", "Eighteen", "Nineteen"
-  ];
-  const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
+    const ones = [
+      "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight",
+      "Nine", "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
+      "Sixteen", "Seventeen", "Eighteen", "Nineteen"
+    ];
 
-  const twoDigits = (n) => {
-    if (n < 20) return ones[n];
-    const t = Math.floor(n / 10);
-    const o = n % 10;
-    return tens[t] + (o ? " " + ones[o] : "");
-  };
+    const tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
 
-  const threeDigits = (n) => {
+    const two = (n) => n < 20 ? ones[n] : tens[Math.floor(n / 10)] + (n % 10 ? " " + ones[n % 10] : "");
+
+    const three = (n) => {
+      let s = "";
+      if (n > 99) {
+        s += ones[Math.floor(n / 100)] + " Hundred";
+        if (n % 100) s += " and ";
+      }
+      return s + two(n % 100);
+    };
+
     let str = "";
-    if (n > 99) {
-      str += ones[Math.floor(n / 100)] + " Hundred";
-      const rem = n % 100;
-      if (rem) str += " and ";
-      n = rem;
-    }
-    if (n > 0) str += twoDigits(n);
-    return str;
+
+    const crore = Math.floor(num / 10000000);
+    num %= 10000000;
+
+    const lakh = Math.floor(num / 100000);
+    num %= 100000;
+
+    const thousand = Math.floor(num / 1000);
+    const remainder = num % 1000;
+
+    if (crore) str += three(crore) + " Crore ";
+    if (lakh) str += three(lakh) + " Lakh ";
+    if (thousand) str += three(thousand) + " Thousand ";
+    if (remainder) str += three(remainder);
+
+    return str.trim() + " Only";
   };
 
-  let words = "";
+  const formatIN = (num) =>
+    Number(num).toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
 
-  const crore = Math.floor(num / 10000000);
-  num = num % 10000000;
-
-  const lakh = Math.floor(num / 100000);
-  num = num % 100000;
-
-  const thousand = Math.floor(num / 1000);
-  const remainder = num % 1000;
-
-  if (crore > 0) {
-    words += (crore < 100 ? twoDigits(crore) : threeDigits(crore)) + " Crore";
-  }
-  if (lakh > 0) {
-    if (words) words += " ";
-    words += (lakh < 100 ? twoDigits(lakh) : threeDigits(lakh)) + " Lakh";
-  }
-  if (thousand > 0) {
-    if (words) words += " ";
-    words += (thousand < 100 ? twoDigits(thousand) : threeDigits(thousand)) + " Thousand";
-  }
-  if (remainder > 0) {
-    if (words) words += " ";
-    words += threeDigits(remainder);
-  }
-
-  return words.trim() + " Only";
-};
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
   return (
     <div className="invoice-container">
+
       <div id="invoice" className="thermal-invoice">
+
         <h2 className="shop-name">Noor Creations</h2>
-        <p className="shop-address">
-          MOTI BAZAR PARADE JAMMU<br />
-          Phone: 6006464546
-        </p>
-        <p><strong>GSTIN:</strong> 01HXZPS2503D1Z8</p>
+        <p className="shop-address">MOTI &nbsp;BAZAR &nbsp;PARADE &nbsp;JAMMU&nbsp; 180001</p>
+        <p className="shop-contact">Phone : 6006464546&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+        <p className="shop-gst"><strong>&nbsp;&nbsp;&nbsp;&nbsp;GSTIN : 01NXZPS2503D1Z8</strong></p>
+
         <h3 className="invoice-title">TAX INVOICE</h3>
 
-        <div className="invoice-info">
-          <p><strong>Invoice No/Date:</strong> {order.orderID} / {new Date(order.created_at).toLocaleDateString()}</p>
-          <p><strong>Customer Name:</strong> {order.customer_name || "Cash"}</p>
-          <p><strong>Cust Mobile No:</strong> — </p>
+        <div className="invoice-row">
+          <span className="label">Invoice No/Date :</span>
+          <span className="invoice-no">{order.orderID}</span>
+          <span className="invoice-date">/ {formatDate(order.created_at)}</span>
+        </div>
+
+        <div className="customer-row">
+          <span className="label">Customer Name &nbsp;:&nbsp;&nbsp;&nbsp;</span>
+          <span>{order.customer_name || "Cash"}</span>
+        </div>
+
+        <div className="customer-row">
+          <span className="label">Cust Mobile No :</span>
+          <span>&nbsp;&nbsp;&nbsp;</span>
         </div>
 
         <table className="bill-table">
           <thead>
-            <tr>
-              <th>SI</th>
+            <tr className="main-header">
+              <th>Sl</th>
               <th>Product</th>
               <th>Price</th>
               <th>Disc(%)</th>
-              <th>Amt</th>
+              <th>Amt.</th>
+            </tr>
+
+            <tr className="sub-header">
+              <th>Qty.</th>
+              <th>&nbsp;&nbsp;HSN Code</th>
+              <th>GST %</th>
+              <th></th>
+              <th>GST Amt</th>
             </tr>
           </thead>
+
           <tbody>
-            {itemsWithTotals.map((item, i) => (
-              <React.Fragment key={i}>
-                <tr>
-                  <td>{i + 1}</td>
-                  <td>{item.product_name}</td>
-                  <td>{parseFloat(item.price_at_purchase).toFixed(2)}</td>
-                  <td>{discountPercent}%</td>
-                  <td>{item.totalAmt.toFixed(2)}</td>
-                </tr>
-                <tr className="sub-row">
-                  <td></td>
-                  <td>Qty: {item.quantity}</td>
-                  <td>GST%: {gstRate}%</td>
-                  <td>GST Amt:</td>
-                  <td>{item.gstAmt.toFixed(2)}</td>
-                </tr>
-              </React.Fragment>
-            ))}
+            {items.map((item, i) => {
+              const price = parseFloat(item.price_at_purchase);
+              const qty = Number(item.quantity);
+              const discountAmt = (price * discountPercent) / 100;
+              const discountedPrice = price - discountAmt;
+              const taxable = discountedPrice * qty;
+              const gstAmt = (taxable * gstRate) / 100;
+              const totalAmt = taxable + gstAmt;
+
+              return (
+                <React.Fragment key={i}>
+                  <tr className="table-row-1">
+                    <td>{i + 1}</td>
+                    <td>{item.product_name}</td>
+                    <td>{price.toFixed(2)}</td>
+                    <td>{discountPercent.toFixed(2)}</td>
+                    <td>{totalAmt.toFixed(2)}</td>
+                  </tr>
+
+                  <tr className="sub-row">
+                    <td></td>
+                    <td>{qty}.00 &nbsp;&nbsp;</td>
+                    <td>{gstRate}%</td>
+                    <td></td>
+                    <td>{gstAmt.toFixed(2)}</td>
+                  </tr>
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
 
-        <div className="total-section">
-          <p><strong>Total:</strong> ₹{totalBeforeRound.toFixed(2)}</p>
-          <p><strong>Add: Rounded Off (+{roundOff})</strong></p>
-          <p><strong>Net Total:</strong> ₹{roundedTotal.toFixed(2)}</p>
+        <div className="post-table-summary">
+
+          <div className="summary-line"></div>
+
+          <div className="total-row">
+            <span></span>
+            <span style={{ borderTop: "1px solid #000", paddingTop: "3px" }}>
+              Total&nbsp;:&nbsp;<strong>{formatIN(totalBeforeRound)}</strong>
+            </span>
+          </div>
+
+          <div className="roundoff-row">
+            <span style={{ fontStyle: 'italic' }}>Add :  Rounded Off (+</span>
+            <span>{formatIN(roundOff)}</span>
+          </div>
+
+          <div className="summary-line"></div>
+
+          <div className="final-row">
+            <span>{formatIN(Math.abs(roundOff))}</span>
+            <span>{formatIN(roundedTotal)}</span>
+          </div>
+
         </div>
 
-        <p className="in-words">
-          Rupees {numberToWords(roundedTotal)}
-        </p>
+        <p className="in-words">Rupees {numberToWords(roundedTotal)}</p>
 
         <table className="gst-summary">
           <thead>
@@ -199,29 +234,65 @@ const numberToWords = (num) => {
               <th>SGST Amt</th>
             </tr>
           </thead>
+
           <tbody>
             <tr>
               <td>{gstRate}%</td>
-              <td>{taxableTotal.toFixed(2)}</td>
-              <td>{cgst.toFixed(2)}</td>
-              <td>{sgst.toFixed(2)}</td>
+              <td>{formatIN(taxableTotal)}</td>
+              <td>{formatIN(cgst)}</td>
+              <td>{formatIN(sgst)}</td>
             </tr>
           </tbody>
         </table>
 
         <div className="summary">
-          <p><strong>Total GST:</strong> ₹{gstTotal.toFixed(2)}</p>
-          <p><strong>Total Sale:</strong> ₹{(roundedTotal + 1000).toFixed(2)}</p>
-          <p><strong>Total Savings:</strong> ₹1000.00</p>
-          <p><strong>Net Payable:</strong> ₹{roundedTotal.toFixed(2)}</p>
+          <p>
+            <strong>
+              Total GST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;&nbsp; ₹{formatIN(gstTotal)}
+            </strong>
+          </p>
+
+          <p>
+            <strong>
+              Total Sale&nbsp;&nbsp;&nbsp;&nbsp; :&nbsp;&nbsp;&nbsp; ₹{formatIN(totalSale)}
+            </strong>
+          </p>
+
+          <p>
+            <strong>
+              Total Savings&nbsp;:&nbsp; ₹{formatIN(totalSavings)}
+            </strong>
+          </p>
+
+          <p>
+            <strong>  
+              Net Payable&nbsp;&nbsp;&nbsp;:&nbsp;&nbsp;₹{formatIN(roundedTotal)}
+            </strong>
+          </p>
         </div>
 
         <p className="footer">THANK YOU. VISIT US AGAIN.</p>
+
       </div>
 
-      <button onClick={downloadPDF} className="invoice-download-btn">
+      <button
+        onClick={() => {
+          html2pdf()
+            .from(document.getElementById("invoice"))
+            .set({
+              margin: 0,
+              filename: `invoice_${order.orderID}.pdf`,
+              image: { type: "jpeg", quality: 1 },
+              html2canvas: { scale: 2 },
+              jsPDF: { unit: "mm", format: [80, 297], orientation: "portrait" },
+            })
+            .save();
+        }}
+        className="invoice-download-btn"
+      >
         Download Invoice
       </button>
+
     </div>
   );
 };

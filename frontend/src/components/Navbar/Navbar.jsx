@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Plus } from "lucide-react";
 import { LoginContext } from "../../contexts/LoginContext";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Navbar.css";
@@ -26,9 +26,17 @@ const Navbar = () => {
     setIsDropdownOpen(false);
   };
 
+  // const handleCreateOrder = () => {
+  //   navigate("/orders/create");
+  // };
+  const handleCreateOrderClick = () => {
+    navigate("/orders?view=create");
+  }
+
   const admin = localStorage.getItem("admin");
   const rolesString = localStorage.getItem("role") || "";
   const roles = rolesString.split(",").filter(Boolean);
+  const canCreateOrder = roles.includes("superadmin");
 
   if (admin === null) {
     return null;
@@ -38,32 +46,45 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="navbar-brand">NOOR</div>
 
-      <div className="navbar-user">
-        <button className="navbar-user-button" onClick={toggleDropdown}>
-          <span>{admin}</span>
-          <ChevronDown
-            className={`navbar-chevron ${isDropdownOpen ? "navbar-rotated" : ""}`}
-            size={16}
-          />
-        </button>
-
-        {isDropdownOpen && (
-          <div className="navbar-dropdown">
-            {roles.length > 0 && (
-              <div className="navbar-roles">
-                Roles : {roles.map((role, index) => (
-                  <span key={index} className="navbar-role-badge">
-                    {role}
-                  </span>
-                ))}
-              </div>
-            )}
-      
-            <button className="navbar-logout-button" onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
+      <div className="navbar-actions">
+        {/* Create Order Button in Navbar */}
+        { canCreateOrder && (
+          <button 
+            className="navbar-create-button"
+            onClick={handleCreateOrderClick}
+          >
+            <Plus size={16} color="white" /> Add Sales
+          </button>
         )}
+
+        {/* User Dropdown */}
+        <div className="navbar-user">
+          <button className="navbar-user-button" onClick={toggleDropdown}>
+            <span>{admin}</span>
+            <ChevronDown
+              className={`navbar-chevron ${isDropdownOpen ? "navbar-rotated" : ""}`}
+              size={16}
+            />
+          </button>
+
+          {isDropdownOpen && (
+            <div className="navbar-dropdown">
+              {roles.length > 0 && (
+                <div className="navbar-roles">
+                  Roles : {roles.map((role, index) => (
+                    <span key={index} className="navbar-role-badge">
+                      {role}
+                    </span>
+                  ))}
+                </div>
+              )}
+      
+              <button className="navbar-logout-button" onClick={handleLogout}>
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

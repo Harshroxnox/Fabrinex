@@ -260,10 +260,7 @@
 }
 
 @media (max-width: 768px) {
-  .bills-container {
-    width: 95vw;
-    padding: 1rem;
-  }
+
   
   .bills-header {
     flex-direction: column;

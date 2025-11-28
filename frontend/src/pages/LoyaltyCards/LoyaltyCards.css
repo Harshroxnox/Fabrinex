@@ -271,10 +271,7 @@
 }
 
 @media (max-width: 768px) {
-  .loyalty-cards-container {
-    width: 95vw;
-    padding: 1rem;
-  }
+
   
   .loyalty-cards-header {
     flex-direction: column;

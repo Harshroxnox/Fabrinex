@@ -1,112 +1,193 @@
 .navbar {
-  background-color: #1E293B;
+  background: linear-gradient(135deg, #1E293B 0%, #334155 100%);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 2rem;
-  height: 50px;
+  height: 60px;
   position: fixed;
-  width:100%;
-  z-index: 10;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid #475569;
 }
 
 .navbar-brand {
-  color: white;
-  font-size: 1.2rem;
-  font-weight: bold;
-  letter-spacing: 1px;
+  color: #FFFFFF;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Create Order Button */
+.navbar-create-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #396aac 0%, #2D5AA0 100%);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(57, 106, 172, 0.3);
+}
+
+.navbar-create-button:hover {
+  background: linear-gradient(135deg, #2D5AA0 0%, #1E4A8C 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(57, 106, 172, 0.4);
+}
+
+/* User Dropdown Section */
 .navbar-user {
   position: relative;
+  background-color: white;
+  border-radius: 10px;
 }
 
 .navbar-user-button {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 14px;
-  color: #333;
-  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #FFFFFF;
+  transition: all 0.3s ease;
+  min-width: 140px;
 }
 
 .navbar-user-button:hover {
-  background-color: #f8f9fa;
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 .navbar-chevron {
-  transition: transform 0.2s ease;
+  transition: transform 0.3s ease;
+  color: #CBD5E1;
 }
 
 .navbar-rotated {
   transform: rotate(180deg);
 }
 
+/* Dropdown Menu */
 .navbar-dropdown {
   position: absolute;
   top: 100%;
   right: 0;
-  margin-top: 4px;
-  background: white;
-  border: 2px solid #333;
-  border-radius: 4px;
-  min-width: 120px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  min-width: 200px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   z-index: 1000;
+  overflow: hidden;
 }
 
-/* Roles container */
+/* Roles Section */
 .navbar-roles {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;          /* space between badges */
-  padding: 8px 12px;
-  border-bottom: 1px solid #eee; /* separates badges from Logout */
-  margin-bottom: 6px;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E2E8F0;
+  background: #FFFFFF;
 }
 
-/* Individual role badge */
 .navbar-role-badge {
-  background-color: #f0f4ff; /* light blue */
-  color: #1d4ed8;            /* dark blue text */
-  font-size: 13px;
-  font-weight: 500;
-  padding: 4px 10px;
+  background: linear-gradient(135deg, #396aac 0%, #2D5AA0 100%);
+  color: #FFFFFF;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.3rem 0.6rem;
   border-radius: 12px;
   display: inline-block;
+  text-transform: capitalize;
 }
 
-.navbar-role-badge:hover {
-  background-color: #dbeafe; /* slightly darker on hover */
-}
-
+/* Logout Button */
 .navbar-logout-button {
   width: 100%;
-  padding: 12px 16px;
-  background: none;
+  padding: 0.875rem 1.25rem;
+  background: #FFFFFF;
   border: none;
   text-align: left;
   cursor: pointer;
-  font-size: 14px;
-  color: #333;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
   transition: background-color 0.2s ease;
 }
 
 .navbar-logout-button:hover {
-  background-color: #f8f9fa;
+  background-color: #F3F4F6;
+  color: #DC2626;
 }
 
+/* Responsive Design */
 @media (max-width: 768px) {
   .navbar {
     padding: 0 1rem;
   }
 
   .navbar-brand {
-    font-size: 1.25rem;
+    font-size: 1.3rem;
+  }
+
+  .navbar-actions {
+    gap: 1rem;
+  }
+
+  .navbar-create-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .navbar-user-button {
+    min-width: 120px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .navbar-dropdown {
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar {
+    padding: 0 0.75rem;
+  }
+
+  .navbar-create-button span {
+    display: none;
+  }
+
+  .navbar-create-button {
+    padding: 0.5rem;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    justify-content: center;
+  }
+
+  .navbar-user-button span {
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

@@ -281,10 +281,7 @@
 }
 
 @media (max-width: 768px) {
-  .salesperson-container {
-    width: 95vw;
-    padding: 1rem;
-  }
+
   
   .salespersons-header {
     flex-direction: column;

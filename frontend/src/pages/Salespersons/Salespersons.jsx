@@ -109,7 +109,7 @@ const Salespersons = () => {
   return (
     <div className="salesperson-container no-scrollbar">
       <div className="salespersons-header">
-        <h5>Salespersons</h5>
+        <h5 style={{fontSize:'35px'}}>Salespersons</h5>
         <button className="add-salesperson-btn" onClick={() => setIsAddDialogOpen(true)}>
           <Plus size={18} color="white" />
           Add Salesperson

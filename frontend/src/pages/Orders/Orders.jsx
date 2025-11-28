@@ -22,6 +22,7 @@ import toast from 'react-hot-toast';
 import { OrderCreation } from './OrderCreation.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import OrderExchangeModal from './OrderExchangeModal.jsx';
+import { useSearchParams } from 'react-router-dom';
 
 
 // =============================
@@ -173,13 +174,33 @@ const OrderCreationCRM = () => {
     setExchangeModalOpen(false);
   };
 
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const viewParam = searchParams.get('view');
+    if (viewParam === 'create') {
+      setCurrentView('create');
+    }
+    else{
+      setCurrentView('orders');   
+    }
+  }, [searchParams]);
+
+  const handleInternalCreateClick = () => {
+    setSearchParams({ view: 'create' });
+  }
+
+  const handleBackToOrders = () => {
+    setSearchParams({});
+    setCurrentView('orders');
+  }
   // =============================
   // 🔹 Conditional View: Create Order
   // =============================
   if (currentView === 'create') {
     return (
       <OrderCreation
-        setCurrentView={setCurrentView}
+        setCurrentView={handleBackToOrders}
         handleAdd={handleAdd}
         fetchOrders={fetchOrders}
         page={page}
@@ -284,7 +305,7 @@ const OrderCreationCRM = () => {
                 ...styles.createButton,
                 ...(canCreateOrder ? {} : styles.disabledButton)
               }}
-              onClick={() => setCurrentView('create')}
+              onClick={handleInternalCreateClick}
               disabled={!canCreateOrder}
             >
               <Plus size={16} color="white" /> Create Order

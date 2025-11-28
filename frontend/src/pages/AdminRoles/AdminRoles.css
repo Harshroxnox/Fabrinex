@@ -15,7 +15,9 @@
   margin-bottom: 30px;
   text-align: center;
 }
-
+.admin-roles h5{
+  font-size: larger;
+}
 .admin-roles-toolbar {
   display: flex;
   justify-content: space-between;

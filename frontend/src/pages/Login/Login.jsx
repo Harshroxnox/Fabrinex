@@ -1,19 +1,20 @@
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, Eye, EyeOff } from "lucide-react";
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoginContext } from "../../contexts/LoginContext";
-import "./Login.css"; // switched to normal CSS
+import "./Login.css";
 import toast from "react-hot-toast";
 
 function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const { login, error, GetRole } = useContext(LoginContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await login(form); // wait for the promise to resolve
+      const res = await login(form);
       if (res.message === "success") {
         toast.success("Login successful!");
         navigate("/");
@@ -23,6 +24,10 @@ function Login() {
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -58,13 +63,20 @@ function Login() {
             />
           </div>
 
-          <div className="login-form-group">
+          <div className="login-form-group password-input-container">
             <input
-              type="password"
-              className="login-form-input"
+              type={showPassword ? "text" : "password"}
+              className="login-form-input password-input"
               placeholder="Password"
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={togglePasswordVisibility}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
           </div>
 
           <button onClick={handleSubmit} className="login-button">

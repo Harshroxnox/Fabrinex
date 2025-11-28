@@ -128,7 +128,7 @@ const handleDownloadByDate = async () => {
   return (
     <div className="products-container">
       <div className="products-header">
-        <h5>Products</h5>
+        <h5 style={{fontSize:'40px'}}>Products</h5>
         
         <div className='products-btn-group'>
 <div className="products-barcode-group">

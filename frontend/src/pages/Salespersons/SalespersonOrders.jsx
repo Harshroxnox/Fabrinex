@@ -82,7 +82,7 @@ const SalespersonOrders = (refresh) => {
       </div>
 
       {/* Commission */}
-      {commission && <h6>Total Commission: ₹{parseFloat(commission).toFixed(2)}</h6>}
+      {commission && <h6 style={{fontSize:'large'}}>Total Commission: ₹{parseFloat(commission).toFixed(2)}</h6>}
 
       {/* Orders Table */}
       {orders.length > 0 ? (
