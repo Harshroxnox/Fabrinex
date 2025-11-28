@@ -86,39 +86,53 @@ const OrderCreationCRM = () => {
     }
   }, []);
 
-  // 🔸 Initial Fetch
-  useEffect(() => {
-    setLoading(true);
-    fetchOrders(page, limit);
-  }, [page, limit, fetchOrders]);
-
-  // =============================
-  // 🔹 Filter Orders
-  // =============================
-  const fetchFilteredOrders = async () => {
-    try {
-      const params = {};
-      if (statusFilter !== "All") params.order_status = statusFilter;
-      if (paymentStatusFilter !== "All") params.payment_status = paymentStatusFilter;
-      if (paymentMethodFilter !== "All") params.payment_method = paymentMethodFilter;
-      if (dateFromFilter) params.date_from = dateFromFilter;
-      if (dateToFilter) params.date_to = dateToFilter;
-      if (totalAmountFrom) params.amount_from = totalAmountFrom;
-      if (totalAmountTo) params.amount_to = totalAmountTo;
-
-      const data = await filterOrder(params);
-      setOrdersData(data.orders || []);
-    } catch (err) {
-      toast.error(`Error fetching filtered orders: ${err.message || "Unknown error"}`);
-    }
+  const isFilterApplied = () => {
+    return (
+      statusFilter !== "All" ||
+      paymentStatusFilter !== "All" ||
+      paymentMethodFilter !== "All" ||
+      dateFromFilter ||
+      dateToFilter ||
+      totalAmountFrom ||
+      totalAmountTo
+    );
   };
-
-  // 🔸 Refetch on filter change
   useEffect(() => {
-    fetchFilteredOrders();
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        if (isFilterApplied()) {
+          const params = {};
+
+          if (statusFilter !== "All") params.order_status = statusFilter;
+          if (paymentStatusFilter !== "All") params.payment_status = paymentStatusFilter;
+          if (paymentMethodFilter !== "All") params.payment_method = paymentMethodFilter;
+          if (dateFromFilter) params.date_from = dateFromFilter;
+          if (dateToFilter) params.date_to = dateToFilter;
+          if (totalAmountFrom) params.amount_from = totalAmountFrom;
+          if (totalAmountTo) params.amount_to = totalAmountTo;
+
+          const res = await filterOrder(params);
+          setOrdersData(res.orders || []);
+          setTotalPages(1);
+        } else {
+          const res = await getAllOrders(page, limit);
+          setOrdersData(res.orders || []);
+          setTotalPages(Math.ceil(res.total / limit));
+        }
+      } catch (error) {
+        toast.error("Error fetching orders");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetch();
   }, [
+    page, limit,
     statusFilter, paymentStatusFilter, paymentMethodFilter,
-    totalAmountFrom, totalAmountTo, dateFromFilter, dateToFilter
+    totalAmountFrom, totalAmountTo,
+    dateFromFilter, dateToFilter
   ]);
 
   // =============================
@@ -181,8 +195,8 @@ const OrderCreationCRM = () => {
     if (viewParam === 'create') {
       setCurrentView('create');
     }
-    else{
-      setCurrentView('orders');   
+    else {
+      setCurrentView('orders');
     }
   }, [searchParams]);
 
@@ -314,91 +328,91 @@ const OrderCreationCRM = () => {
         </div>
 
         {/* Orders Table */}
-<div style={styles.tableContainer}>
-  <AnimatePresence mode="wait">
-    {loading ? (
-      <motion.div
-        key="loading"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.15 }}
-        style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}
-      >
-        Loading orders...
-      </motion.div>
-    ) : (
-      <motion.div
-        key={page} // fade animation triggers when page changes
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
-        style={{ overflowX: 'auto' }}
-      >
-        <table style={styles.table}>
-          <thead style={{ backgroundColor: '#FDFDFD' }}>
-            <tr>
-              <th style={styles.th}>Order ID</th>
-              <th style={styles.th}>Customer Name</th>
-              <th style={styles.th}>Total Amount</th>
-              <th style={styles.th}>Order Status</th>
-              <th style={styles.th}>Payment Status</th>
-              <th style={styles.th}>Payment Method</th>
-              <th style={styles.th}>Location</th>
-              <th style={styles.th}>Date</th>
-              <th style={styles.th}>Check Invoice</th>
-              <th style= {styles.th}> Exchange Return </th>
-            </tr>
-          </thead>
-          <tbody style={{ backgroundColor: '#FDFDFD' }}>
-            {ordersData.map((order) => (
-              <tr key={order.orderID} style={{ cursor: 'pointer' }}>
-                <td style={styles.td}><strong>{order.orderID}</strong></td>
-                <td style={styles.td}>{order.customer_name}</td>
-                <td style={styles.td}>₹{order.amount}</td>
-                <td style={styles.td}>
-                  <span style={{ ...styles.statusBadge, ...getStatusColor(order.order_status) }}>
-                    {order.order_status}
-                  </span>
-                </td>
-                <td style={styles.td}>
-                  <span style={{ ...styles.statusBadge, ...getPaymentStatusColor(order.payment_status) }}>
-                    {getPaymentStatusIcon(order.payment_status)}
-                    {order.payment_status}
-                  </span>
-                </td>
-                <td style={styles.td}>{order.payment_method}</td>
-                <td style={styles.td}>{order.order_location}</td>
-                <td style={styles.td}>{formatDate(order.created_at)}</td>
-                <td style={styles.td}>
-                  <FileInput
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      setInvoice(true);
-                      setOrderChoose(order.orderID);
-                    }}
-                  />
-                </td>
-                <td style={styles.td}>
+        <div style={styles.tableContainer}>
+          <AnimatePresence mode="wait">
+            {loading ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                style={{ padding: '1rem', textAlign: 'center', color: '#6b7280' }}
+              >
+                Loading orders...
+              </motion.div>
+            ) : (
+              <motion.div
+                key={page} // fade animation triggers when page changes
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                style={{ overflowX: 'auto' }}
+              >
+                <table style={styles.table}>
+                  <thead style={{ backgroundColor: '#FDFDFD' }}>
+                    <tr>
+                      <th style={styles.th}>Order ID</th>
+                      <th style={styles.th}>Customer Name</th>
+                      <th style={styles.th}>Total Amount</th>
+                      <th style={styles.th}>Order Status</th>
+                      <th style={styles.th}>Payment Status</th>
+                      <th style={styles.th}>Payment Method</th>
+                      <th style={styles.th}>Location</th>
+                      <th style={styles.th}>Date</th>
+                      <th style={styles.th}>Check Invoice</th>
+                      <th style={styles.th}> Exchange Return </th>
+                    </tr>
+                  </thead>
+                  <tbody style={{ backgroundColor: '#FDFDFD' }}>
+                    {ordersData.map((order) => (
+                      <tr key={order.orderID} style={{ cursor: 'pointer' }}>
+                        <td style={styles.td}><strong>{order.orderID}</strong></td>
+                        <td style={styles.td}>{order.customer_name}</td>
+                        <td style={styles.td}>₹{order.amount}</td>
+                        <td style={styles.td}>
+                          <span style={{ ...styles.statusBadge, ...getStatusColor(order.order_status) }}>
+                            {order.order_status}
+                          </span>
+                        </td>
+                        <td style={styles.td}>
+                          <span style={{ ...styles.statusBadge, ...getPaymentStatusColor(order.payment_status) }}>
+                            {getPaymentStatusIcon(order.payment_status)}
+                            {order.payment_status}
+                          </span>
+                        </td>
+                        <td style={styles.td}>{order.payment_method}</td>
+                        <td style={styles.td}>{order.order_location}</td>
+                        <td style={styles.td}>{formatDate(order.created_at)}</td>
+                        <td style={styles.td}>
+                          <FileInput
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
+                              setInvoice(true);
+                              setOrderChoose(order.orderID);
+                            }}
+                          />
+                        </td>
+                        <td style={styles.td}>
 
-                  <CopyCheckIcon // Icon suggesting a circular flow/exchange
-                    size={20}
-                    style={{ cursor: 'pointer', color: '#10B981' }} 
-                    onClick={(e) => {
-                      e.stopPropagation(); // Stop row click (if any)
-                      handleOpenExchangeModal(order.orderID); // Open the modal
-                    }}
-                    />
-                  </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </motion.div>
-    )}
-  </AnimatePresence>
-</div>
+                          <CopyCheckIcon // Icon suggesting a circular flow/exchange
+                            size={20}
+                            style={{ cursor: 'pointer', color: '#10B981' }}
+                            onClick={(e) => {
+                              e.stopPropagation(); // Stop row click (if any)
+                              handleOpenExchangeModal(order.orderID); // Open the modal
+                            }}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
 
         {/* Pagination */}
