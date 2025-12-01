@@ -687,7 +687,7 @@ export const filter = async (req, res, next) => {
       sql += " AND o.amount <= ?";
       params.push(amount_to);
     }
-
+    sql += " ORDER BY o.created_at DESC";
     const [orders] = await db.execute(sql, params);
 
     return res.status(200).json({
