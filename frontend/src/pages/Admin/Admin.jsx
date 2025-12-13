@@ -46,6 +46,9 @@ const Admin = () => {
           <Link to="/products" className={`sidebar-item ${isActive('/products') ? "active-btn" : ""}`}>
             Products
           </Link>
+          <Link to="/alterations" className={`sidebar-item ${isActive('/alterations') ? "active-btn" : ""}`}>
+            Alterations
+          </Link>
           
           <Link to="/returns" className={`sidebar-item ${isActive('/returns') ? "active-btn" : ""}`}>
             Returns

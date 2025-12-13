@@ -17,7 +17,7 @@
 .shop-name {
   text-align: center;
   font-size: 15px;
-  font-weight: bold;
+  font-weight: 700;
   margin: 2px 0;
 }
 
@@ -26,6 +26,7 @@
   font-size: 10px;
   margin-bottom: 7px;
   white-space: pre-line;
+  font-weight: 550;
 }
 
 .shop-contact {
@@ -33,17 +34,21 @@
   font-size: 10px;
   margin-bottom: 2px;
   white-space: pre-line;
+  font-weight: 550;
+
 }
 
 .shop-gst {
   text-align: center;
   font-size: 11px;
   margin-bottom: 5px;
+  font-weight: 550;
+
 }
 
 .invoice-title {
   text-align: center;
-  font-weight: bold;
+  font-weight: 700;
   padding: 3px 0;
   margin: 6px 0;
   border-top: 1px solid #000;
@@ -60,11 +65,16 @@
   font-size: 11.5px;
   /* margin-bottom: 1px; */
   align-items: center;
+  font-weight: 550;
+
 }
+
 
 .invoice-no {
   text-align: left;
   margin-top: -8px;
+  font-weight: 550;
+
 }
 
 .invoice-date {
@@ -72,16 +82,21 @@
   display: block;
   width: 75px;
   margin-top: -8px;
+  font-weight: 550;
+
 }
 
 .customer-row {
   display: flex;
   font-size: 11.5px;
   margin-top: -4px;
+  font-weight: 550;
+
 }
 
-.label {
-  font-weight: normal;
+.invoice-label {
+  font-weight: 550;
+  margin-bottom: 7px;
 }
 
 .bill-table {
@@ -94,14 +109,14 @@
 .main-header th {
   border-bottom: 1px solid #000;
   padding-bottom: 2px;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .sub-header th {
   padding-top: 1px;
   padding-bottom: 3px;
   font-size: 10px;
-  font-weight: 400;
+  font-weight: 600;
 }
 
 .table-row-1 {
@@ -135,15 +150,21 @@
 .sub-row td {
   font-size: 10px;
   padding: 1px 0 2px 0;
+  font-weight: 450;
+
 }
 
 .post-table-summary {
   font-size: 11px;
   margin-top: 6px;
+  font-weight: 550;
+
 }
 
 .summary-line {
   margin: 6px 0;
+  font-weight: 550;
+
 }
 
 .total-row {
@@ -157,6 +178,8 @@
   justify-content: space-between;
   padding: 2px 0;
   font-size: 10.5px;
+  font-weight: 550;
+
 }
 
 .final-row {
@@ -165,6 +188,7 @@
   font-weight: bold;
   padding-top: 4px;
   border-top: 1px solid #000;
+
 }
 
 .in-words {
@@ -186,11 +210,15 @@
 .gst-summary th {
   border-bottom: 1px solid #000;
   padding-bottom: 2px;
+  font-weight: 650;
+
 }
 
 .gst-summary td {
   padding: 3px 0;
   text-align: right;
+  font-weight: 550;
+
 }
 
 .gst-summary th:first-child,
@@ -223,8 +251,24 @@
   background: #000;
   color: #fff;
   padding: 6px 12px;
-  font-size: 12px;
+  font-size: 15px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
+  margin-right: 4px;
+}
+
+@media print {
+  .invoice-container .button-group,
+  .invoice-download-btn,
+  .invoice-print-btn {
+    display: none !important;
+  }
+
+  .thermal-invoice {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+  }
 }

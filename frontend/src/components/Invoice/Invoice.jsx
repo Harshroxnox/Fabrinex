@@ -118,6 +118,10 @@ const Invoice = ({ order: orderId }) => {
     return `${day}-${month}-${year}`;
   };
 
+  const handlePrint = () => {
+    window.print(); 
+  }
+
   return (
     <div className="invoice-container">
 
@@ -131,18 +135,18 @@ const Invoice = ({ order: orderId }) => {
         <h3 className="invoice-title">TAX INVOICE</h3>
 
         <div className="invoice-row">
-          <span className="label">Invoice No/Date :</span>
+          <span className="invoice-label">Invoice No/Date :</span>
           <span className="invoice-no">{order.orderID}</span>
           <span className="invoice-date">/ {formatDate(order.created_at)}</span>
         </div>
 
         <div className="customer-row">
-          <span className="label">Customer Name &nbsp;:&nbsp;&nbsp;&nbsp;</span>
+          <span className="invoice-label">Customer Name &nbsp;:&nbsp;&nbsp;&nbsp;</span>
           <span>{order.customer_name || "Cash"}</span>
         </div>
 
         <div className="customer-row">
-          <span className="label">Cust Mobile No :</span>
+          <span className="invoice-label">Cust Mobile No :</span>
           <span>&nbsp;&nbsp;&nbsp;</span>
         </div>
 
@@ -291,6 +295,9 @@ const Invoice = ({ order: orderId }) => {
         className="invoice-download-btn"
       >
         Download Invoice
+      </button>
+      <button onClick={handlePrint} className="invoice-download-btn">
+        Print Invoice
       </button>
 
     </div>

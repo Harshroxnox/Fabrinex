@@ -24,10 +24,13 @@ import AdminRoles from "./pages/AdminRoles/AdminRoles.jsx"
 import IntegrationsPage from "./pages/Integrations/Integrations.jsx"
 import Settings from "./pages/Settings/Settings.jsx"
 import NotFound from "./NotFound.jsx"
+import Alterations from "./pages/Alterations/Alterations.jsx"
+import AlterationNotifier from "./pages/Alterations/AlterationNotifier.jsx"
 const App = () => {
   return (
     <LoginProvider>
       <Toaster position="top-right" />
+      <AlterationNotifier/>
       <Navbar/>
       <Routes>
         <Route path="/login" element={<Login />}/>
@@ -42,6 +45,7 @@ const App = () => {
           <Route path="orders" element={<OrderCreationCRM />} />
           <Route path="orders/create" element={<OrderCreation />} />
           <Route path="products" element={<ProductsList />} />
+          <Route path="alterations" element={<Alterations/>} />
           <Route path="returns" element={<DailyReturnsSection />} />
           <Route path="customers" element={<CustomerPage />} />
           <Route path="sales-persons" element={<SalesPersons />} />

@@ -1,0 +1,175 @@
+.add-alteration-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.add-alteration-modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px 28px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.add-alteration-form-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.add-alteration-form-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #111827;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.add-alteration-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.add-alteration-input,
+.add-alteration-textarea,
+.add-alteration-date-input {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #111827;
+  box-sizing: border-box;
+}
+
+.add-alteration-input::placeholder,
+.add-alteration-textarea::placeholder {
+  color: #9ca3af;
+}
+
+.add-alteration-input:focus,
+.add-alteration-textarea:focus,
+.add-alteration-date-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 1px #2563eb;
+}
+
+.add-alteration-textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.add-alteration-file-input {
+  border: 1px dashed #d1d5db;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-alteration-image-preview {
+  max-width: 100%;
+  max-height: 160px;
+  margin-top: 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 8px;
+  object-fit: contain;
+  background: #ffffff;
+}
+
+.add-alteration-error-text {
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.add-alteration-modal-actions {
+  display: flex;
+  justify-content: end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.add-alteration-cancel-btn {
+  background-color: #f3f4f6;
+  color: #111827;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  border-radius: 24px;
+}
+
+.add-alteration-cancel-btn:hover {
+  background-color: #e5e7eb;
+}
+
+.add-alteration-save-btn {
+  background-color: #22c55e;
+  color: #ffffff;
+  padding: 10px 22px;
+  border: 1px solid #16a34a;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+}
+
+.add-alteration-save-btn:hover {
+  background-color: #16a34a;
+}
+
+.add-alteration-save-btn:disabled,
+.add-alteration-cancel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.add-alteration-modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.add-alteration-modal-content::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.add-alteration-modal-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+}
+
+.add-alteration-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media (max-width: 640px) {
+  .add-alteration-modal-content {
+    padding: 20px;
+  }
+
+  .add-alteration-modal-actions {
+    flex-direction: column;
+  }
+
+  .add-alteration-modal-actions button {
+    width: 100%;
+  }
+}

@@ -82,7 +82,7 @@ const PurchaseList = () => {
     return (
         <div className="purchases-container">
             <div className="purchases-header">
-                <h5>Purchases</h5>
+                <h5 style={{fontSize:"36px"}}>Purchases</h5>
                 <div className='purchases-btn-group'>
                     <button
                         className="add-purchase-btn"
