@@ -333,3 +333,19 @@ CREATE TABLE PurchaseItems (
 
     CONSTRAINT uc_purchase_barcode UNIQUE (purchaseID, barcode)
 );
+
+CREATE TABLE AlterationRecords (
+    alterationID INT AUTO_INCREMENT PRIMARY KEY,
+    bill_no VARCHAR(50),
+    slip_no VARCHAR(50),
+    customer_name VARCHAR(100) NOT NULL,
+    contact VARCHAR(15) NOT NULL,
+    dimension_image VARCHAR(500),
+    cloudinary_id VARCHAR(255),
+    dimension_text TEXT,
+    date_of_delivery DATE NOT NULL,
+    status ENUM('Pending', 'Ready', 'Delivered') DEFAULT 'Pending',
+    amount DECIMAL(10,2) DEFAULT 0.00,
+    payment_status ENUM('Paid', 'Unpaid') DEFAULT 'Unpaid',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
