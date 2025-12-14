@@ -30,13 +30,13 @@ const App = () => {
   return (
     <LoginProvider>
       <Toaster position="top-right" />
-      <AlterationNotifier/>
       <Navbar/>
       <Routes>
         <Route path="/login" element={<Login />}/>
         <Route path="/" element={
           <ProtectedRoute>
             <Admin/>
+            <AlterationNotifier/>
           </ProtectedRoute>
         }>
           {/* Nested routes for sidebar content */}
