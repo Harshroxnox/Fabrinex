@@ -22,7 +22,6 @@ export const generateOTP = () => {
 export const storeOTPTemp = async (emailOrPhone, otp) => {
   const key = `otp:${emailOrPhone}`;
   const res = await redis.set(key, otp, 'EX', 300); // 5 minutes
-  console.log("storeOTPTemp:", res);
 };
 
 // Verify OTP
@@ -75,7 +74,6 @@ export const sendOtpByEmail = async (email, otp) => {
   };
 
   const info = await transporter.sendMail(mailOptions);
-  console.log('OTP sent via email:', info.response);
 };
   
 export const sendOtpBySMS = async (phone_number, otp) => {
@@ -85,7 +83,5 @@ export const sendOtpBySMS = async (phone_number, otp) => {
     // Assuming we have have to send SMS in India only
     to: "+91" + phone_number,
   });
-
-  console.log('OTP sent via SMS:', message.sid);
 };
   

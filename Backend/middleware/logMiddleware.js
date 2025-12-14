@@ -17,8 +17,6 @@ const requestLogger = (req, res, next) => {
       level,
       message: `${method} ${originalUrl} ${statusCode} - ${responseTime}ms - IP: ${ip}`
     });
-
-    console.log(`[${level}]: ${method} ${originalUrl} ${statusCode} - ${responseTime}ms - IP: ${ip}`);
   })
 
   next();

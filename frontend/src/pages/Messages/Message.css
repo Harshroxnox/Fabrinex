@@ -1,0 +1,372 @@
+/* Modern Dashboard Styles */
+:root {
+  --card-radius: 16px;
+  --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.templates-dashboard {
+ background-color: #f9fafb;
+  font-family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  border: 0.01rem solid black;
+  border-radius: 2rem;
+  /* width: 84vw; */
+  overflow: hidden;
+  min-height: 600px;
+  margin-right: 1rem;
+  padding:35px;
+}
+
+.dashboard-header {
+  margin-bottom: 3rem;
+  text-align: left;
+}
+
+.dashboard-header h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-header p {
+  color: #6B7280;
+  font-size: 1rem;
+  /* max-width: 600px; */
+  text-align:left;
+  margin: 0 auto;
+}
+
+/* Grid Layout */
+.templates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Modern Card Design */
+.template-card {
+  background: #FFFFFF;
+  border-radius: var(--card-radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #F3F4F6;
+}
+
+.template-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  flex-shrink: 0;
+}
+
+.card-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.25rem;
+}
+
+.card-description {
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+.template-content {
+  flex-grow: 1;
+  margin-bottom: 1.5rem;
+  background: #F9FAFB;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.template-content pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: 'SF Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #374151;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+/* Card Actions */
+.card-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.copy-btn, .preview-btn {
+  padding: 0.625rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+}
+
+.copy-btn {
+  background-color: #F3F4F6;
+  color: #111827;
+  flex-grow: 1;
+}
+
+.copy-btn:hover {
+  background-color: #E5E7EB;
+}
+
+.copy-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.preview-btn {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.preview-btn:hover {
+  opacity: 0.9;
+}
+
+/* Preview Modal */
+.preview-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: auto;
+}
+
+.close-modal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #6B7280;
+  padding: 0.5rem;
+}
+
+.modal-content h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #111827;
+}
+
+.preview-container {
+  margin: 1.5rem 0;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Preview Styles */
+.sms-preview, .whatsapp-preview, .email-preview {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.preview-header {
+  padding: 1rem;
+  background: #F9FAFB;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: #6B7280;
+}
+
+.preview-content {
+  font-size: 1.2rem;
+  padding: 1.5rem;
+  background: white;
+}
+
+/* SMS Preview */
+.sms-preview .preview-content {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+/* WhatsApp Preview */
+.whatsapp-preview {
+  background: #ECE5DD;
+}
+
+.whatsapp-preview .preview-content {
+  font-family: 'Segoe UI', Helvetica, sans-serif;
+  color: #111;
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.whatsapp-preview .preview-content div {
+  margin-bottom: 0.5rem;
+}
+
+/* Email Preview */
+.email-preview .preview-content {
+  font-family: Arial, sans-serif;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.modal-actions button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.modal-actions .copy-btn {
+  background-color: #3B82F6;
+  color: white;
+}
+
+.modal-actions .copy-btn:hover {
+  background-color: #2563EB;
+}
+
+.modal-actions .close-btn {
+  background-color: #F3F4F6;
+  color: #111827;
+  border: none;
+}
+
+.modal-actions .close-btn:hover {
+  background-color: #E5E7EB;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .templates-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-header h1 {
+    font-size: 1.75rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .templates-dashboard {
+    padding: 1.5rem 1rem;
+  }
+  
+  .card-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+}
+/* Loading State */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #F3F4F6;
+  border-top-color: #3B82F6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error State */
+.error-message {
+  text-align: center;
+  padding: 2rem;
+  color: #EF4444;
+}
+
+.error-message button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: #F3F4F6;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.error-message button:hover {
+  background-color: #E5E7EB;
+}
+
+/* No Templates State */
+.no-templates {
+  text-align: center;
+  padding: 2rem;
+  color: #6B7280;
+}

@@ -435,6 +435,7 @@ export const updateOrderOffline = async (req, res, next) => {
 
     // Store original values to apply the net change later
     const originalOrder = orderRows[0];
+    const promo_discount = parseFloat(originalOrder.promo_discount);
     let netAmountChange = 0;
     let netProfitChange = 0;
     let netTaxChange = 0;
@@ -480,20 +481,22 @@ export const updateOrderOffline = async (req, res, next) => {
       );
 
       // === 5. CALCULATE FINANCIALS FOR THIS ITEM ===
-      // *** FIX: Convert all variant financial data to numbers ***
       const productTax = parseFloat(variant.tax);
       const price = parseFloat(variant.price);
       const discount = parseFloat(variant.discount);
       const my_wallet = parseFloat(variant.my_wallet);
 
-      // Calculate price just like in createOrder
+      // applied variant discount 
       const actualPrice = price - (price * (discount / 100));
-      const taxedPrice = actualPrice + (actualPrice * (productTax / 100));
+      // applied promo discount if any
+      const discountedPrice = actualPrice - (actualPrice * (promo_discount / 100));
+      // applied tax 
+      const taxedPrice = discountedPrice + (discountedPrice * (productTax/100));
 
       // Add this item's financial impact to the net change
       netAmountChange += (taxedPrice * quantity);
-      netProfitChange += (actualPrice - my_wallet) * quantity;
-      netTaxChange += (actualPrice * (productTax / 100)) * quantity;
+      netProfitChange += (discountedPrice - my_wallet) * quantity;
+      netTaxChange += (discountedPrice * (productTax/100)) * quantity;
 
       // === 6. INSERT ADJUSTMENT INTO OrderItems ===
       await conn.execute(`
@@ -517,7 +520,6 @@ export const updateOrderOffline = async (req, res, next) => {
     }
 
     // === 7. UPDATE THE MAIN ORDER WITH NET CHANGES ===
-    // *** FIX: Convert original order amounts to numbers before adding ***
     const finalAmount = parseFloat(originalOrder.amount) + netAmountChange;
     const finalProfit = parseFloat(originalOrder.profit) + netProfitChange;
     const finalTax = parseFloat(originalOrder.tax) + netTaxChange;
@@ -685,7 +687,7 @@ export const filter = async (req, res, next) => {
       sql += " AND o.amount <= ?";
       params.push(amount_to);
     }
-
+    sql += " ORDER BY o.created_at DESC";
     const [orders] = await db.execute(sql, params);
 
     return res.status(200).json({
@@ -825,7 +827,7 @@ export const getReturnsByDateRange = async (req, res, next) => {
     let conn;
 
     if (!dateFrom || !dateTo) {
-        return next(new AppError(400, 'Both dateFrom (YYYY-MM-DD) and dateTo (YYYY-MM-DD) are required.'));
+        return next(new AppError(400, 'Both dateFrom and dateTo are required.'));
     }
 
     const startDate = `${dateFrom} 00:00:00`;
@@ -837,10 +839,6 @@ export const getReturnsByDateRange = async (req, res, next) => {
 
     try {
         conn = await db.getConnection();
-
-        // -----------------------------
-        // COUNT Query (Works fine)
-        // -----------------------------
         const countSql = `
             SELECT COUNT(oi.orderItemID) AS total
             FROM OrderItems AS oi
@@ -852,21 +850,36 @@ export const getReturnsByDateRange = async (req, res, next) => {
         const [countRows] = await conn.execute(countSql, [startDate, endDate]);
         const totalReturns = countRows[0].total;
 
-        // -----------------------------
-        // SELECT Query (FIXED LIMIT/OFFSET)
-        // -----------------------------
-        const selectSql = `
+       const selectSql = `
             SELECT 
                 oi.orderID, 
                 u.name AS customer_name, 
                 oi.name AS product_name, 
                 oi.variantID, 
-                ABS(oi.quantity) AS returned_quantity,
-                oi.price_at_purchase,
                 oi.color,
                 oi.size,
                 o.created_at,
-                (oi.price_at_purchase * ABS(oi.quantity)) AS total_credit
+                
+                -- The Quantity Returned (converted to positive)
+                ABS(oi.quantity) AS returned_quantity,
+
+                -- The Base Price (Discounted, No Tax)
+                oi.price_at_purchase AS base_price,
+
+                -- The Tax Rate stored on the item
+                oi.tax AS tax_rate,
+
+                -- CALCULATION: (Base Price + Tax Amount)
+                -- We treat tax as a number. If it's 0 or null, we default to 0.
+                (oi.price_at_purchase + (oi.price_at_purchase * (IFNULL(oi.tax, 0) / 100))) 
+                AS unit_refund_amount_inc_tax,
+
+                -- TOTAL REFUND: Unit Refund * Quantity
+                (
+                    (oi.price_at_purchase + (oi.price_at_purchase * (IFNULL(oi.tax, 0) / 100))) 
+                    * ABS(oi.quantity)
+                ) AS total_credit
+
             FROM OrderItems AS oi
             JOIN Orders AS o ON oi.orderID = o.orderID
             JOIN Users u ON o.userID = u.userID
@@ -880,7 +893,7 @@ export const getReturnsByDateRange = async (req, res, next) => {
         const [returnItems] = await conn.execute(selectSql, [startDate, endDate]);
 
         res.status(200).json({
-            message: `Returns from ${dateFrom} to ${dateTo} fetched successfully.`,
+            message: `Returns fetched successfully.`,
             returns: returnItems,
             total: totalReturns,
             page: parsedPage,

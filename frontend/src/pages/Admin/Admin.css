@@ -1,0 +1,226 @@
+.admin-container {
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.admin-main {
+    margin-top: 50px;
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    padding: 2rem;
+    background-color: #F1F5F9;
+    width: 100%;
+    flex: 1;
+    transition: margin-left 0.3s ease;
+}
+
+.admin-box {
+    display: flex;
+    flex-direction: row;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Sidebar Styles */
+.admin-sidebar {
+    margin-top: 50px;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    background-color: #363E4C; /* Dark sidebar background */
+    color: #E2E8F0; /* Light text color */
+    height: calc(100vh - 50px);
+    overflow-y: auto;
+    position: fixed;
+    left: 0;
+    z-index: 100;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, width 0.3s ease;
+    border-right: 1px solid #475569;
+    font-size: large;
+}
+
+.admin-sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 0;
+}
+
+/* Sidebar Header */
+.sidebar-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid #475569;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-header h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #F8FAFC; /* Light header color */
+    margin: 0;
+}
+
+/* Sidebar Items */
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 0.8rem;
+    color: #E2E8F0; /* Light text color */
+    text-decoration: none;
+    border: none;
+    background: #363E4C; /* Dark background */
+    width: 100%;
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+}
+
+.sidebar-item:hover {
+    background-color: #396aac; /* Blue hover background */
+    color: #FFFFFF; /* White text on hover */
+    border-left-color: #60A5FA;
+}
+
+.sidebar-item.active-btn {
+    background-color: #475569; /* Darker active background */
+    color: #FFFFFF; /* White text for active */
+    border-left-color: #3B82F6; /* Blue active border */
+    font-weight: 600;
+}
+
+/* Toggle Button */
+.sidebar-toggle {
+    position: fixed;
+    top: 60px;
+    left: 200px;
+    z-index: 1000;
+    background: #363E4C; /* Match sidebar color */
+    border: 1px solid #475569;
+    border-radius: 0 4px 4px 0;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.2);
+    color: #E2E8F0; /* Light icon color */
+}
+
+.sidebar-toggle:hover {
+    background: #396aac; /* Blue hover */
+    color: #FFFFFF;
+}
+
+.sidebar-toggle.collapsed {
+    left: 0;
+}
+
+/* Adjust main content when sidebar is collapsed */
+.admin-main.sidebar-collapsed {
+    margin-left: 0;
+}
+
+.admin-main:not(.sidebar-collapsed) {
+    margin-left: 200px;
+}
+
+/* Settings Section */
+.settings-section {
+    margin-top: auto;
+    border-top: 1px solid #475569;
+}
+
+.settings-dropdown {
+    background-color: #2D3748; /* Darker background for dropdown */
+    border-left: 2px solid #475569;
+}
+
+.settings-dropdown .sidebar-item {
+    padding-left: 0.8rem;
+    font-size: 1.2rem;
+    background-color: #2D3748; /* Darker background */
+}
+
+.settings-dropdown .sidebar-item:hover {
+    background-color: #396aac; /* Blue hover */
+    color: #FFFFFF;
+}
+
+.settings-dropdown .sidebar-item.active-btn {
+    background-color: #475569;
+    color: #FFFFFF;
+    border-left-color: #3B82F6;
+}
+
+/* Scrollbar Styling for Dark Sidebar */
+.admin-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.admin-sidebar::-webkit-scrollbar-track {
+    background: #2D3748;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 2px;
+}
+
+.admin-sidebar::-webkit-scrollbar-thumb:hover {
+    background: #396aac;
+}
+
+/* Main content scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.no-scrollbar::-webkit-scrollbar-track {
+    background: #F1F5F9;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 3px;
+}
+
+.no-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94A3B8;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 160px;
+    }
+    
+    .admin-main:not(.sidebar-collapsed) {
+        margin-left: 160px;
+    }
+    
+    .sidebar-toggle {
+        left: 160px;
+    }
+    
+    .sidebar-item {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .admin-sidebar {
+        width: 160px;
+    }
+    
+    .admin-main:not(.sidebar-collapsed) {
+        margin-left: 160px;
+    }
+    
+    .sidebar-toggle {
+        left: 160px;
+    }
+}

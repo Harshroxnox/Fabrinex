@@ -1,0 +1,291 @@
+/* WebPage.module.css */
+.container {
+  background-color: #f9fafb;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  border: 0.01rem solid black;
+  border-radius: 2rem;
+  /* width: 84vw; */
+  overflow: hidden;
+  height: inherit;
+  margin-right: 1rem;
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  padding-right: 3.5rem;
+  gap: 1rem;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 32px 24px;
+  overflow: hidden;
+  font-size: 1rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+
+.title {
+  font-size: 2rem;
+  text-decoration: none;
+  font-weight: 600;
+  margin: 0;
+  color: black;
+}
+
+.tabsContainer {
+  display: flex;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-weight: 500;
+  color: #6b7280;
+  transition: all 0.2s;
+}
+
+.activeTab {
+  color: #111827;
+  border-bottom-color: #111827;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.actionButton {
+  background-color: #111827;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bannerCard {
+  background-color: #FDFDFD;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.bannerTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.bannerDescription {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.bannerMeta {
+  color: #6b7280;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.upcomingBanner {
+  border-left: 4px solid #f59e0b;
+}
+
+.activeBanner {
+  border-left: 4px solid #10b981;
+}
+
+.pastBanner {
+  border-left: 4px solid #9ca3af;
+}
+
+.emptyState {
+  background-color: #FDFDFD;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 1rem;
+  padding: 2rem;
+  text-align: center;
+  color: #6b7280;
+}
+
+.emptyStateTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #111827;
+}
+
+.emptyStateText {
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.dialogOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.dialog {
+  background-color: #FDFDFD;
+  border-radius: 1rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.dialogHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.dialogTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.closeButton {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.formGroup {
+  margin-bottom: 1.5rem;
+}
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.fileInput {
+  display: none;
+}
+
+.fileInputLabel {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border: 1px dashed #a2a2a2;
+  border-radius: 0.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.fileInputLabel:hover {
+  background-color: #f3f4f6;
+}
+
+.submitButton {
+  background-color: #111827;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  width: 100%;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tableHeader {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.tableCell {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  color: #111827;
+  font-size: 0.875rem;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.upcomingBadge {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.activeBadge {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.pastBadge {
+  background-color: #f3f4f6;
+  color: #374151;
+}

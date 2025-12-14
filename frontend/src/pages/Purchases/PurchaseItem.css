@@ -1,0 +1,85 @@
+.purchase-item-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+
+.purchase-item-card.expanded {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.purchase-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+}
+
+.info-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.invoice-number {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.seller-name {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.financial-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.invoice-date {
+  color: #4b5563;
+}
+
+.grand-total {
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.expand-icon {
+  font-size: 1rem;
+  color: #9ca3af;
+  transition: transform 0.2s;
+}
+
+.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.purchase-details-section {
+  padding: 0 1rem 1rem 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.purchase-totals {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  padding: 0.75rem 0;
+}
+
+.loading-text,
+.no-items-message {
+  padding: 1rem 0;
+  color: #6b7280;
+  text-align: center;
+}

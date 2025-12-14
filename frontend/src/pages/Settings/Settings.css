@@ -1,0 +1,73 @@
+.admin-container {
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    /* padding-left: 1.5rem; */
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #e8e8e8, #ffffff);
+}
+
+.setting-main {
+    overflow: auto;
+    padding-left: 0;
+    padding-top: 0;
+    max-height: fit-content;
+    /* padding-left: 2rem; */
+    font-size: 3rem;
+    /* padding-top: 2rem;; */
+}
+
+.admin-box {
+    display: flex;
+    flex-direction: row;
+    height:100vh;
+}
+
+.admin-sidebar {
+    flex-basis: 12vw;
+    display: flex;
+    flex-direction: column;
+    /* padding: 2rem; */
+    /* padding-left: 2rem; */
+    text-align: justify;
+    /* align-items: center; */
+    border: 0.01rem solid #a2a2a2;
+    background-color: #373F4C;
+    /* border-radius: 1rem; */
+}
+
+.admin-title {
+    flex-basis: 5vh;
+    font-size: 3rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+}
+
+.admin-sidebar button {
+    font-size: 1.5rem;
+    font-weight: 400;
+    text-decoration: none;
+    border: none;
+    /* border-radius: 0.7rem; */
+    background-color: #373F4C;
+    color: whitesmoke;
+    text-align: justify;
+    /* padding-left: 0.5rem; */
+    padding: 1rem 1rem;
+    width:100%;
+}
+
+.admin-sidebar button:hover {
+    cursor: pointer;
+    background-color: #396AAC;
+}
+
+.admin-sidebar .active-btn {
+    background-color: #396AAC;
+}
+
+.admin-sidebar .home-btn {
+    border-top: none;
+}
+

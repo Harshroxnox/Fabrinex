@@ -1,0 +1,232 @@
+/* Customer Page CSS */
+.customer-page {
+  background-color: #f9fafb;
+  font-family: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  border: 0.01rem solid black;
+  border-radius: 2rem;
+  /* width: 80vw; */
+  overflow: hidden;
+  min-height: 600px;
+  /* margin-right: 1rem; */
+  padding: 35px;
+}
+
+.customer-page h5 {
+  color: #1f2937;
+  font-weight: 600;
+  margin: 0 0 32px 0;
+  font-size: 1.5rem;
+}
+
+.customer-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.customer-search-bar input {
+  padding: 0.75rem 1rem;
+  border: 0.01rem solid #a2a2a2;
+  border-radius: 2rem;
+  font-size: 0.875rem;
+  background-color: #FDFDFD;
+  outline: none;
+  width: 300px;
+  padding-left: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='16' height='16'%3E%3Cpath fill='%236b7280' d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+}
+
+.customer-search-bar input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.customer-action-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.customer-download-btn {
+  background-color: #111827;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.customer-download-btn:hover {
+  background-color: #1f2937;
+}
+
+.customer-notification-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: white;
+  border-radius: 0.75rem;
+  border: 0.5px solid rgb(207, 202, 202);
+}
+
+.customer-selection-info {
+  font-weight: 500;
+  color: #374151;
+  font-size: large;
+}
+
+.customer-notification-method {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.customer-notification-method label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+}
+
+.customer-notification-method input[type="radio"] {
+  accent-color: #111827;
+}
+
+.customer-send-promo-btn {
+  background-color: #31ad0c;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  border: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 0.5rem;
+}
+
+.customer-send-promo-btn:hover {
+  background-color: #059669;
+}
+
+.customer-table-container {
+  background: white;
+  border: 0.5px solid rgb(207, 202, 202);
+  border-radius: 0.75rem;
+  overflow: scroll;
+  font-size: medium;
+}
+
+.customer-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.customer-table th {
+  background-color: #f9fafb;
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-weight: 500;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  user-select: none;
+}
+
+.customer-table th:hover {
+  background-color: #f3f4f6;
+}
+
+.customer-table td {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Zebra striping */
+.customer-table tr:nth-child(even) {
+  background-color: #ffffff;
+}
+
+.customer-table tr:nth-child(odd) {
+  background-color: #f9fafb;
+}
+
+.customer-table tr:hover {
+  background-color: #f3f4f6;
+}
+
+.customer-table input[type="checkbox"] {
+  accent-color: #111827;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+
+  .customer-controls {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .customer-search-bar input {
+    width: 100%;
+  }
+  
+  .customer-notification-controls {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .customer-notification-method {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  
+  .customer-table {
+    font-size: 0.875rem;
+  }
+  
+  .customer-table th,
+  .customer-table td {
+    padding: 0.5rem;
+  }
+}
+.customer-page-div {
+  width:400px;
+  margin:10px auto;
+  margin-top: 20px
+}
+.customer-previous-btn,
+.customer-next-btn{
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 2rem;
+  padding: 0.55rem 0.8rem;
+  font-size: 1rem;
+  font-weight:500;
+  cursor: pointer;
+  margin-left: auto
+}
+
+.customer-page-text {
+  margin: 1.5rem;
+  font-size:1.25rem;
+  color: #333;
+  margin: 0 10px
+}
