@@ -152,8 +152,11 @@
   }
 
   .navbar-create-button {
-    padding: 0.5rem 1rem;
+    padding: 0.7rem 0.9rem;
     font-size: 0.85rem;
+    border-radius: 8px;
+    min-height: 36px;   /* better touch target */
+    line-height: 1.2;
   }
 
   .navbar-user-button {
@@ -177,11 +180,11 @@
   }
 
   .navbar-create-button {
-    padding: 0.5rem;
-    border-radius: 50%;
-    width: 40px;
+    padding: 0.2rem;
+    border-radius: 25%;
+    width: 48px;
     height: 40px;
-    justify-content: center;
+    /* justify-content: center; */
   }
 
   .navbar-user-button span {
