@@ -3,7 +3,7 @@ import axiosInstance from "../../utils/axiosInstance";
 const handleRequest = async (fn) => {
   try {
     const response = await fn();
-    console.log(response);
+    // console.log(response);
     return { data: response.data, error: null };
   } catch (error) {
     return {

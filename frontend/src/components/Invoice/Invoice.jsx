@@ -118,9 +118,32 @@ const Invoice = ({ order: orderId }) => {
     return `${day}-${month}-${year}`;
   };
 
-  const handlePrint = () => {
-    window.print(); 
-  }
+const handlePrint = () => {
+  html2pdf()
+    .from(document.getElementById("invoice"))
+    .set({
+      margin: 0,
+      jsPDF: { unit: "mm", format: [80, 297] },
+      html2canvas: { scale: 2 }
+    })
+    .toPdf()
+    .get("pdf")
+    .then(pdf => {
+      const blob = pdf.output("bloburl");
+
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = blob;
+
+      document.body.appendChild(iframe);
+
+      iframe.onload = () => {
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+      };
+    });
+};
+
 
   return (
     <div className="invoice-container">
@@ -296,7 +319,7 @@ const Invoice = ({ order: orderId }) => {
       >
         Download Invoice
       </button>
-      <button onClick={handlePrint} className="invoice-download-btn">
+      <button onClick={handlePrint} className="invoice-download-btn invoice-print-btn">
         Print Invoice
       </button>
 

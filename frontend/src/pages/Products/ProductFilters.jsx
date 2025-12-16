@@ -23,7 +23,7 @@ const ProductFilters = ({ onSearch, onReset }) => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        <button type="submit">Search Products</button>
+        <button type="submit" className='search-submit-btn'>Search Products</button>
       </form>
 
       <button 
