@@ -53,8 +53,8 @@ const App = () => {
           <Route path="bills" element={<BillManagement />} />
           <Route path="purchases" element={<PurchaseList />} />
           <Route path="messaging" element={<MessagingSection />} />
-          {/* <Route path="promotions" element={<PromotionsPage />} /> */}
-          {/* <Route path="web" element={<WebPage />} /> */}
+          <Route path="promotions" element={<PromotionsPage />} />
+          <Route path="web" element={<WebPage />} />
           <Route path="settings/admin-roles" element={<AdminRoles />} />
           <Route path="settings/integrations" element={<IntegrationsPage />} />
           <Route path="*" element={<NotFound />} />

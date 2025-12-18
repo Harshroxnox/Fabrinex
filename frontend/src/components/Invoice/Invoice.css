@@ -1,17 +1,19 @@
 .invoice-container {
-  font-family: "Courier New", monospace;
   justify-content: center;
 }
 
 .thermal-invoice {
+  font-family: "Arial", "Helvetica", sans-serif;
   width: 80mm;
   padding: 6px 6px;
   background: #fafafa;
   border: 1px solid #ccc;
-  font-size: 11px;
+  font-size: 12px;
   color: #000;
   line-height: 1.15;
   letter-spacing: 0.2px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 .shop-name {
