@@ -132,8 +132,12 @@ const ProductItem = ({ product, onUpdate, onAdd, onDeleted }) => {
             <span className="product-category">{product.category}</span>
           </div>
           
-          <div className="product-description">
+          {/* <div className="product-description">
             {renderDescription()}
+          </div> */}
+
+          <div className="product-tax">
+            {product.tax != null ? `Tax: ${product.tax}%` : 'Tax: N/A'}
           </div>
 
           <div className="product-meta">

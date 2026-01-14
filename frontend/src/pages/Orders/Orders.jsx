@@ -354,6 +354,7 @@ const OrderCreationCRM = () => {
                   <thead style={{ backgroundColor: '#FDFDFD' }}>
                     <tr>
                       <th style={styles.th}>Order ID</th>
+                      <th style={styles.th}>Check Invoice</th>
                       <th style={styles.th}>Customer Name</th>
                       <th style={styles.th}>Total Amount</th>
                       <th style={styles.th}>Order Status</th>
@@ -361,7 +362,6 @@ const OrderCreationCRM = () => {
                       <th style={styles.th}>Payment Method</th>
                       <th style={styles.th}>Location</th>
                       <th style={styles.th}>Date</th>
-                      <th style={styles.th}>Check Invoice</th>
                       <th style={styles.th}> Exchange Return </th>
                     </tr>
                   </thead>
@@ -369,6 +369,15 @@ const OrderCreationCRM = () => {
                     {ordersData.map((order) => (
                       <tr key={order.orderID} style={{ cursor: 'pointer' }}>
                         <td style={styles.td}><strong>{order.orderID}</strong></td>
+                        <td style={styles.td}>
+                          <FileInput
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
+                              setInvoice(true);
+                              setOrderChoose(order.orderID);
+                            }}
+                          />
+                        </td>
                         <td style={styles.td}>{order.customer_name}</td>
                         <td style={styles.td}>₹{order.amount}</td>
                         <td style={styles.td}>
@@ -385,15 +394,6 @@ const OrderCreationCRM = () => {
                         <td style={styles.td}>{order.payment_method}</td>
                         <td style={styles.td}>{order.order_location}</td>
                         <td style={styles.td}>{formatDate(order.created_at)}</td>
-                        <td style={styles.td}>
-                          <FileInput
-                            style={{ cursor: 'pointer' }}
-                            onClick={() => {
-                              setInvoice(true);
-                              setOrderChoose(order.orderID);
-                            }}
-                          />
-                        </td>
                         <td style={styles.td}>
 
                           <CopyCheckIcon // Icon suggesting a circular flow/exchange

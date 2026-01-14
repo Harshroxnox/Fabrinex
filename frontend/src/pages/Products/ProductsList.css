@@ -229,6 +229,13 @@ margin-top: -100px;
   margin-right: 0.5rem;
 }
 
+.product-tax {
+  color: #292a2c;
+  font-size: 0.875rem;
+  
+  margin-top: 0.5rem;
+}
+
 .product-description {
   color: #6b7280;
   font-size: 0.875rem;

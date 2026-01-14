@@ -8,7 +8,9 @@ export const constants = {
     'Partywear Saree',
     'Casual Lhenga',
     'Partywear Lhenga',
-    'Bridal Lhenga'
+    'Bridal Lhenga',
+    'Winter Readymade',
+    'Winter Unstitched'
   ],
   
 
@@ -17,9 +19,16 @@ export const constants = {
     'upi', 
     'netbanking', 
     'wallet',
-    'cash-on-delivery'
+    'cash-on-delivery',
+    'cash',
+    'split'
   ],
-
+  ONLINE_PAYMENT_METHODS:[
+    'card', 
+    'upi', 
+    'netbanking', 
+    'wallet',
+  ],
   PAYMENT_NETWORKS: [
     "Visa",
     "MasterCard",

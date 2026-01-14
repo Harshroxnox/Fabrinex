@@ -198,6 +198,16 @@ CREATE TABLE OrderItems (
     FOREIGN KEY (variantID) REFERENCES ProductVariants(variantID) ON DELETE RESTRICT
 );
 
+CREATE TABLE OrderPayments (
+    paymentID INT AUTO_INCREMENT PRIMARY KEY,
+    orderID INT NOT NULL,
+    type ENUM('cash','online') NOT NULL,
+    method VARCHAR(50),
+    amount DECIMAL(10,2) NOT NULL CHECK(amount > 0),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (orderID) REFERENCES Orders(orderID) ON DELETE CASCADE
+);
+
 CREATE TABLE Promotions (
     promotionID INT AUTO_INCREMENT PRIMARY KEY,
     promotion_code VARCHAR(50) UNIQUE NOT NULL,

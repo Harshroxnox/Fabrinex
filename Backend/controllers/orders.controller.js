@@ -161,243 +161,236 @@ export const createOrder = async (req, res, next) => {
 
 
 export const createOrderOffline = async (req, res, next) => {
-  let name = req.body.name;
-  let phone_number = req.body.phone_number;
-  let salesPersonID = req.body.salesPersonID;
-  let loyalty_barcode = ValidEAN13(req.body.loyalty_barcode);
-  const payment_method = validStringChar(req.body.payment_method);
-  const items = req.body.items;
+  let {
+    name,
+    phone_number,
+    salesPersonID,
+    loyalty_barcode,
+    payment_method,
+    items,
+    payments
+  } = req.body;
 
   let conn;
 
   try {
-    // Validations
-    const NoNameOrPhone = (name === null || name === undefined || name === "") && 
-    (phone_number === null || phone_number === undefined || phone_number === "");
-    const barcodeGiven = loyalty_barcode!==null && loyalty_barcode!==undefined && loyalty_barcode!=="";
-    const salespersonGiven = salesPersonID!==null && salesPersonID!==undefined && salesPersonID!=="";
+    payment_method = validStringChar(payment_method);
+    loyalty_barcode = ValidEAN13(loyalty_barcode);
 
-    // Skip Phone and Name validation if both are not provided
-    if(!NoNameOrPhone){
-      name = validStringChar(name);
-      if(name === null){
-        throw new AppError(400, "Invalid Name");
-      }
+    const NoNameOrPhone =
+      (!name || name === "") &&
+      (!phone_number || phone_number === "");
 
-      phone_number = validPhoneNumber(phone_number);
-      if(phone_number === null){
-        throw new AppError(400, "Invalid Phone Number");
-      }
-    }
+    const barcodeGiven = !!loyalty_barcode;
+    const salespersonGiven = !!salesPersonID;
 
-    // Checking if payment method is valid
-    if(!constants.PAYMENT_METHODS.includes(payment_method)){
+    if (!constants.PAYMENT_METHODS.includes(payment_method)) {
       throw new AppError(400, "Invalid payment method");
     }
 
-    if(barcodeGiven){
-      loyalty_barcode = ValidEAN13(loyalty_barcode);
-      if(loyalty_barcode === null){
-        throw new AppError(400, "Invalid Barcode");
-      }
-    }
-
-    if(salesPersonID){
-      salesPersonID = validID(salesPersonID);
-      if(salesPersonID === null){
-        throw new AppError(400, "Invalid salesPersonID");
-      }
-    }
-
-    if(!Array.isArray(items) || items.length === 0){
+    if (!Array.isArray(items) || items.length === 0) {
       throw new AppError(400, "Invalid variants provided");
     }
 
-    // Make connection for transaction
+    if (!NoNameOrPhone) {
+      name = validStringChar(name);
+      phone_number = validPhoneNumber(phone_number);
+
+      if (!name) throw new AppError(400, "Invalid Name");
+      if (!phone_number) throw new AppError(400, "Invalid Phone Number");
+    }
+
+    if (salespersonGiven) {
+      salesPersonID = validID(salesPersonID);
+      if (!salesPersonID) throw new AppError(400, "Invalid salesPersonID");
+    }
+
     conn = await db.getConnection();
     await conn.beginTransaction();
 
-    // Fetch UserID
+    /* ---------------- USER ---------------- */
     let userID = 1;
 
-    // If customer info given then update userID
-    // If user already exists fetch that userID
-    // If user does not exist create a new user and use that userID
-    if(!NoNameOrPhone){
+    if (!NoNameOrPhone) {
       const [user] = await conn.execute(
         `SELECT userID FROM Users WHERE phone_number = ?`,
         [phone_number]
       );
-      if(user.length > 0){
+
+      if (user.length) {
         userID = user[0].userID;
-      }else{
-        const [userResult] = await conn.execute(
-          `INSERT INTO Users (
-            name, 
-            phone_number, 
-            whatsapp_number, 
-            password, 
-            razorpay_customer_id, 
-            is_offline
-          ) VALUES (?, ?, ?, ?, ?, ?)`,
+      } else {
+        const [createdUser] = await conn.execute(
+          `INSERT INTO Users 
+           (name, phone_number, whatsapp_number, password, razorpay_customer_id, is_offline)
+           VALUES (?, ?, ?, ?, ?, ?)`,
           [name, phone_number, '+910000000000', 'guest', 'guest_customer_id', true]
         );
-        userID = userResult.insertId;
+        userID = createdUser.insertId;
       }
     }
 
-    // Apply loyalty card if given
+    /* ---------------- LOYALTY ---------------- */
     let promo_discount = 0;
-    if(barcodeGiven){
-      const [barcodeRow] = await conn.execute(
+    if (barcodeGiven) {
+      const [row] = await conn.execute(
         `SELECT discount FROM LoyaltyCards WHERE barcode = ?`,
         [loyalty_barcode]
       );
-
-      if(barcodeRow.length === 0){
-        throw new AppError(404, "Given Loyalty Card does not exist");
-      }
-
-      promo_discount = barcodeRow[0].discount;
+      if (!row.length) throw new AppError(404, "Loyalty Card not found");
+      promo_discount = row[0].discount;
     }
 
-    // Creating order
-    const [orderResult] = await conn.execute(
-      `INSERT INTO Orders (
-        userID, 
-        addressID,
-        payment_method, 
-        payment_status, 
-        amount,
-        profit,
-        tax,
-        order_location, 
-        order_status, 
-        promo_discount
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    /* ---------------- CREATE ORDER ---------------- */
+    const [orderRes] = await conn.execute(
+      `INSERT INTO Orders 
+       (userID, addressID, payment_method, payment_status, amount, profit, tax, order_location, order_status, promo_discount)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [userID, 1, payment_method, 'completed', 0.1, 0.1, 0.1, constants.SHOP_LOCATION, 'delivered', promo_discount]
     );
 
-    const orderID = orderResult.insertId;
+    const orderID = orderRes.insertId;
 
-    // Add Salesperson if given
-    if(salespersonGiven){
-      const [salespersonResult] = await conn.execute(
+    /* ---------------- SALESPERSON ---------------- */
+    if (salespersonGiven) {
+      const [sp] = await conn.execute(
         `SELECT commission FROM SalesPersons WHERE salesPersonID = ?`,
         [salesPersonID]
       );
-
-      if(salespersonResult.length === 0){
-        throw new AppError(404, "Salesperson Not Found");
-      }
-      const commission = salespersonResult[0].commission;
+      if (!sp.length) throw new AppError(404, "Salesperson Not Found");
 
       await conn.execute(
-        `INSERT INTO SalesPersonOrders (orderID, salesPersonID, commission) VALUES (?, ?, ?)`,
-        [orderID, salesPersonID, commission]
+        `INSERT INTO SalesPersonOrders (orderID, salesPersonID, commission)
+         VALUES (?, ?, ?)`,
+        [orderID, salesPersonID, sp[0].commission]
       );
     }
-    
+
+    /* ---------------- ITEMS ---------------- */
     let amount = 0;
     let profit = 0;
     let tax = 0;
 
-    // Inserting into OrderItems using items
     for (const item of items) {
-      // Getting price at time of purchase
-      const [variantRow] = await conn.execute(`
-        SELECT 
-          variantID, 
-          productID, 
-          color, 
-          size, 
-          my_wallet,
-          main_image, 
-          price, 
-          discount 
-        FROM ProductVariants WHERE barcode = ?`,
+      const [variant] = await conn.execute(
+        `SELECT variantID, productID, color, size, my_wallet, main_image, price, discount, stock
+         FROM ProductVariants WHERE barcode = ?`,
         [item.barcode]
       );
 
-      // Decrement stock by quantity
-      await conn.execute(`
-        UPDATE ProductVariants SET stock = stock - ? WHERE barcode = ?`,
-        [item.quantity, item.barcode]
-      );
-
-      if (variantRow.length === 0) {
-        await conn.rollback();
-        throw new AppError(400, 'Invalid product variant given');
+      if (!variant.length || variant[0].stock < item.quantity) {
+        throw new AppError(400, "Insufficient stock");
       }
 
-      const [productRow] = await conn.execute(
+      const [product] = await conn.execute(
         `SELECT name, category, tax FROM Products WHERE productID = ?`,
-        [variantRow[0].productID]
+        [variant[0].productID]
       );
 
-      const productTax  = productRow[0].tax;
-      const { price, discount } = variantRow[0];
-      // applied variant discount 
-      const actualPrice = price - (price * (discount / 100));
-      // applied promo discount if any
-      const discountedPrice = actualPrice - (actualPrice * (promo_discount / 100));
-      // applied tax 
-      const taxedPrice = discountedPrice + (discountedPrice * (productTax/100));
+      const basePrice = variant[0].price;
+      const actualPrice = basePrice - (basePrice * variant[0].discount) / 100;
+      const afterPromo = actualPrice - (actualPrice * promo_discount) / 100;
+      const taxAmount = (afterPromo * product[0].tax) / 100;
+      const finalPrice = afterPromo + taxAmount;
 
-      amount = amount + (taxedPrice * item.quantity);
-      profit = profit + (discountedPrice - variantRow[0].my_wallet) * item.quantity;
-      tax = tax + discountedPrice * (productTax/100) * item.quantity;
+      amount += finalPrice * item.quantity;
+      profit += (afterPromo - variant[0].my_wallet) * item.quantity;
+      tax += taxAmount * item.quantity;
 
-      await conn.execute(`
-        INSERT INTO OrderItems (
-          orderID,
-          variantID,
-          name,
-          category,
-          tax,
-          color,
-          main_image,
-          size,
-          quantity,
-          price_at_purchase
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      await conn.execute(
+        `UPDATE ProductVariants SET stock = stock - ? 
+         WHERE barcode = ? AND stock >= ?`,
+        [item.quantity, item.barcode, item.quantity]
+      );
+
+      await conn.execute(
+        `INSERT INTO OrderItems
+         (orderID, variantID, name, category, tax, color, main_image, size, quantity, price_at_purchase)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          orderID, 
-          variantRow[0].variantID, 
-          productRow[0].name, 
-          productRow[0].category, 
-          productRow[0].tax,
-          variantRow[0].color, 
-          variantRow[0].main_image, 
-          variantRow[0].size, 
-          item.quantity, 
+          orderID,
+          variant[0].variantID,
+          product[0].name,
+          product[0].category,
+          product[0].tax,
+          variant[0].color,
+          variant[0].main_image,
+          variant[0].size,
+          item.quantity,
           actualPrice
         ]
       );
     }
 
-    // Set order amount, profit, tax
+    amount = Number(amount.toFixed(2));
+    profit = Number(profit.toFixed(2));
+    tax = Number(tax.toFixed(2));
+
     await conn.execute(
-      "UPDATE Orders SET amount = ?, profit = ?, tax = ? WHERE orderID = ?",
+      `UPDATE Orders SET amount = ?, profit = ?, tax = ? WHERE orderID = ?`,
       [amount, profit, tax, orderID]
     );
 
-    // Commit database changes
+    /* ---------------- PAYMENTS ---------------- */
+    let cashAmount = 0;
+    let onlineAmount = 0;
+    let onlineMethod = null;
+
+    if (payment_method === "cash") {
+      cashAmount = amount;
+    }
+
+    if (constants.ONLINE_PAYMENT_METHODS.includes(payment_method)) {
+      onlineAmount = amount;
+      onlineMethod = payment_method;
+    }
+
+    if (payment_method === "split") {
+      if (!payments?.cash || !payments?.online)
+        throw new AppError(400, "Split payment requires cash and online");
+
+      cashAmount = Number(payments.cash);
+      onlineAmount = Number(payments.online.amount);
+      onlineMethod = payments.online.method;
+
+      if (!constants.ONLINE_PAYMENT_METHODS.includes(onlineMethod))
+        throw new AppError(400, "Invalid online payment method");
+
+      if (Math.abs(cashAmount + onlineAmount - amount) > 0.01)
+        throw new AppError(400, "Payment total mismatch");
+    }
+
+    if (cashAmount > 0) {
+      await conn.execute(
+        `INSERT INTO OrderPayments (orderID, type, amount)
+         VALUES (?, 'cash', ?)`,
+        [orderID, cashAmount]
+      );
+    }
+
+    if (onlineAmount > 0) {
+      await conn.execute(
+        `INSERT INTO OrderPayments (orderID, type, method, amount)
+         VALUES (?, 'online', ?, ?)`,
+        [orderID, onlineMethod, onlineAmount]
+      );
+    }
+
     await conn.commit();
 
     res.status(201).json({
-      message: 'Order created successfully',
+      message: "Order created successfully",
       orderID
     });
 
-  } catch (error) {
-    if (conn) await conn.rollback(); // rollback if failed
-    next(error);
-
+  } catch (err) {
+    if (conn) await conn.rollback();
+    next(err);
   } finally {
-    if (conn) conn.release(); // always release connection
+    if (conn) conn.release();
   }
 };
+
 
 export const updateOrderOffline = async (req, res, next) => {
   // Get orderID from URL parameters

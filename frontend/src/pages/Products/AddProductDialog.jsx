@@ -10,7 +10,7 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
     name: '',
     description: { content: '' },
     category: '',
-    tax: 10,
+    tax: 5,
   });
 
   const [variants, setVariants] = useState([]);
@@ -136,6 +136,8 @@ const AddProductDialog = ({ isOpen, onClose, onSave }) => {
     'Casual Lhenga',
     'Partywear Lhenga',
     'Bridal Lhenga',
+    'Winter Readymade',
+    'Winter Unstitched'
   ];
 
   return (

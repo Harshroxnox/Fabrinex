@@ -179,3 +179,122 @@ export const updateAlterationStatus = async (req, res, next) => {
     next(error);
   }
 };
+
+export const updateAlteration = async (req , res , next) => {
+  const alterationID = validID(req.params.alterationID);
+  
+  const billNo = validString(req.body.bill_no);
+  const slipNo = validString(req.body.slip_no);
+  const customerName = validString(req.body.customer_name);
+  // const contact = validString(req.body.contact, 10, 15);
+  const dimensionText = validString(req.body.dimension_text, 0, 1000);
+  const dateOfDelivery = req.body.date_of_delivery;
+  const status = req.body.status;
+  const amount = validDecimal(req.body.amount);
+  const paymentStatus = req.body.payment_status;
+
+  const dimensionImgPath = req.file ? req.file.path : null;
+  let newCloudinaryID;
+  let newImgUrl;
+
+  try {
+    if(!alterationID) throw new AppError(400 , "Invalid Alteration ID");
+
+    const [[existing]] = await db.execute(
+      `SELECT cloudinary_id FROM AlterationRecords WHERE alterationID = ? `, [alterationID] );
+    
+    if(!existing) throw new AppError(404 , "Alteration record not found");
+
+    //handle image replacement
+    if(dimensionImgPath){
+      const uploadResult = await uploadOnCloudinary(dimensionImgPath);
+      if(!uploadResult?.url) throw new AppError(500 , "Image upload failed");
+      newImgUrl = uploadResult.url;
+      newCloudinaryID = uploadResult.public_id;
+
+      if(existing.cloudinary_id){
+        await deleteFromCloudinary(existing.cloudinary_id);
+      }
+    }
+
+    //dynamic update
+    const fields = [];
+    const values = [];
+
+    if (billNo) fields.push("bill_no = ?"), values.push(billNo);
+    if (slipNo) fields.push("slip_no = ?"), values.push(slipNo);
+    if (customerName) fields.push("customer_name = ?"), values.push(customerName);
+    // if (contact) fields.push("contact = ?"), values.push(contact);
+    if (dimensionText !== undefined) fields.push("dimension_text = ?"), values.push(dimensionText);
+    if (dateOfDelivery) fields.push("date_of_delivery = ?"), values.push(dateOfDelivery);
+    if (status) fields.push("status = ?"), values.push(status);
+    if (amount !== undefined) fields.push("amount = ?"), values.push(amount);
+    if (paymentStatus) fields.push("payment_status = ?"), values.push(paymentStatus);
+
+    if (newImgUrl){
+      fields.push("dimension_image = ?", "cloudinary_id = ?");
+      values.push(newImgUrl , newCloudinaryID);
+    }
+    if(fields.length === 0){
+      throw new AppError(400 , "No fields provided to update");
+    }
+    values.push(alterationID);
+
+    await db.execute(
+      `UPDATE AlterationRecords SET ${fields.join(", ")} WHERE alterationID = ?`,
+      values
+    );
+    res.status(200).json({
+      message: "Alteration record updated successfully"
+    });
+  } catch (error) {
+    if(newCloudinaryID){
+      deleteFromCloudinary(newCloudinaryID).catch(err =>
+        logger.warn(`Cloudinary cleaniup failed: ${err.message}`)
+      );
+    }
+    next(error);
+  }
+  finally {
+      if (dimensionImgPath) {
+        deleteTempImg(dimensionImgPath).catch(err =>
+        logger.warn(`Temp file deletion failed: ${err.message}`)
+      );
+    }
+  }
+};
+
+// 6. Delete Alteration
+export const deleteAlteration = async (req, res, next) => {
+  const alterationID = validID(req.params.alterationID);
+
+  try {
+    if (!alterationID) throw new AppError(400, "Invalid Alteration ID");
+
+    // Fetch existing record
+    const [[record]] = await db.execute(
+      `SELECT cloudinary_id FROM AlterationRecords WHERE alterationID = ?`,
+      [alterationID]
+    );
+
+    if (!record) throw new AppError(404, "Alteration record not found");
+
+    // Delete image from Cloudinary if exists
+    if (record.cloudinary_id) {
+      await deleteFromCloudinary(record.cloudinary_id);
+    }
+
+    // Delete DB record
+    await db.execute(
+      `DELETE FROM AlterationRecords WHERE alterationID = ?`,
+      [alterationID]
+    );
+
+    res.status(200).json({
+      message: "Alteration record deleted successfully"
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};

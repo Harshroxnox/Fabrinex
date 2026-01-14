@@ -4,6 +4,8 @@ import {
     getAlterations,
     getAlterationNotifications,
     updateAlterationStatus,
+    updateAlteration,
+    deleteAlteration,
 
 } from '../controllers/alteration.controller.js';
 import { authMiddleware, checkAdminRoles } from '../middleware/authMiddleware.js';
@@ -16,5 +18,6 @@ router.route("/create-alteration").post(authMiddleware('admin'),upload.single("d
 router.route("/update-alteration-status/:alterationID").put(authMiddleware('admin'),updateAlterationStatus);
 router.route("/get-alteration").get(authMiddleware('admin'),getAlterations);
 router.route("/get-alteration-notifications").get(authMiddleware('admin'),getAlterationNotifications);
-
+router.route("/update-alteration/:alterationID").put(authMiddleware('admin'), upload.single("dimension_image"), updateAlteration);
+router.route("/delete-alteration/:alterationID").delete(authMiddleware('admin'), deleteAlteration);
 export default router

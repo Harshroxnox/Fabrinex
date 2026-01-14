@@ -9,6 +9,7 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
     name: product?.name || "",
     description: product?.description || { content: "" },
     category: product?.category || "",
+    tax: product?.tax || 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -19,6 +20,7 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
         name: product.name || "",
         description: product.description || { content: "" },
         category: product.category || "",
+        tax: product.tax || 0,
       });
     }
   }, [product]);
@@ -109,7 +111,18 @@ const EditProductDialog = ({ isOpen, onClose, product, onSave }) => {
               }}
             />
           </div>
-
+<div className="form-group">
+            <label>Tax (%)</label>
+            <input
+              type="number"
+              name="tax"
+              value={editedProduct.tax}
+              onChange={handleChange}
+              min="0"
+              step="0.01"
+              disabled={loading}
+            />
+          </div>
           <div className="form-group">
             <label>Category*</label>
             <select

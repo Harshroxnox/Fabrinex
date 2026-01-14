@@ -22,8 +22,16 @@ export const createAlterations = (formData) =>
         headers: {"Content-Type" :"multipart/form-data"},
     }));
     
-export const updateAlterations = (id ,data) => 
-    handleRequest( ()=> axiosInstance.put(`/alterations/update-alteration-status/${id}`, data));
+export const updateAlterations = (id, formData) =>
+  handleRequest(() =>
+    axiosInstance.put(
+      `/alterations/update-alteration/${id}`,
+      formData,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    )
+  );
 
 export const fetchAlterationNotifications = () => 
-  handleRequest ( () => axiosInstance.get("/alterations//get-alteration-notifications") );
+  handleRequest ( () => axiosInstance.get("/alterations/get-alteration-notifications") );

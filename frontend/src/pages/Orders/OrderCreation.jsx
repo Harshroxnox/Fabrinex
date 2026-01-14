@@ -5,9 +5,28 @@ import { getVariantBarcodeAdmin } from '../../contexts/api/products';
 import { getDiscountByBarcode } from '../../contexts/api/loyaltyCards';
 import toast from 'react-hot-toast';
 
+const toNumber = (v) => Number(parseFloat(v || 0));
+
+const productDiscountAmount = (price, discountPercent) =>
+  (toNumber(price) * toNumber(discountPercent)) / 100;
+
+const priceAfterProductDiscount = (price, discountPercent) =>
+  toNumber(price) - productDiscountAmount(price, discountPercent);
+
+const itemSubtotal = (product) =>
+  priceAfterProductDiscount(product.price, product.discount) * product.quantity;
+
+const loyaltyDiscountAmount = (subtotal, loyaltyPercent) =>
+  (toNumber(subtotal) * toNumber(loyaltyPercent)) / 100;
+
+const taxAmount = (amount, taxPercent) =>
+  (toNumber(amount) * toNumber(taxPercent)) / 100;
+
+
+
 export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, limit }) {
   const [selectedProducts, setSelectedProducts] = useState([]);
-  const [salesPerson, setSalesperson] = useState("");
+  const [salesPerson, setSalesperson] = useState(1);
   const [customerInfo, setCustomerInfo] = useState({
     name: '',
     phone_number: '',
@@ -22,6 +41,13 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
   const [barcode, setBarcode] = useState(0);
   const [discount, setDiscount] = useState(0);
   const [showDiscount, setShowDiscount] = useState(false);
+  
+  const [paymentMode, setPaymentMode] = useState(""); 
+  // "cash" | "online" | "split"
+
+  const [onlineMethod, setOnlineMethod] = useState("");
+  const [cashAmount, setCashAmount] = useState("");
+
 
   const fetchVariantByBarcode = useCallback(async (barcode) => {
     try {
@@ -75,11 +101,36 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
     setSelectedProducts(prev => prev.filter(p => p.variantID !== variantId));
   };
 
-  const calculateTotal = () => {
-    return selectedProducts.reduce((total, product) =>
-      total + (product.price * product.quantity), 0
-    ).toFixed(2);
-  };
+const calculateSubtotal = () => {
+  return selectedProducts.reduce((sum, p) => sum + itemSubtotal(p), 0);
+};
+
+const calculateLoyaltyDiscount = (subtotal) => {
+  if (!showDiscount) return 0;
+  return loyaltyDiscountAmount(subtotal, discount);
+};
+
+const calculateTax = (amountAfterDiscount) => {
+  return selectedProducts.reduce((sum, p) => {
+    const productShare =
+      itemSubtotal(p) / calculateSubtotal();
+
+    return (
+      sum +
+      taxAmount(
+        amountAfterDiscount * productShare,
+        p.tax
+      )
+    );
+  }, 0);
+};
+
+const subtotal = calculateSubtotal();
+const loyaltyDiscountAmt = calculateLoyaltyDiscount(subtotal);
+const afterDiscount = subtotal - loyaltyDiscountAmt;
+const taxAmt = calculateTax(afterDiscount);
+const grandTotal = afterDiscount + taxAmt;
+
 
   const calculateTotalAfterDiscount = (total, disc) => {
     return (disc * total) / 100;
@@ -96,6 +147,32 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
     if (selectedProducts.length === 0 || !customerInfo.payment_method) {
       toast.error('Please fill all customer information and add at least one product');
       return;
+    }
+    if (!paymentMode) {
+      toast.error("Please select payment type");
+      return;
+    }
+
+    if (paymentMode === "online" && !onlineMethod) {
+      toast.error("Select online payment method");
+      return;
+    }
+
+    if (paymentMode === "split") {
+      if (!cashAmount || Number(cashAmount) <= 0) {
+        toast.error("Enter valid cash amount");
+        return;
+      }
+
+      if (!onlineMethod) {
+        toast.error("Select online payment method");
+        return;
+      }
+
+      if (Number(cashAmount) >= grandTotal) {
+        toast.error("Cash amount must be less than total");
+        return;
+      }
     }
 
     const newOrder = {
@@ -115,6 +192,25 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
     if (barcode !== 0) {
       newOrder.loyalty_barcode = barcode;
     }
+    if (paymentMode === "cash") {
+      newOrder.payment_method = "cash";
+    }
+
+    if (paymentMode === "online") {
+      newOrder.payment_method = onlineMethod;
+    }
+
+    if (paymentMode === "split") {
+      newOrder.payment_method = "split";
+      newOrder.payments = {
+        cash: Number(cashAmount),
+        online: {
+          method: onlineMethod,
+          amount: Number((grandTotal - cashAmount).toFixed(2))
+        }
+      };
+    }
+
 
     const success = await handleAdd(newOrder);
 
@@ -204,7 +300,7 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
                 placeholder="Enter location"
               />
             </div>
-            <div style={styles.formGroup}>
+            {/* <div style={styles.formGroup}>
               <label style={styles.label}>Payment Method</label>
               <select
                 style={styles.select}
@@ -221,7 +317,7 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
                 <option value="wallet">Wallet</option>
                 <option value="cash-on-delivery">Cash</option>
               </select>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -266,7 +362,7 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
                       ID: {product.variantID} | Stock: {product.stock}
                     </div>
                   </div>
-                  <div style={styles.productPrice}>Subtotal: ₹{(product.price * product.quantity).toFixed(2)}</div>
+                  <div style={styles.productPrice}>Subtotal: ₹{priceAfterProductDiscount(product.price, product.discount).toFixed(2)* product.quantity}</div>
                 </div>
                 <div style={styles.quantityControls}>
                   <button
@@ -290,9 +386,21 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
                   >
                     <Plus size={16} />
                   </button>
-                  <span style={{ marginLeft: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>
-                    <div>Product price: ₹{product.price}</div>
-                  </span>
+                  <div style={{ fontSize: '0.875rem' }}>
+                    <div style={{ textDecoration: 'line-through', color: '#9ca3af' }}>
+                      MRP: ₹{product.price}
+                    </div>
+
+                    <div style={{ fontWeight: 600, color: '#16a34a' }}>
+                      Offer Price: ₹
+                      {priceAfterProductDiscount(product.price, product.discount).toFixed(2)}
+                    </div>
+
+                    <div style={{ color: '#6b7280' }}>
+                      Discount: {product.discount}% | GST: {product.tax}%
+                    </div>
+                  </div>
+
                   <button
                     style={styles.removeButton}
                     onClick={() => removeProduct(product.variantID)}
@@ -305,30 +413,113 @@ export function OrderCreation({ setCurrentView, handleAdd, fetchOrders, page, li
 
             <div style={styles.orderSummary}>
               <div style={styles.summaryRow}>
-                <span>Items:</span>
-                <span>{selectedProducts.reduce((sum, p) => sum + p.quantity, 0)}</span>
+                <span>Subtotal (After Product Discounts)</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
-              <div style={styles.summaryRow}>
-                <span>Subtotal:</span>
-                <span>₹{calculateTotal()}</span>
-              </div>
-              {showDiscount &&
+
+              {showDiscount && (
                 <div style={styles.summaryRow}>
-                  <span>Loyalty Discount ({discount} %):</span>
-                  <span>₹{calculateTotalAfterDiscount(calculateTotal(), discount)}</span>
+                  <span>Loyalty Discount ({discount}%)</span>
+                  <span>- ₹{loyaltyDiscountAmt.toFixed(2)}</span>
                 </div>
-              }
+              )}
+
+              <div style={styles.summaryRow}>
+                <span>Tax</span>
+                <span>₹{taxAmt.toFixed(2)}</span>
+              </div>
+
               <div style={styles.totalRow}>
-                <span>Total Amount:</span>
-                <span>{calculateTotal() - calculateTotalAfterDiscount(calculateTotal(), discount)}</span>
+                <span>Grand Total</span>
+                <span>₹{grandTotal.toFixed(2)}</span>
               </div>
             </div>
+
 
             <div style={styles.LoyaltyButtonDiv}>
               <button style={styles.LoyaltyButton} onClick={() => setIsOpen(true)}>
                 Add Loyalty Card
               </button>
             </div>
+
+            <div style={styles.section}>
+              <h2 style={styles.sectionTitle}>Payment</h2>
+
+              {/* Payment Type */}
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Payment Type</label>
+                <select
+                  style={styles.select}
+                  value={paymentMode}
+                  onChange={(e) => {
+                    setPaymentMode(e.target.value);
+                    setCashAmount("");
+                    setOnlineMethod("");
+                  }}
+                >
+                  <option value="" disabled>Select Payment Type</option>
+                  <option value="cash">Cash</option>
+                  <option value="online">Online</option>
+                  <option value="split">Split (Cash + Online)</option>
+                </select>
+              </div>
+
+              {/* ONLINE ONLY */}
+              {paymentMode === "online" && (
+                <div style={styles.formGroup}>
+                  <label style={styles.label}>Online Method</label>
+                  <select
+                    style={styles.select}
+                    value={onlineMethod}
+                    onChange={(e) => setOnlineMethod(e.target.value)}
+                  >
+                    <option value="" disabled>Select Method</option>
+                    <option value="upi">UPI</option>
+                    <option value="card">Card</option>
+                    <option value="netbanking">Net Banking</option>
+                    <option value="wallet">Wallet</option>
+                  </select>
+                </div>
+              )}
+
+              {/* SPLIT PAYMENT */}
+              {paymentMode === "split" && (
+                <>
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Cash Amount</label>
+                    <input
+                      type="number"
+                      style={styles.input}
+                      value={cashAmount}
+                      onChange={(e) => setCashAmount(e.target.value)}
+                      placeholder="Enter cash amount"
+                    />
+                  </div>
+
+                  <div style={styles.formGroup}>
+                    <label style={styles.label}>Online Method</label>
+                    <select
+                      style={styles.select}
+                      value={onlineMethod}
+                      onChange={(e) => setOnlineMethod(e.target.value)}
+                    >
+                      <option value="" disabled>Select Method</option>
+                      <option value="upi">UPI</option>
+                      <option value="card">Card</option>
+                      <option value="netbanking">Net Banking</option>
+                      <option value="wallet">Wallet</option>
+                    </select>
+                  </div>
+
+                  {cashAmount && (
+                    <div style={{ color: "#16a34a", fontWeight: 500 }}>
+                      Online Amount: ₹{(grandTotal - Number(cashAmount)).toFixed(2)}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
 
             <button
               style={styles.createOrderButton}
