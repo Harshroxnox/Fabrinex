@@ -109,6 +109,19 @@ const Home = () => {
   const piechartColors = ["#ACD3A8", "#99BC85", "#FFFECE", "#FFD0C7", "#F1E7E7", "#E69DB8"];
   const piechartData = metrics.productSummary.salesByCategory.map(cat => [cat.category, parseInt(cat.total_units_sold)]);
 
+  const paymentBreakdown = metrics.monthlySummary.paymentBreakdown || {
+    cash: 0,
+    online: 0
+  };
+
+  const paymentPieData = [
+    ["Cash", paymentBreakdown.cash],
+    ["Online", paymentBreakdown.online]
+  ];
+
+  const todayPayments = metrics.paymentSummary || null;
+
+
   return (
     <div className='home'>
       {/* Filters and Key Metrics are unchanged */}
@@ -142,6 +155,7 @@ const Home = () => {
             </div>
           </>
         )}
+
         <div className="text-card">
           <h1>Monthly Revenue</h1>
           <h2>₹{metrics.monthlySummary.revenue.toLocaleString()}</h2>
@@ -159,6 +173,33 @@ const Home = () => {
         </div>
       </div>
 
+<div className='row-graphs'>
+    {todayPayments && (
+          <>
+            <div className="text-card">
+              <h1>Today's Cash</h1>
+              <h2>₹{todayPayments.cash.today.toLocaleString()}</h2>
+            </div>
+
+            <div className="text-card">
+              <h1>Today's Online</h1>
+              <h2>₹{todayPayments.online.today.toLocaleString()}</h2>
+            </div>
+          </>
+        )}
+
+        <div className="text-card">
+          <h1>Cash Collection</h1>
+          <h2>₹{paymentBreakdown.cash.toLocaleString()}</h2>
+          <h3>This month</h3>
+        </div>
+
+        <div className="text-card">
+          <h1>Online Collection</h1>
+          <h2>₹{paymentBreakdown.online.toLocaleString()}</h2>
+          <h3>This month</h3>
+        </div>
+</div>
       {/* --- Updated Chart Section --- */}
       <div className="row-graphs">
         <div className="admin-graphs-container">
@@ -195,6 +236,44 @@ const Home = () => {
                 <div className="piechart-value">{cat.total_units_sold} units</div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+      <div className="admin-graphs">
+        <h1>Payment Mode Breakdown</h1>
+
+        <div className="admin-piecharts">
+          <PieChart
+            donut={true}
+            colors={["#7ED957", "#4D96FF"]}
+            data={paymentPieData}
+            height="45vh"
+            width="35vw"
+            download={{ background: "#fff" }}
+          />
+
+          <div className="piechart-text">
+            <div className="piechart-row">
+              <div
+                className="piechart-color"
+                style={{ backgroundColor: "#7ED957" }}
+              ></div>
+              <div className="piechart-label">Cash:</div>
+              <div className="piechart-value">
+                ₹{paymentBreakdown.cash.toLocaleString()}
+              </div>
+            </div>
+
+            <div className="piechart-row">
+              <div
+                className="piechart-color"
+                style={{ backgroundColor: "#4D96FF" }}
+              ></div>
+              <div className="piechart-label">Online:</div>
+              <div className="piechart-value">
+                ₹{paymentBreakdown.online.toLocaleString()}
+              </div>
+            </div>
           </div>
         </div>
       </div>

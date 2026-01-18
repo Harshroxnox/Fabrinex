@@ -8,9 +8,11 @@ import {
 import Invoice from '../../components/Invoice/Invoice';
 import { styles } from './Orders';
 import {
+  cancelOrder,
   createOrderOffline,
   filterOrder,
-  getAllOrders
+  getAllOrders,
+  updateOrderMeta
 } from '../../contexts/api/orders';
 import {
   paymentStatusColor,
@@ -23,6 +25,7 @@ import { OrderCreation } from './OrderCreation.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import OrderExchangeModal from './OrderExchangeModal.jsx';
 import { useSearchParams } from 'react-router-dom';
+import DownloadOrdersButton from './DownloadOrders.jsx';
 
 
 // =============================
@@ -235,6 +238,9 @@ const OrderCreationCRM = () => {
         <div style={styles.header}>
           <h1 style={styles.title}>Orders</h1>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={styles.filtersContainer}>
+              <DownloadOrdersButton/>
+            </div>
             {/* Filter Button */}
             <div style={styles.filtersContainer}>
               <button onClick={() => setShowFilters(!showFilters)} style={styles.filterButton}>
@@ -363,6 +369,8 @@ const OrderCreationCRM = () => {
                       <th style={styles.th}>Location</th>
                       <th style={styles.th}>Date</th>
                       <th style={styles.th}> Exchange Return </th>
+                      <th style={styles.th}>Actions</th>
+
                     </tr>
                   </thead>
                   <tbody style={{ backgroundColor: '#FDFDFD' }}>
@@ -381,9 +389,34 @@ const OrderCreationCRM = () => {
                         <td style={styles.td}>{order.customer_name}</td>
                         <td style={styles.td}>₹{order.amount}</td>
                         <td style={styles.td}>
-                          <span style={{ ...styles.statusBadge, ...getStatusColor(order.order_status) }}>
-                            {order.order_status}
-                          </span>
+                          <select
+                            value={order.order_status}
+                            onChange={async (e) => {
+                              try {
+                                await updateOrderMeta(order.orderID, {
+                                  order_status: e.target.value
+                                });
+                                toast.success("Order status updated");
+                                fetchOrders(page, limit);
+                              } catch {
+                                toast.error("Failed to update order status");
+                              }
+                            }}
+                            disabled={order.order_status === 'cancelled'}
+                            style = {{
+                              ...styles.PaymentStatus,
+                              ...statusColor(order.order_status),
+                              minWidth: '120px',
+                              opacity: order.order_status === 'cancelled' ? 0.6 : 1
+                            }}
+                            // style={{ ...styles.select, minWidth: '120px' }}
+                          >
+                            <option value="pending">Pending</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                          </select>
+
                         </td>
                         <td style={styles.td}>
                           <span style={{ ...styles.statusBadge, ...getPaymentStatusColor(order.payment_status) }}>
@@ -405,6 +438,33 @@ const OrderCreationCRM = () => {
                             }}
                           />
                         </td>
+                        <td style={styles.td}>
+                          {order.order_status !== 'cancelled' && (
+                            <RotateCcw
+                              size={18}
+                              style={{ cursor: 'pointer', color: '#EF4444' }}
+                              title="Cancel Order"
+                              onClick={async (e) => {
+                                e.stopPropagation();
+
+                                const confirm = window.confirm(
+                                  `Cancel Order #${order.orderID}?\nThis will restore stock and remove payments.`
+                                );
+
+                                if (!confirm) return;
+
+                                try {
+                                  await cancelOrder(order.orderID);
+                                  toast.success("Order cancelled successfully");
+                                  fetchOrders(page, limit);
+                                } catch (err) {
+                                  toast.error(err.message || "Failed to cancel order");
+                                }
+                              }}
+                            />
+                          )}
+                        </td>
+
                       </tr>
                     ))}
                   </tbody>

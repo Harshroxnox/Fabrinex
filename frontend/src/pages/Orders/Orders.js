@@ -281,6 +281,20 @@ export const styles = {
       alignItems: 'center',
       gap: '0.25rem'
     },
+     DownloadButton: {
+      backgroundColor: '#111827',
+      color: 'white',
+      padding: '12px 20px',
+      borderRadius: '2rem',
+      border: 'none',
+      fontSize: '1rem',
+      fontWeight: '500',
+      cursor: 'pointer',
+      transition: 'background-color 0.2s',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem'
+    },
     tableContainer: {
       background: 'white',
       border: '0.5px solid rgb(207, 202, 202)',
@@ -439,5 +453,17 @@ export const styles = {
     PageDiv:{
       width:'400px',
       margin:'0 auto'
+    }
+    ,
+    PaymentStatus:{
+      padding: '6px 10px',
+      borderRadius: '6px',
+      border: '1px solid #e5e7eb',
+      fontSize: '0.85rem',
+      fontWeight: 500,
+      cursor: 'pointer',
+      outline: 'none',
+      appearance: 'none',
+      transition: 'all 0.15s ease',
     }
   };

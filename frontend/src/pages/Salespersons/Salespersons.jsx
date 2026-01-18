@@ -188,8 +188,8 @@ const Salespersons = () => {
       {isAddDialogOpen && (
         <div className="salesperson-dialog-overlay">
           <div className="salesperson-dialog-content">
-            <h6>Add New Salesperson</h6>
-            <div className="input-group">
+            <h6 style={{fontSize:'28px' , fontWeight:'normal'}}>Add New Salesperson</h6>
+            <div className="salesperson-input-group">
               <label>Name</label>
               <input
                 type="text"
@@ -200,7 +200,7 @@ const Salespersons = () => {
                 }
               />
             </div>
-            <div className="input-group">
+            <div className="salesperson-input-group">
               <label>Commission (%)</label>
               <input
                 type="number"
@@ -211,7 +211,7 @@ const Salespersons = () => {
                 }
               />
             </div>
-            <div className="input-group">
+            <div className="salesperson-input-group">
               <label>Phone Number(+91)</label>
               <input
                 type="text"
@@ -239,7 +239,7 @@ const Salespersons = () => {
         <div className="salesperson-dialog-overlay">
           <div className="salesperson-dialog-content">
             <h6>Update Commission for {selectedSalesperson.name}</h6>
-            <div className="input-group">
+            <div className="salesperson-input-group">
               <label>New Commission (%)</label>
               <input
                 type="number"

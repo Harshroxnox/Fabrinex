@@ -3,6 +3,7 @@ import { constants } from '../config/constants.js';
 import { validID, validStringChar, validPhoneNumber, validDate, validDecimal } from '../utils/validators.utils.js';
 import { ValidEAN13 } from '../utils/generateBarcode.js';
 import AppError from "../errors/appError.js";
+import ExcelJS from "exceljs";
 
 
 export const createOrder = async (req, res, next) => {
@@ -902,3 +903,403 @@ export const getReturnsByDateRange = async (req, res, next) => {
         if (conn) conn.release();
     }
 };
+
+export const exportOrdersExcel = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT 
+          o.orderID,
+          o.userID,
+          o.addressID,
+          o.created_at,
+          o.payment_method AS order_payment_method,
+          o.payment_status,
+          o.order_status,
+          o.order_location,
+          o.amount AS order_amount,
+          o.tax AS order_tax,
+          o.promo_discount,
+          o.profit AS order_profit,
+
+          oi.orderItemID,
+          oi.variantID,
+          pv.barcode,
+          oi.name,
+          oi.category,
+          oi.color,
+          oi.size,
+          oi.quantity,
+          oi.price_at_purchase,
+          oi.tax AS item_tax,
+
+          GROUP_CONCAT(
+              CONCAT(op.type, ': ', op.amount, ' (', IFNULL(op.method,'N/A'), ')')
+              SEPARATOR ' | '
+          ) AS payments
+
+      FROM Orders o
+      JOIN OrderItems oi ON o.orderID = oi.orderID
+      JOIN ProductVariants pv ON oi.variantID = pv.variantID
+      LEFT JOIN OrderPayments op ON o.orderID = op.orderID
+
+      GROUP BY oi.orderItemID
+      ORDER BY o.created_at DESC;
+    `);
+
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Orders");
+
+    sheet.columns = [
+      { header: "Order ID", key: "orderID", width: 10 },
+      { header: "User ID", key: "userID", width: 10 },
+      { header: "Created At", key: "created_at", width: 20 },
+      { header: "Order Status", key: "order_status", width: 15 },
+      { header: "Payment Status", key: "payment_status", width: 15 },
+      { header: "Order Amount", key: "order_amount", width: 15 },
+      { header: "Order Tax", key: "order_tax", width: 12 },
+      { header: "Promo Discount (%)", key: "promo_discount", width: 18 },
+
+      { header: "Variant ID", key: "variantID", width: 12 },
+      { header: "Barcode", key: "barcode", width: 18 },
+      { header: "Product Name", key: "name", width: 20 },
+      { header: "Category", key: "category", width: 15 },
+      { header: "Color", key: "color", width: 12 },
+      { header: "Size", key: "size", width: 10 },
+      { header: "Quantity", key: "quantity", width: 10 },
+      { header: "Price At Purchase", key: "price_at_purchase", width: 18 },
+      { header: "Item Tax (%)", key: "item_tax", width: 12 },
+
+      { header: "Payments (Split)", key: "payments", width: 30 }
+    ];
+
+    rows.forEach(row => {
+      sheet.addRow(row);
+    });
+
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=orders.xlsx"
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Excel export failed" });
+  }
+}
+
+export const updateOrderMeta = async (req, res, next) => {
+  const orderID = validID(req.params.orderID);
+  const { order_status, payment_status } = req.body;
+
+  try {
+    if (!orderID) throw new AppError(422, "Invalid Order ID");
+
+    if (order_status && !constants.ORDER_STATUSES.includes(order_status)) {
+      throw new AppError(400, "Invalid order status");
+    }
+
+    if (payment_status && !constants.PAYMENT_STATUSES.includes(payment_status)) {
+      throw new AppError(400, "Invalid payment status");
+    }
+
+    const fields = [];
+    const values = [];
+
+    if (order_status) {
+      fields.push("order_status = ?");
+      values.push(order_status);
+    }
+
+    if (payment_status) {
+      fields.push("payment_status = ?");
+      values.push(payment_status);
+    }
+
+    if (!fields.length) {
+      throw new AppError(400, "Nothing to update");
+    }
+
+    values.push(orderID);
+
+    await db.execute(
+      `UPDATE Orders SET ${fields.join(", ")} WHERE orderID = ?`,
+      values
+    );
+
+    res.status(200).json({ message: "Order updated successfully" });
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteOrder = async (req, res, next) => {
+  const orderID = validID(req.params.orderID);
+  let conn;
+
+  try {
+    if (!orderID) throw new AppError(422, "Invalid Order ID");
+
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    // 1. Restore stock
+    const [items] = await conn.execute(
+      `SELECT variantID, quantity FROM OrderItems WHERE orderID = ?`,
+      [orderID]
+    );
+
+    for (const item of items) {
+      await conn.execute(
+        `UPDATE ProductVariants SET stock = stock + ? WHERE variantID = ?`,
+        [item.quantity, item.variantID]
+      );
+    }
+
+    // 2. Delete payments
+    await conn.execute(
+      `DELETE FROM OrderPayments WHERE orderID = ?`,
+      [orderID]
+    );
+
+    // 3. Soft delete order
+    await conn.execute(
+      `UPDATE Orders 
+       SET order_status = 'cancelled', is_deleted = TRUE 
+       WHERE orderID = ?`,
+      [orderID]
+    );
+
+    await conn.commit();
+
+    res.status(200).json({
+      message: "Order cancelled and deleted safely"
+    });
+
+  } catch (err) {
+    if (conn) await conn.rollback();
+    next(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+
+export const updateOrderPayments = async (req, res, next) => {
+  const orderID = validID(req.params.orderID);
+  const { payments, expectedAmount } = req.body;
+  const adminID = req.adminID || null; // optional but recommended
+  let conn;
+
+  try {
+    /* ---------------- BASIC VALIDATION ---------------- */
+    if (!orderID) throw new AppError(422, "Invalid Order ID");
+
+    if (!Array.isArray(payments) || payments.length === 0) {
+      throw new AppError(400, "Payments array required");
+    }
+
+    const expected = Number(expectedAmount);
+    if (!Number.isFinite(expected) || expected <= 0) {
+      throw new AppError(400, "Valid expected payment amount required");
+    }
+
+    /* ---------------- VALIDATE PAYMENTS ---------------- */
+    let total = 0;
+
+    for (const p of payments) {
+      if (!["cash", "online"].includes(p.type)) {
+        throw new AppError(400, "Invalid payment type");
+      }
+
+      if (
+        p.type === "online" &&
+        !constants.ONLINE_PAYMENT_METHODS.includes(p.method)
+      ) {
+        throw new AppError(400, "Invalid online payment method");
+      }
+
+      const amt = Number(p.amount);
+      if (!Number.isFinite(amt) || amt <= 0) {
+        throw new AppError(400, "Payment amount must be positive");
+      }
+
+      total += amt;
+    }
+
+    // 🔒 STRICT DELTA VALIDATION
+    if (Math.abs(total - expected) > 0.01) {
+      throw new AppError(
+        400,
+        `Payment must match exchange amount (${expected.toFixed(2)})`
+      );
+    }
+
+    /* ---------------- DB TRANSACTION ---------------- */
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    // 🔐 APPEND PAYMENTS — NEVER DELETE HISTORY
+    for (const p of payments) {
+      await conn.execute(
+        `INSERT INTO OrderPayments (orderID, type, method, amount)
+         VALUES (?, ?, ?, ?)`,
+          [orderID, p.type, p.method || null, p.amount]
+      );
+
+    }
+
+    await conn.commit();
+
+    res.status(200).json({
+      message: "Payment recorded successfully",
+      paid: total.toFixed(2)
+    });
+
+  } catch (err) {
+    if (conn) await conn.rollback();
+    next(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+
+
+
+
+export const settleRefund = async (req, res, next) => {
+  const orderID = validID(req.params.orderID);
+  const { type, method, amount } = req.body;
+
+  // 🔥 FIX: admin ID comes from auth middleware
+  const adminID = req.adminID ?? null;
+
+  let conn;
+
+  try {
+    /* ---------------- BASIC VALIDATION ---------------- */
+    if (!orderID) throw new AppError(422, "Invalid Order ID");
+
+    if (!['cash', 'online'].includes(type)) {
+      throw new AppError(400, "Invalid refund type");
+    }
+
+    if (
+      type === 'online' &&
+      !constants.ONLINE_PAYMENT_METHODS.includes(method)
+    ) {
+      throw new AppError(400, "Invalid online refund method");
+    }
+
+    const refundAmount = validDecimal(amount);
+    if (!refundAmount || refundAmount <= 0) {
+      throw new AppError(400, "Invalid refund amount");
+    }
+
+    conn = await db.getConnection();
+    await conn.beginTransaction();
+
+    /* ---------------- FETCH ORDER ---------------- */
+    const [[order]] = await conn.execute(
+      `
+      SELECT orderID, amount
+      FROM Orders
+      WHERE orderID = ? AND is_deleted = FALSE
+      `,
+      [orderID]
+    );
+
+    if (!order) throw new AppError(404, "Order not found");
+
+    /* ---------------- TOTAL REFUNDABLE ---------------- */
+    const [[refundRow]] = await conn.execute(
+      `
+      SELECT 
+        ABS(
+          SUM(
+            oi.quantity * (
+              (oi.price_at_purchase - (oi.price_at_purchase * o.promo_discount / 100)) +
+              ((oi.price_at_purchase - (oi.price_at_purchase * o.promo_discount / 100)) * oi.tax / 100)
+            )
+          )
+        ) AS refundable
+      FROM OrderItems oi
+      JOIN Orders o ON oi.orderID = o.orderID
+      WHERE oi.orderID = ? AND oi.quantity < 0
+      `,
+      [orderID]
+    );
+
+    const totalRefundable = Number(refundRow.refundable || 0);
+
+    /* ---------------- ALREADY REFUNDED ---------------- */
+    const [[paidRefunds]] = await conn.execute(
+      `
+      SELECT IFNULL(SUM(amount), 0) AS refunded
+      FROM OrderRefunds
+      WHERE orderID = ?
+      `,
+      [orderID]
+    );
+
+    const alreadyRefunded = Number(paidRefunds.refunded || 0);
+    const pendingRefund = totalRefundable - alreadyRefunded;
+
+    if (refundAmount > pendingRefund) {
+      throw new AppError(
+        400,
+        `Refund exceeds pending refundable amount (${pendingRefund.toFixed(2)})`
+      );
+    }
+
+    /* ---------------- RECORD REFUND ---------------- */
+    await conn.execute(
+      `
+      INSERT INTO OrderRefunds
+      (orderID, type, method, amount, settled_by)
+      VALUES (?, ?, ?, ?, ?)
+      `,
+      [
+        orderID,
+        type,
+        type === 'online' ? method : null, // ✅ never undefined
+        refundAmount,
+        adminID // ✅ safe null if ever missing
+      ]
+    );
+
+    /* ---------------- FINAL STATUS UPDATE ---------------- */
+    if (Math.abs(refundAmount - pendingRefund) < 0.01) {
+      await conn.execute(
+        `
+        UPDATE Orders
+        SET payment_status = 'refunded'
+        WHERE orderID = ?
+        `,
+        [orderID]
+      );
+    }
+
+    await conn.commit();
+
+    res.status(201).json({
+      message: "Refund settled successfully",
+      refunded_now: refundAmount,
+      remaining_refund: (pendingRefund - refundAmount).toFixed(2)
+    });
+
+  } catch (err) {
+    if (conn) await conn.rollback();
+    next(err);
+  } finally {
+    if (conn) conn.release();
+  }
+};
+

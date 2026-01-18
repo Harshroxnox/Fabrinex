@@ -173,10 +173,11 @@ CREATE TABLE Orders (
     payment_status VARCHAR(40) NOT NULL DEFAULT 'pending',
     order_location VARCHAR(255) NOT NULL,
     order_status VARCHAR(40) NOT NULL DEFAULT 'pending',
-    amount DECIMAL(10, 2) NOT NULL CHECK (amount > 0),
-    profit DECIMAL(10, 2) NOT NULL CHECK (profit > 0),
+    amount DECIMAL(10, 2) NOT NULL CHECK (amount >= 0),
+    profit DECIMAL(10, 2) NOT NULL CHECK (profit >= 0),
     tax DECIMAL(10, 2) NOT NULL CHECK (tax >= 0),
     promo_discount DECIMAL(5,2) NOT NULL DEFAULT 0 CHECK (promo_discount >= 0 AND promo_discount < 100),
+    is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (userID) REFERENCES Users(userID),
     FOREIGN KEY (addressID) REFERENCES Addresses(addressID)
 );
@@ -207,6 +208,20 @@ CREATE TABLE OrderPayments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (orderID) REFERENCES Orders(orderID) ON DELETE CASCADE
 );
+
+CREATE TABLE OrderRefunds (
+  refundID INT AUTO_INCREMENT PRIMARY KEY,
+  orderID INT NOT NULL,
+  type ENUM('cash','online') NOT NULL,
+  method VARCHAR(50),
+  amount DECIMAL(10,2) NOT NULL CHECK(amount > 0),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  settled_by INT,
+  FOREIGN KEY (orderID) REFERENCES Orders(orderID),
+  FOREIGN KEY (settled_by) REFERENCES Users(userID)
+);
+
+
 
 CREATE TABLE Promotions (
     promotionID INT AUTO_INCREMENT PRIMARY KEY,

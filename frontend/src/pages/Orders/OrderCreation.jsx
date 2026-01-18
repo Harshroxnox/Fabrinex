@@ -144,7 +144,7 @@ const grandTotal = afterDiscount + taxAmt;
   };
 
   const handleCreateOrder = async () => {
-    if (selectedProducts.length === 0 || !customerInfo.payment_method) {
+    if (selectedProducts.length === 0) {
       toast.error('Please fill all customer information and add at least one product');
       return;
     }

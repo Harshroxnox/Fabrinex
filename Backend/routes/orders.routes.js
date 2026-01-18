@@ -8,7 +8,12 @@ import {
     filter,
     updateOrderOffline,
     getSingleOrder,
-    getReturnsByDateRange
+    getReturnsByDateRange,
+    exportOrdersExcel,
+    updateOrderMeta,
+    updateOrderPayments,
+    deleteOrder,
+    settleRefund
 } from '../controllers/orders.controller.js';
 import { authMiddleware } from '../middleware/authMiddleware.js';
 
@@ -26,5 +31,14 @@ router.route("/returns-by-range").get(authMiddleware('admin'), getReturnsByDateR
 // admin specific
 router.route("/get-all-orders").get(getAllOrders);
 router.route("/filter").get(filter);
+
+router.route("/export-excel").get(exportOrdersExcel);
+
+
+router.route("/update-order-meta/:orderID").put(authMiddleware('admin'), updateOrderMeta);
+router.route("/update-order-payments/:orderID").put(authMiddleware('admin'), updateOrderPayments);
+router.route("/delete-order/:orderID").delete(authMiddleware('admin') , deleteOrder);
+router.route('/settle-refund/:orderID').post(authMiddleware('admin'), settleRefund);
+
 
 export default router;

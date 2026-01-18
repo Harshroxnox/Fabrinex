@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { X, CornerDownLeft, PlusCircle, RotateCcw, Search } from 'lucide-react';
-import { getOrder, updateOrderForExchange } from '../../contexts/api/orders'; 
+import { getOrder, settleRefund, updateOrderForExchange, updateOrderPayments } from '../../contexts/api/orders'; 
 import axiosInstance from '../../utils/axiosInstance'; 
 import { styles } from './Orders';
 import { 
@@ -37,6 +37,10 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
   const [searchedVariant, setSearchedVariant] = useState(null);
   const [searchLoading, setSearchLoading] = useState(false);
   const [newExchangeQuantity, setNewExchangeQuantity] = useState(1);
+  const [paymentMode, setPaymentMode] = useState('cash'); // cash | online | split
+  const [cashAmount, setCashAmount] = useState('');
+  const [onlineMethod, setOnlineMethod] = useState('upi');
+
 
   const fetchOrderDetails = useCallback(async () => {
     setIsLoading(true);
@@ -134,11 +138,21 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
         name: variant.name || variant.product_name,
         color: variant.color,
         size: variant.size,
-        price: parseFloat(variant.price),
-        stock: parseFloat(variant.stock),
+        price: parseFloat(variant.price), // base price
         discount: parseFloat(variant.discount || 0),
         tax: parseFloat(variant.tax || 0),
+        stock: parseFloat(variant.stock),
+
+        finalPrice:
+          parseFloat(variant.price) -
+          (parseFloat(variant.price) * (variant.discount || 0)) / 100 +
+          (
+            (parseFloat(variant.price) -
+              (parseFloat(variant.price) * (variant.discount || 0)) / 100) *
+            (variant.tax || 0)
+          ) / 100
       });
+
 
     } catch (error) {
       toast.error(error.toString());
@@ -210,66 +224,143 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
 
     // Add value of New Items (Charge)
     newExchangeItems.forEach(item => {
-      net += item.price * item.quantity;
+      net += item.finalPrice * item.quantity;
     });
+
 
     return net;
   };
 
   const netChange = calculateNetChange();
+  const isRefundDue = netChange < 0;
 
-  const handleSubmit = async () => {
-    const itemsToSubmit = [];
+const handleSubmit = async () => {
+  const itemsToSubmit = [];
 
-    // Add Returns (Negative Quantity)
-    exchangePayload.forEach(item => {
-      if (item.returnQuantity > 0) {
-        itemsToSubmit.push({
-          variantID: item.variantID,
-          quantity: -item.returnQuantity,
-        });
+  // 1️⃣ Build exchange payload
+  exchangePayload.forEach(item => {
+    if (item.returnQuantity > 0) {
+      itemsToSubmit.push({
+        variantID: item.variantID,
+        quantity: -item.returnQuantity,
+      });
+    }
+  });
+
+  newExchangeItems.forEach(item => {
+    if (item.quantity > 0) {
+      itemsToSubmit.push({
+        variantID: item.variantID,
+        quantity: item.quantity,
+      });
+    }
+  });
+
+  if (itemsToSubmit.length === 0) {
+    toast.error("Please add return or exchange items");
+    return;
+  }
+
+  // 2️⃣ Confirm if money involved
+  if (netChange !== 0) {
+    const ok = window.confirm(
+      netChange > 0
+        ? `Customer needs to pay ₹${netChange}. Continue?`
+        : `Refund ₹${Math.abs(netChange)} to customer. Continue?`
+    );
+    if (!ok) return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    // 3️⃣ Update order (exchange / return)
+    const result = await updateOrderForExchange(orderID, itemsToSubmit);
+    toast.success("Exchange processed");
+    if (result.balanceInfo) toast.success(result.balanceInfo);
+
+    // 4️⃣ Build payments / refunds based on mode
+    let transactions = [];
+    const absAmount = Math.abs(netChange);
+
+    if (netChange !== 0) {
+      if (paymentMode === 'cash') {
+        transactions = [{ type: 'cash', amount: absAmount }];
       }
-    });
 
-    // Add New Items (Positive Quantity)
-    newExchangeItems.forEach(item => {
-      if (item.quantity > 0) {
-        itemsToSubmit.push({
-          variantID: item.variantID,
-          quantity: item.quantity,
-        });
+      if (paymentMode === 'online') {
+        transactions = [
+          { type: 'online', method: onlineMethod, amount: absAmount }
+        ];
       }
-    });
 
-    if (itemsToSubmit.length === 0) {
-      toast.error("Please add return or exchange items.");
-      return;
+      if (paymentMode === 'split') {
+        const cash = Number(cashAmount || 0);
+
+        if (cash <= 0 || cash >= absAmount) {
+          throw new Error("Invalid cash split amount");
+        }
+
+        transactions = [
+          { type: 'cash', amount: cash },
+          {
+            type: 'online',
+            method: onlineMethod,
+            amount: absAmount - cash
+          }
+        ];
+      }
     }
 
-    // console.log("Submitting Exchange Payload:", itemsToSubmit);
-    setIsSubmitting(true);
-    try {
-      const result = await updateOrderForExchange(orderID, itemsToSubmit);
-      toast.success("Exchange processed successfully!");
-      
-      // The backend result usually contains the authoritative balance info
-      if(result.balanceInfo) toast.success(result.balanceInfo);
+    // 5️⃣ Persist money movement
+    if (netChange > 0) {
+      // additional payment
+      await updateOrderPayments(orderID, {
+        payments: transactions,
+        expectedAmount: netChange
+      });
 
-      onSuccessfulUpdate();
-      fetchOrders();
-
-    } catch (error) {
-      toast.error(error.toString());
-    } finally {
-      setIsSubmitting(false);
+      toast.success("Payment recorded");
     }
-  };
+
+    if (netChange < 0) {
+      // refund
+      for (const t of transactions) {
+       await settleRefund(orderID, {
+          type: t.type,
+          method: t.type === 'online' ? t.method : null,
+          amount: t.amount
+        });
+      }
+      toast.success("Refund settled");
+    }
+
+    // 6️⃣ Close & refresh
+    onSuccessfulUpdate();
+    fetchOrders();
+
+  } catch (err) {
+    toast.error(err.message || err.toString());
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
   const getTotalUnitPrice = (price, discount, tax) => {
     const discountAmt = (price * discount) / 100;
     const discountedPrice = price - discountAmt;
     const taxAmt = (discountedPrice * tax) / 100;
     return discountedPrice + taxAmt;
   };
+  const paymentCardStyle = (active = false) => ({
+    marginTop: '1rem',
+    padding: '14px',
+    borderRadius: '10px',
+    background: '#FAFAFA',
+    border: active ? '1.5px solid #8c9198ff' : '1px solid #ddd'
+  });
+
  
   if (isLoading) {
     return (
@@ -434,20 +525,165 @@ const OrderExchangeModal = ({ orderID, onClose, onSuccessfulUpdate, fetchOrders 
         )}
       </div>
 
-      {/* NET BALANCE SUMMARY */}
-      <div style={summaryStyle}>
-        <p style={summaryTextStyle}>Net Balance Change:</p>
-        <p style={netChangeStyle(netChange)}>
-          {/* Logic: If Net is negative, we owe the customer money (Credit). If Positive, they pay us. */}
-          {netChange < 0 ? "Refund to Customer: " : "Customer to Pay: "}
-          {formatPrice(Math.abs(netChange))}
-        </p>
+{/* NET BALANCE SUMMARY */}
+<div style={summaryStyle}>
+  <p style={summaryTextStyle}>Net Balance Change:</p>
+  <p style={netChangeStyle(netChange)}>
+    {netChange < 0 ? "Refund to Customer: " : "Customer to Pay: "}
+    {formatPrice(Math.abs(netChange))}
+  </p>
+</div>
+
+{/* PAYMENT / REFUND METHOD */}
+{netChange !== 0 && (
+  <div style={{ marginTop: '1.5rem' }}>
+    <h4 style={{ marginBottom: '0.5rem' }}>
+      {netChange > 0 ? 'Payment Method' : 'Refund Method'}
+    </h4>
+
+    <div style={{ display: 'flex', gap: '12px' }}>
+      {['cash', 'online', 'split'].map(m => (
+        <div
+          key={m}
+          onClick={() => setPaymentMode(m)}
+          style={{
+            padding: '12px 16px',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            border: paymentMode === m ? '2px solid #4D96FF' : '1px solid #ccc',
+            background: paymentMode === m ? '#EEF5FF' : '#fff',
+            fontWeight: 500,
+            minWidth: '90px',
+            textAlign: 'center'
+          }}
+        >
+          {m.toUpperCase()}
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
+{paymentMode === 'cash' && (
+  <div style={paymentCardStyle(true)}>
+    <label style={{ fontWeight: 500 }}>Cash Amount</label>
+    <input
+      type="number"
+      value={Math.abs(netChange)}
+      disabled
+      style={{
+        width: '100%',
+        marginTop: '6px',
+        padding: '12px',
+        fontSize: '1rem',
+        borderRadius: '6px',
+        background: '#F0F0F0'
+      }}
+    />
+  </div>
+)}
+
+
+{paymentMode === 'online' && (
+  <div style={paymentCardStyle(true)}>
+    <label style={{ fontWeight: 500 }}>Online Method</label>
+    <select
+      value={onlineMethod}
+      onChange={e => setOnlineMethod(e.target.value)}
+      style={{
+        width: '100%',
+        marginTop: '6px',
+        padding: '12px',
+        fontSize: '1rem',
+        borderRadius: '6px'
+      }}
+    >
+      <option value="upi">UPI</option>
+      <option value="card">Card</option>
+      <option value="wallet">Wallet</option>
+    </select>
+
+    <label style={{ marginTop: '12px', fontWeight: 500 }}>Amount</label>
+    <input
+      type="number"
+      value={Math.abs(netChange)}
+      disabled
+      style={{
+        width: '100%',
+        marginTop: '6px',
+        padding: '12px',
+        fontSize: '1rem',
+        borderRadius: '6px',
+        background: '#F0F0F0'
+      }}
+    />
+  </div>
+)}
+
+
+
+{paymentMode === 'split' && (
+  <div style={paymentCardStyle(true)}>
+    <div style={{ display: 'flex', gap: '12px' }}>
+      {/* CASH */}
+      <div style={{ flex: 1 }}>
+        <label style={{ fontWeight: 500 }}>Cash</label>
+        <input
+          type="number"
+          min="0"
+          max={Math.abs(netChange)}
+          value={cashAmount}
+          onChange={e => setCashAmount(e.target.value)}
+          style={{
+            width: '100%',
+            marginTop: '6px',
+            padding: '12px',
+            fontSize: '1rem',
+            borderRadius: '6px'
+          }}
+        />
       </div>
+
+      {/* ONLINE */}
+      <div style={{ flex: 1 }}>
+        <label style={{ fontWeight: 500 }}>Online</label>
+        <select
+          value={onlineMethod}
+          onChange={e => setOnlineMethod(e.target.value)}
+          style={{
+            width: '100%',
+            marginTop: '6px',
+            padding: '12px',
+            fontSize: '1rem',
+            borderRadius: '6px'
+          }}
+        >
+          <option value="upi">UPI</option>
+          <option value="card">Card</option>
+          <option value="wallet">Wallet</option>
+        </select>
+
+        <div style={{ marginTop: '6px', fontSize: '0.95rem', color: '#444' }}>
+          ₹{Math.max(0, Math.abs(netChange) - Number(cashAmount || 0))} online
+        </div>
+      </div>
+    </div>
+
+    <div style={{ marginTop: '10px', fontSize: '0.95rem', color: '#666' }}>
+      Total: ₹{Math.abs(netChange)}
+    </div>
+  </div>
+)}
+
+
+
+{/* (cash input OR online method OR split UI based on paymentMode) */}
+
 
       {/* FOOTER BUTTONS */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '2rem' }}>
         <button onClick={onClose} style={cancelButtonStyle}>Cancel</button>
-        <button onClick={handleSubmit} style={submitButtonStyle} disabled={isSubmitting}>
+        <button onClick={handleSubmit} style={submitButtonStyle} disabled={isSubmitting} >
           {isSubmitting ? "Processing..." : "Complete Exchange"}
         </button>
       </div>

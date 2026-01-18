@@ -216,11 +216,11 @@
   font-weight: 200;
 }
 
-.input-group {
+.salesperson-input-group {
   margin-bottom: 1rem;
 }
 
-.input-group label {
+.salesperson-input-group label {
   display: block;
   /* margin-bottom: 0.5rem; */
   font-weight: 500;
@@ -228,7 +228,7 @@
   font-size:large;
 }
 
-.input-group input {
+.salesperson-input-group input {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #d1d5db;
@@ -237,7 +237,7 @@
   transition: border-color 0.2s;
 }
 
-.input-group input:focus {
+.salesperson-input-group input:focus {
   outline: none;
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
@@ -258,6 +258,7 @@
   border-radius: 2rem;
   font-weight: 500;
   cursor: pointer;
+  font-size: large;
   transition: background-color 0.2s;
 }
 
@@ -269,10 +270,12 @@
   background-color: #31ad0c;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.8rem;
+  width:100px;
   border-radius: 2rem;
   font-weight: 500;
   cursor: pointer;
+  font-size: large;
   transition: background-color 0.2s;
 }
 
@@ -339,15 +342,16 @@
   flex-direction: column;
   gap: 6px;
   min-width: 160px;
+  /* font-size: medium; */
 }
 
 .salesperson-info-filter-group label {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: #374151;
   font-weight: 500;
 }
 .salesperson-info-filter-group select , option {
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   color: #374151;
   /* font-weight: 500; */
   /* display: flex; */

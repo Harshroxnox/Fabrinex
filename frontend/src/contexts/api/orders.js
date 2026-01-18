@@ -49,3 +49,67 @@ export const getReturnsByDateRange = async (dateFrom, dateTo, page, limit) => {
         throw error;
     }
 };
+export const downloadOrdersExcel = async (params = {}) => {
+  try {
+    const res = await axiosInstance.get(
+      "/orders/export-excel",
+      {
+        params,                // optional: dateFrom, dateTo, status, etc.
+        responseType: "blob"   // IMPORTANT
+      }
+    );
+    return res.data; // Blob
+  } catch (error) {
+    throw error;
+  }
+};
+
+// contexts/api/orders.js
+export const updateOrderMeta = async (orderID, payload) => {
+  try {
+    const res = await axiosInstance.put(
+      `/orders/update-order-meta/${orderID}`,
+      payload
+    );
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+export const updateOrderPayments = async (orderID, payload) => {
+  try {
+    const res = await axiosInstance.put(
+      `/orders/update-order-payments/${orderID}`,
+      payload
+    );
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+
+export const settleRefund = async (orderID, payload) => {
+  try {
+    const res = await axiosInstance.post(
+      `/orders/settle-refund/${orderID}`,
+      payload
+    );
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};
+
+// contexts/api/orders.js
+export const cancelOrder = async (orderID) => {
+  try {
+    const res = await axiosInstance.delete(
+      `/orders/delete-order/${orderID}`
+    );
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || error;
+  }
+};

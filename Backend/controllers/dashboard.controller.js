@@ -201,7 +201,6 @@ export const getMetricss = async (req, res, next) => {
   }
 };
 
-
 export const getMetrics = async (req, res, next) => {
   try {
     const result = {};
@@ -223,7 +222,7 @@ export const getMetrics = async (req, res, next) => {
         COALESCE(SUM(profit), 0) AS totalProfit,
         COALESCE(SUM(tax), 0) AS totalTax
       FROM Orders
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) = ? AND is_deleted = 0
     `, [year, month]);
     const currentMonthMetrics = currentMonthMetricsArr[0];
 
@@ -234,7 +233,7 @@ export const getMetrics = async (req, res, next) => {
         COALESCE(SUM(profit), 0) AS totalProfit,
         COALESCE(SUM(tax), 0) AS totalTax
       FROM Orders
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) = ? AND is_deleted =  0
     `, [prevMonthYear, prevMonth]);
     const prevMonthMetrics = prevMonthMetricsArr[0];
 
@@ -243,7 +242,7 @@ export const getMetrics = async (req, res, next) => {
         COALESCE(SUM(amount), 0) AS totalRevenue,
         COUNT(*) AS salesCount
       FROM Orders
-      WHERE YEAR(created_at) = ?
+      WHERE YEAR(created_at) = ? AND is_deleted = 0
     `, [year]);
     const currentYearMetrics = currentYearMetricsArr[0];
 
@@ -252,7 +251,7 @@ export const getMetrics = async (req, res, next) => {
         COALESCE(SUM(amount), 0) AS totalRevenue,
         COUNT(*) AS salesCount
       FROM Orders
-      WHERE YEAR(created_at) = ?
+      WHERE YEAR(created_at) = ? AND is_deleted = 0
     `, [prevYear]);
     const prevYearMetrics = prevYearMetricsArr[0];
 
@@ -262,7 +261,7 @@ export const getMetrics = async (req, res, next) => {
         COUNT(*) AS sales_count,
         COALESCE(SUM(amount), 0) AS total_earnings
       FROM Orders
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) = ?
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) = ? AND is_deleted = 0
       GROUP BY DAY(created_at)
       ORDER BY day;
     `, [year, month]);
@@ -274,7 +273,7 @@ export const getMetrics = async (req, res, next) => {
         COUNT(*) AS sales_count,
         COALESCE(SUM(amount), 0) AS total_earnings
       FROM Orders
-      WHERE YEAR(created_at) = ?
+      WHERE YEAR(created_at) = ? AND is_deleted = 0
       GROUP BY MONTH(created_at), MONTHNAME(created_at)
       ORDER BY month_num;
     `, [year]);
@@ -293,7 +292,7 @@ export const getMetrics = async (req, res, next) => {
         SUM(oi.quantity * oi.price_at_purchase) AS total_sales
       FROM OrderItems oi
       JOIN Orders o ON oi.orderID = o.orderID
-      WHERE o.order_status NOT IN ('cancelled', 'failed')
+      WHERE o.order_status NOT IN ('cancelled', 'failed') AND o.is_deleted = 0
       GROUP BY oi.category
       ORDER BY total_sales DESC
     `);
@@ -305,7 +304,7 @@ export const getMetrics = async (req, res, next) => {
         SUM(oi.quantity * oi.price_at_purchase) AS total_sales
       FROM OrderItems oi
       JOIN Orders o ON oi.orderID = o.orderID
-      WHERE o.order_status NOT IN ('cancelled', 'failed')
+      WHERE o.order_status NOT IN ('cancelled', 'failed') AND o.is_deleted = 0
       GROUP BY oi.name
       ORDER BY total_units_sold DESC
       LIMIT 8;
@@ -325,6 +324,27 @@ export const getMetrics = async (req, res, next) => {
       LIMIT 10;
     `);
 
+    const [monthlyPayments] = await db.execute(`
+      SELECT
+        op.type,
+        COALESCE(SUM(op.amount), 0) AS total_amount
+      FROM OrderPayments op
+      JOIN Orders o ON op.orderID = o.orderID
+      WHERE YEAR(o.created_at) = ?
+        AND MONTH(o.created_at) = ? AND o.is_deleted = 0
+      GROUP BY op.type
+    `, [year, month]);
+
+    const paymentSummary = {
+      cash: 0,
+      online: 0
+    };
+
+    monthlyPayments.forEach(p => {
+      paymentSummary[p.type] = parseFloat(p.total_amount);
+    });
+
+
     result.monthlySummary = {
       revenue: parseFloat(currentMonthMetrics.totalRevenue),
       revenueChange: percentChange(currentMonthMetrics.totalRevenue, prevMonthMetrics.totalRevenue),
@@ -334,8 +354,35 @@ export const getMetrics = async (req, res, next) => {
       profitChange: percentChange(currentMonthMetrics.totalProfit, prevMonthMetrics.totalProfit),
       tax: parseFloat(currentMonthMetrics.totalTax),
       taxChange: percentChange(currentMonthMetrics.totalTax, prevMonthMetrics.totalTax),
+      paymentBreakdown: paymentSummary,
       chartData: monthSalesChart,
+
     };
+
+    const [paymentMetrics] = await db.execute(`
+      SELECT
+        op.type,
+        SUM(CASE WHEN DATE(o.created_at) = CURRENT_DATE() THEN op.amount ELSE 0 END) AS today_amount,
+        SUM(CASE WHEN DATE(o.created_at) = CURRENT_DATE() - INTERVAL 1 DAY THEN op.amount ELSE 0 END) AS yesterday_amount
+      FROM OrderPayments op
+      JOIN Orders o ON op.orderID = o.orderID
+      WHERE DATE(o.created_at) >= CURRENT_DATE() - INTERVAL 1 DAY AND o.is_deleted = 0
+      GROUP BY op.type
+    `);
+
+    const todayPaymentSummary = {
+      cash: { today: 0, yesterday: 0 },
+      online: { today: 0, yesterday: 0 }
+    };
+
+    paymentMetrics.forEach(p => {
+      todayPaymentSummary[p.type] = {
+        today: parseFloat(p.today_amount),
+        yesterday: parseFloat(p.yesterday_amount)
+      };
+    });
+
+    result.paymentSummary = todayPaymentSummary;
 
     result.yearlySummary = {
       revenue: parseFloat(currentYearMetrics.totalRevenue),
@@ -366,7 +413,6 @@ export const getMetrics = async (req, res, next) => {
   }
 };
 
-
 /**
  * Controller to get metrics for the current day compared to the previous day.
  */
@@ -379,7 +425,7 @@ export const getTodaysMetrics = async (req, res, next) => {
         COALESCE(SUM(CASE WHEN DATE(created_at) = CURRENT_DATE() - INTERVAL 1 DAY THEN amount ELSE 0 END), 0) AS yesterdaysRevenue,
         COUNT(CASE WHEN DATE(created_at) = CURRENT_DATE() - INTERVAL 1 DAY THEN orderID END) AS yesterdaysSales
       FROM Orders
-      WHERE DATE(created_at) >= CURRENT_DATE() - INTERVAL 1 DAY
+      WHERE DATE(created_at) >= CURRENT_DATE() - INTERVAL 1 DAY AND is_deleted = 0
     `);
 
     const result = {
